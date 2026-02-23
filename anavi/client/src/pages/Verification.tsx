@@ -1,11 +1,11 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import FVMCelebration from "@/components/FVMCelebration";
 import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { motion } from "framer-motion";
 import { SmoothReveal, GlowingBorder, SmoothCounter } from "@/components/PremiumAnimations";
 import {
   Shield,
@@ -427,14 +427,13 @@ function scoreColor(score: number) {
 }
 
 function statusPill(status: string) {
-  const map: Record<string, { bg: string; fg: string }> = {
-    Verified: { bg: `${C.green}18`, fg: C.green },
-    Pending: { bg: `${C.gold}18`, fg: C.gold },
-    Auto: { bg: `${C.blue}18`, fg: C.blue },
+  const cls: Record<string, string> = {
+    Verified: "bg-[#059669]/15 text-[#059669] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+    Pending:  "bg-[#F59E0B]/15 text-[#F59E0B] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+    Auto:     "bg-[#2563EB]/10 text-[#2563EB] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
   };
-  const s = map[status] ?? map.Auto;
   return (
-    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: s.bg, color: s.fg }}>
+    <span className={cls[status] ?? cls.Auto}>
       {status}
     </span>
   );
@@ -496,7 +495,7 @@ export default function Verification() {
         </div>
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-display tracking-tight" style={{ color: C.navy }}>
+            <h1 className="dash-heading text-3xl">
               Verification &amp; Trust
             </h1>
             <Badge
@@ -518,59 +517,56 @@ export default function Verification() {
          ══════════════════════════════════════════════════════ */}
 
       {/* Score Overview Card */}
-      <Card className="border shadow-sm" style={{ borderColor: C.border }}>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-            {/* Left — big number */}
-            <div className="flex flex-col items-center lg:items-start">
-              <span className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: `${C.navy}60` }}>
-                Trust Score
-              </span>
-              <span className="font-mono text-[72px] leading-none font-bold" style={{ color: overallColor }}>
-                {trustScore}
-              </span>
-              <span className="text-sm mt-2" style={{ color: `${C.navy}60` }}>
-                out of 100
-              </span>
-            </div>
+      <div className="card-elevated p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+          {/* Left — big number */}
+          <div className="flex flex-col items-center lg:items-start">
+            <span className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: `${C.navy}60` }}>
+              Trust Score
+            </span>
+            <span className="font-data-hud text-4xl font-bold" style={{ color: overallColor }}>
+              <SmoothCounter value={trustScore} />
+            </span>
+            <span className="text-sm mt-2" style={{ color: `${C.navy}60` }}>
+              out of 100
+            </span>
+          </div>
 
-            {/* Center — radar */}
-            <SmoothReveal className="flex justify-center">
-              <RadarChart scores={DIMENSIONS.map((d) => d.score)} size={240} />
-            </SmoothReveal>
+          {/* Center — radar */}
+          <SmoothReveal className="flex justify-center">
+            <RadarChart scores={DIMENSIONS.map((d) => d.score)} size={240} />
+          </SmoothReveal>
 
-            {/* Right — mini line chart */}
-            <div className="flex flex-col items-center lg:items-end gap-2">
-              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: `${C.navy}60` }}>
-                6-Month Trend
-              </span>
-              <MiniLineChart data={SCORE_HISTORY} width={200} height={80} />
-              <div className="flex gap-3 mt-1">
-                {["Aug", "Sep", "Oct", "Nov", "Dec", "Jan"].map((m) => (
-                  <span key={m} className="text-[10px]" style={{ color: `${C.navy}50` }}>
-                    {m}
-                  </span>
-                ))}
-              </div>
+          {/* Right — mini line chart */}
+          <div className="flex flex-col items-center lg:items-end gap-2">
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: `${C.navy}60` }}>
+              6-Month Trend
+            </span>
+            <MiniLineChart data={SCORE_HISTORY} width={200} height={80} />
+            <div className="flex gap-3 mt-1">
+              {["Aug", "Sep", "Oct", "Nov", "Dec", "Jan"].map((m) => (
+                <span key={m} className="text-[10px]" style={{ color: `${C.navy}50` }}>
+                  {m}
+                </span>
+              ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Component Score Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {DIMENSIONS.map((dim) => {
+        {DIMENSIONS.map((dim, dimIndex) => {
           const Icon = dim.icon;
           const borderColor = dimBorderColor(dim.score);
           return (
-            <Card
+            <div
               key={dim.key}
-              className="border shadow-sm overflow-hidden"
-              style={{ borderColor: C.border }}
+              className="card-elevated overflow-hidden"
             >
               <div className="flex h-full">
                 <div className="w-1 flex-shrink-0" style={{ backgroundColor: borderColor }} />
-                <CardContent className="p-4 flex-1">
+                <div className="p-4 flex-1">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Icon className="w-4 h-4" style={{ color: borderColor }} />
@@ -580,7 +576,7 @@ export default function Verification() {
                     </div>
                     {statusPill(dim.status)}
                   </div>
-                  <div className="flex items-end justify-between">
+                  <div className="flex items-end justify-between mb-3">
                     <span className="font-mono text-2xl font-bold" style={{ color: C.navy }}>
                       {dim.score}
                       <span className="text-sm font-normal" style={{ color: `${C.navy}50` }}>
@@ -596,9 +592,18 @@ export default function Verification() {
                       </button>
                     )}
                   </div>
-                </CardContent>
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#0A1628]/6">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{
+                        width: `${dim.score}%`,
+                        background: dim.score > 80 ? "#059669" : dim.score > 60 ? "#C4972A" : "#2563EB",
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>
@@ -608,42 +613,35 @@ export default function Verification() {
          ══════════════════════════════════════════════════════ */}
 
       {/* Current Tier Card */}
-      <Card className="border shadow-sm" style={{ borderColor: C.border }}>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-6">
-            <TierShieldBadge tier={tier} size={72} />
-            <div className="flex-1">
-              <h3 className="text-lg font-bold" style={{ color: C.navy }}>
-                Current Tier: Tier {tier}
-              </h3>
-              <p className="text-sm mt-1" style={{ color: `${C.navy}70` }}>
-                {tier === 1 && "Basic access — deals up to $1M, standard matching, basic counterparty visibility."}
-                {tier === 2 && "Enhanced access — deals up to $50M, priority matching, enhanced counterparty data."}
-                {tier === 3 && "Full institutional access — unlimited deal size, premium matching, all counterparties."}
-              </p>
-            </div>
-            {tier < 2 && (
-              <Button
-                className="cursor-pointer font-semibold"
-                style={{ backgroundColor: C.gold, color: "white", height: 48, paddingInline: 24 }}
-                onClick={() => setUpgradeOpen(true)}
-              >
-                Upgrade to Tier 2
-              </Button>
-            )}
+      <div className="card-elevated p-6">
+        <div className="flex items-center gap-6">
+          <TierShieldBadge tier={tier} size={72} />
+          <div className="flex-1">
+            <h3 className="text-lg font-bold" style={{ color: C.navy }}>
+              Current Tier: Tier {tier}
+            </h3>
+            <p className="text-sm mt-1" style={{ color: `${C.navy}70` }}>
+              {tier === 1 && "Basic access — deals up to $1M, standard matching, basic counterparty visibility."}
+              {tier === 2 && "Enhanced access — deals up to $50M, priority matching, enhanced counterparty data."}
+              {tier === 3 && "Full institutional access — unlimited deal size, premium matching, all counterparties."}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          {tier < 2 && (
+            <Button
+              className="cursor-pointer font-semibold"
+              style={{ backgroundColor: C.gold, color: "white", height: 48, paddingInline: 24 }}
+              onClick={() => setUpgradeOpen(true)}
+            >
+              Upgrade to Tier 2
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Tier Comparison Table */}
-      <Card className="border shadow-sm overflow-hidden" style={{ borderColor: C.border }}>
-        <CardHeader className="pb-0">
-          <CardTitle className="text-lg font-bold" style={{ color: C.navy }}>
-            Tier Comparison
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 mt-4">
-          <div className="overflow-x-auto">
+      <div className="card-elevated p-6 overflow-hidden">
+        <h3 className="mb-4 data-label">Tier Comparison</h3>
+        <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ backgroundColor: `${C.navy}06` }}>
@@ -653,7 +651,7 @@ export default function Verification() {
                   {[1, 2, 3].map((t) => (
                     <th
                       key={t}
-                      className="px-6 py-3 font-semibold text-center"
+                      className={`px-6 py-3 font-semibold text-center ${tier === t ? "border-l border-r border-[#C4972A]/25" : ""}`}
                       style={{
                         color: C.navy,
                         borderBottom: tier === t ? `2px solid ${C.blue}` : undefined,
@@ -678,7 +676,7 @@ export default function Verification() {
                     {([f.t1, f.t2, f.t3] as const).map((val, ti) => (
                       <td
                         key={ti}
-                        className="px-6 py-3 text-center"
+                        className={`px-6 py-3 text-center ${tier === ti + 1 ? "border-l border-r border-[#C4972A]/25" : ""}`}
                         style={{
                           color: tier === ti + 1 ? C.blue : `${C.navy}70`,
                           fontWeight: tier === ti + 1 ? 600 : 400,
@@ -693,8 +691,7 @@ export default function Verification() {
               </tbody>
             </table>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* ══════════════════════════════════════════════════════
           Compliance Passport
@@ -723,7 +720,7 @@ export default function Verification() {
                   {user?.name ?? "—"}
                 </div>
                 <div className="text-xs mt-0.5" style={{ color: `${C.navy}50` }}>
-                  ID: {user?.id?.slice(0, 8) ?? "—"}
+                  ID: {user?.id != null ? String(user.id).slice(0, 8) : "—"}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -783,13 +780,9 @@ export default function Verification() {
         </GlowingBorder>
 
         {/* Share Controls */}
-        <Card className="border shadow-sm" style={{ borderColor: C.border }}>
-          <CardHeader>
-            <CardTitle className="text-lg font-bold" style={{ color: C.navy }}>
-              Share & Access
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
+        <div className="card-elevated p-6">
+          <h3 className="mb-4 data-label">Share & Access</h3>
+          <div className="space-y-5">
             <div>
               <label className="text-xs font-semibold uppercase tracking-wide mb-2 block" style={{ color: `${C.navy}60` }}>
                 Shareable Verification Link
@@ -800,7 +793,7 @@ export default function Verification() {
                 <Button
                   className="w-full cursor-pointer"
                   style={{ backgroundColor: C.blue, color: "white", height: 48 }}
-                  onClick={() => setShareUrl(`https://anavi.io/verify/${user?.id?.slice(0, 8) ?? "abc123"}`)}
+                  onClick={() => setShareUrl(`https://anavi.io/verify/${user?.id != null ? String(user.id).slice(0, 8) : "abc123"}`)}
                 >
                   Generate Shareable Link
                 </Button>
@@ -839,8 +832,8 @@ export default function Verification() {
               <Lock className="w-4 h-4" />
               <span className="font-medium">Accepted by 12 institutional partners</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

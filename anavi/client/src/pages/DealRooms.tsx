@@ -20,12 +20,18 @@ const STATUS_FILTERS: { key: StatusFilter; label: string; className: string }[] 
   { key: "declined", label: "Declined", className: "status-declined" },
 ];
 
+const BADGE = "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider";
+
 function getStatusClass(status: string | null): string {
   switch (status) {
-    case "active": return "status-active";
-    case "closed": return "status-completed";
-    case "archived": return "status-declined";
-    default: return "status-nda-pending";
+    case "active":
+      return `bg-[#22D4F5]/10 text-[#22D4F5]/80 ${BADGE}`;
+    case "closed":
+      return `bg-[#059669]/15 text-[#059669] ${BADGE}`;
+    case "archived":
+      return `bg-[#6B7280]/15 text-[#6B7280] ${BADGE}`;
+    default:
+      return `bg-[#F59E0B]/15 text-[#F59E0B] ${BADGE}`;
   }
 }
 
@@ -91,7 +97,7 @@ export default function DealRooms() {
     <div className="p-8 space-y-6 animate-fade-in">
       {/* Header */}
       <FadeInView>
-        <h1 className="text-display" style={{ color: "#0A1628" }}>Deal Rooms</h1>
+        <h1 className="dash-heading text-3xl">Deal Rooms</h1>
       </FadeInView>
 
       {/* Stats Row */}
@@ -104,8 +110,7 @@ export default function DealRooms() {
         ].map((s) => (
           <div
             key={s.label}
-            className="bg-white rounded-lg border p-5"
-            style={{ borderColor: "#D1DCF0" }}
+            className="card-elevated p-5"
           >
             <div className="text-label text-muted-foreground mb-1">{s.label}</div>
             <div className="text-2xl font-bold number-display" style={{ color: s.color }}>
@@ -116,19 +121,18 @@ export default function DealRooms() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap gap-2">
+      <div className="card-elevated p-1.5 flex flex-wrap gap-1">
         {STATUS_FILTERS.map((sf) => {
           const isActive = filter === sf.key;
           return (
             <button
               key={sf.key}
               onClick={() => setFilter(sf.key)}
-              className={`status-pill cursor-pointer transition-all ${
+              className={
                 isActive
-                  ? sf.className || "bg-[#0A1628] text-white"
-                  : "bg-gray-50 text-gray-500 hover:bg-gray-100"
-              }`}
-              style={isActive && sf.key === "all" ? { background: "#0A1628", color: "#fff" } : undefined}
+                  ? "rounded-md px-3 py-1.5 text-xs font-semibold bg-[#0A1628] text-white cursor-pointer transition-all"
+                  : "rounded-md px-3 py-1.5 text-xs font-medium text-[#1E3A5F]/60 hover:text-[#0A1628] hover:bg-[#0A1628]/5 cursor-pointer transition-all"
+              }
             >
               {sf.label}
             </button>
@@ -140,13 +144,13 @@ export default function DealRooms() {
       {isLoading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
+            <div key={i} className="card-elevated p-6">
               <div className="h-40 animate-shimmer rounded-lg" />
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
+        <div className="card-elevated p-6">
           <EmptyState {...EMPTY_STATES.dealRooms} />
         </div>
       ) : (
@@ -159,14 +163,11 @@ export default function DealRooms() {
             return (
               <StaggerItem key={room.id}>
               <ScaleHover>
-              <div
-                className="bg-white rounded-lg border flex flex-col hover-lift"
-                style={{ borderColor: "#D1DCF0" }}
-              >
+              <div className="card-elevated flex flex-col hover:translate-y-[-2px]">
                 <div className="p-5 flex-1 space-y-3">
                   {/* Status pill */}
                   <div className="flex justify-end">
-                    <span className={`status-pill ${getStatusClass(room.status)}`}>
+                    <span className={`inline-flex ${getStatusClass(room.status)}`}>
                       {getStatusLabel(room.status)}
                     </span>
                   </div>
@@ -189,7 +190,7 @@ export default function DealRooms() {
                       <Clock className="w-3.5 h-3.5" />
                       {days}d in room
                     </span>
-                    <span>Last: {lastActivity}</span>
+                    <span>Last: <span className="font-data-hud text-[10px] text-[#1E3A5F]/50">{lastActivity}</span></span>
                   </div>
 
                   {/* Badges */}
