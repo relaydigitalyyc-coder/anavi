@@ -509,7 +509,7 @@ function IncomingTab({
           <div
             key={m.id}
             className={`card-elevated p-6 flex flex-col sm:flex-row gap-6 hover:translate-y-[-2px] transition-transform ${index === 0 ? "border-[#22D4F5]/25" : ""}`}
-            style={index === 0 ? { boxShadow: "0 4px 24px rgb(10 22 40 / 0.08), 0 0 0 1px rgb(34 212 245 / 0.18)" } : undefined}
+            style={index === 0 ? { boxShadow: "0 4px 24px rgb(10 22 40 / 0.08), 0 0 0 1px rgb(34 212 245 / 0.20)" } : undefined}
           >
             {/* score column */}
             <div className="flex flex-col items-center justify-center shrink-0 w-28">
