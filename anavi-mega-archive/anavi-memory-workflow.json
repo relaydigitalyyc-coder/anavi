@@ -1,0 +1,51 @@
+{
+  "name": "ANAVI AI Memory System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "anavi-memory",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Memory Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.all()[0].json;\nconst memoryEntry = {\n  id: `mem_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n  timestamp: new Date().toISOString(),\n  type: input.type || 'conversation',\n  category: input.category || 'general',\n  content: input.content,\n  context: input.context || {},\n  entities: input.entities || [],\n  deals: input.deals || [],\n  relationships: input.relationships || [],\n  importance: input.importance || 'medium'\n};\nreturn [{ json: memoryEntry }];"
+      },
+      "id": "process-memory",
+      "name": "Process Memory Entry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, memoryId: $json.id, timestamp: $json.timestamp }) }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [690, 300]
+    }
+  ],
+  "connections": {
+    "Memory Webhook": {
+      "main": [[{"node": "Process Memory Entry", "type": "main", "index": 0}]]
+    },
+    "Process Memory Entry": {
+      "main": [[{"node": "Respond", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

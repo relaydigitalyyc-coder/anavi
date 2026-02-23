@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wget:*)",
+      "Bash(unzip:*)",
+      "Bash(snap install:*)",
+      "Bash(echo:*)",
+      "WebFetch(domain:hex.tech)",
+      "WebFetch(domain:swap-commerce.com)",
+      "Bash(cat /home/ariel/Documents/anavi-main/anavi/index.html 2>/dev/null && cat /home/ariel/Documents/anavi-main/anavi/package.json | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/home/ariel/Documents/anavi-main/anavi/package.json'\\)\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")"
+    ]
+  }
+}

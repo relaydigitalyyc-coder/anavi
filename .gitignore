@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+dist/
+build/
+.vite/
+
+# Logs
+*.log
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+.playwright-cli/
