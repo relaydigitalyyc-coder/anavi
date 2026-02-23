@@ -189,15 +189,17 @@ export default function Relationships() {
       </FadeInView>
 
       {/* Filter Bar */}
-      <div
-        style={{
-          padding: "24px 32px",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
+      <div style={{ padding: "0 32px 24px" }}>
+        <div
+          className="card-elevated"
+          style={{
+            padding: "20px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
         <div style={{ position: "relative", width: 300 }}>
           <Search
             size={16}
@@ -301,6 +303,7 @@ export default function Relationships() {
           <Shield size={16} />
           Protect a Relationship
         </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -1247,7 +1250,10 @@ function ReceiptRow({ label, value, mono, last }: { label: string; value: string
       }}
     >
       <span style={{ fontSize: 13, color: "#6B7A90" }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.navy, fontFamily: mono ? "monospace" : "inherit" }}>
+      <span
+        className={mono ? "font-data-hud text-[10px] text-[#1E3A5F]/50 font-semibold" : ""}
+        style={!mono ? { fontSize: 13, fontWeight: 600, color: COLORS.navy } : undefined}
+      >
         {value}
       </span>
     </div>
