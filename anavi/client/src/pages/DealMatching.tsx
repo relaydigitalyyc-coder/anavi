@@ -786,7 +786,7 @@ function CreateIntentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
+      <div className="relative w-full max-w-2xl max-h-[90vh] card-elevated flex flex-col overflow-hidden">
         {/* progress */}
         <div className="h-1 bg-gray-100">
           <div
