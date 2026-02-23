@@ -136,7 +136,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar — hidden on mobile */}
       <aside
         className="hidden w-[240px] shrink-0 flex-col md:flex"
-        style={{ backgroundColor: "#0A1628" }}
+        style={{ backgroundColor: "#060A12" }}
       >
         <div className="flex h-14 items-center px-5">
           <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
@@ -150,9 +150,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <a
                   className={`group flex h-10 cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
                     isActive
-                      ? "border-l-[3px] border-l-[#2563EB] bg-white/10 text-white"
+                      ? "bg-white/8 text-white"
                       : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
                   }`}
+                  style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
                   aria-current={isActive ? "page" : undefined}
                 >
                   <item.icon className="h-[18px] w-[18px] shrink-0" />
@@ -194,8 +195,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         {/* Top bar */}
         <header
           role="banner"
-          className="flex h-14 shrink-0 items-center justify-between bg-white px-4 md:px-6"
-          style={{ borderBottom: "1px solid #D1DCF0" }}
+          className="flex h-14 shrink-0 items-center justify-between glass-light px-4 md:px-6 sticky top-0 z-30"
         >
           <div className="flex items-center gap-3">
             <button
@@ -255,17 +255,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {notifOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setNotifOpen(false)} />
-          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-sm bg-white shadow-2xl animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: "#D1DCF0" }}>
-              <h2 className="text-lg font-semibold" style={{ color: "#0A1628" }}>Notifications</h2>
+          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-sm bg-[#0A1628] shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <h2 className="text-lg font-semibold text-white">Notifications</h2>
               <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
                   <button onClick={markAllRead} className="text-xs font-medium text-[#2563EB] hover:underline">
                     Mark All Read
                   </button>
                 )}
-                <button onClick={() => setNotifOpen(false)} className="rounded p-1 hover:bg-gray-100">
-                  <X className="h-5 w-5 text-gray-400" />
+                <button onClick={() => setNotifOpen(false)} className="rounded p-1 hover:bg-white/10">
+                  <X className="h-5 w-5 text-white/40" />
                 </button>
               </div>
             </div>
@@ -273,16 +273,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               {notifications.map(n => (
                 <div
                   key={n.id}
-                  className={`flex gap-3 border-b px-5 py-4 transition-colors ${n.read ? "bg-white" : "bg-[#F3F7FC]"}`}
-                  style={{ borderColor: "#D1DCF0" }}
+                  className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
                 >
                   <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${n.iconColor}15` }}>
                     <n.icon className="h-4 w-4" style={{ color: n.iconColor }} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold" style={{ color: "#0A1628" }}>{n.title}</p>
-                    <p className="mt-0.5 text-xs text-gray-500">{n.message}</p>
-                    <p className="mt-1 text-[10px] text-gray-400">{n.time}</p>
+                    <p className="text-sm font-semibold text-white">{n.title}</p>
+                    <p className="mt-0.5 text-xs text-white/60">{n.message}</p>
+                    <p className="mt-1 text-[10px] text-white/40">{n.time}</p>
                   </div>
                   {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2563EB]" />}
                 </div>
@@ -295,8 +294,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile bottom navigation */}
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-around border-t bg-white md:hidden"
-        style={{ borderColor: "#D1DCF0", paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-around border-t border-white/10 bg-[#060A12] md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {mobileNavItems.map((item) => {
           const isActive = location === item.path;
@@ -304,7 +303,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <Link key={item.path} href={item.path}>
               <a
                 className={`flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-lg text-[10px] font-medium transition-colors ${
-                  isActive ? "text-[#2563EB]" : "text-gray-400"
+                  isActive ? "text-[#22D4F5]" : "text-white/40"
                 }`}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={item.label}

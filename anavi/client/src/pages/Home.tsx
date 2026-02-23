@@ -1,9 +1,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { 
-  ArrowRight, 
-  Shield, 
-  Network, 
-  Lock, 
+import {
+  ArrowRight,
+  Shield,
+  Network,
+  Lock,
   TrendingUp,
   Users,
   Eye,
@@ -46,30 +46,30 @@ export default function Home() {
     target: heroRef,
     offset: ["start start", "end start"]
   });
-  
+
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden">
+    <div className="min-h-screen bg-canvas-void text-white overflow-hidden">
       {/* Navigation */}
-      <motion.nav 
-        className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/50"
+      <motion.nav
+        className="fixed top-0 left-0 right-0 z-50 glass-dark border-b border-hairline"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 md:h-20 flex items-center justify-between">
-          <motion.div 
+          <motion.div
             className="flex items-center gap-1"
             whileHover={{ scale: 1.02 }}
           >
             <span className="text-2xl md:text-3xl font-medium tracking-tight">@</span>
             <span className="text-2xl md:text-3xl font-medium tracking-tight">navi</span>
-            <motion.span 
+            <motion.span
               className="w-2 h-2 rounded-full bg-sky-500 mb-4"
-              animate={{ 
+              animate={{
                 scale: [1, 1.3, 1],
                 opacity: [1, 0.7, 1]
               }}
@@ -79,17 +79,17 @@ export default function Home() {
           <div className="flex items-center gap-4 md:gap-10">
             <div className="hidden md:flex items-center gap-10">
               {["Features", "How It Works", "Trust"].map((item, i) => (
-                <motion.a 
+                <motion.a
                   key={item}
-                  href={`#${item.toLowerCase().replace(/\s+/g, '-')}`} 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-all duration-300 relative group"
+                  href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="text-sm text-white/60 hover:text-white transition-all duration-300 relative group"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + i * 0.1 }}
                 >
                   {item}
-                  <motion.span 
-                    className="absolute -bottom-1 left-0 w-0 h-px bg-accent group-hover:w-full transition-all duration-300"
+                  <motion.span
+                    className="absolute -bottom-1 left-0 w-0 h-px bg-[#C4972A] group-hover:w-full transition-all duration-300"
                   />
                 </motion.a>
               ))}
@@ -97,7 +97,7 @@ export default function Home() {
             <Link href="/dashboard">
               <Magnetic strength={0.15}>
                 <motion.button
-                  className="relative bg-foreground text-background px-5 md:px-8 py-2.5 md:py-3 text-xs md:text-sm font-medium overflow-hidden group"
+                  className="relative bg-[#C4972A] text-[#060A12] px-5 md:px-8 py-2.5 md:py-3 text-xs md:text-sm font-semibold overflow-hidden group"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -117,19 +117,61 @@ export default function Home() {
 
       {/* Hero Section */}
       <section ref={heroRef} className="min-h-screen flex items-center pt-16 md:pt-20 relative overflow-hidden">
+        {/* Animated gradient mesh */}
+        <div className="absolute inset-0 bg-mesh pointer-events-none" aria-hidden="true" />
+        {/* Noise texture overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          aria-hidden="true"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
+            opacity: 0.4,
+          }}
+        />
+
+        {/* HUD accent element */}
+        <motion.div
+          className="absolute top-24 right-8 hidden lg:block animate-hud-float pointer-events-none z-10"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          aria-hidden="true"
+        >
+          <div className="glass-dark rounded-lg p-4 space-y-2 min-w-[160px]">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#22D4F5] animate-glow-pulse" />
+              <span className="font-data-hud text-[10px] text-white/40 uppercase tracking-widest">
+                System Status
+              </span>
+            </div>
+            <div className="space-y-1">
+              {[
+                { label: "Trust Engine", value: "ACTIVE", color: "#22D4F5" },
+                { label: "Matches Live", value: "247",    color: "#C4972A" },
+                { label: "Deal Rooms",   value: "89",     color: "#9B7CF8" },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="flex items-center justify-between gap-6">
+                  <span className="font-data-hud text-[10px] text-white/40">{label}</span>
+                  <span className="font-data-hud text-[10px]" style={{ color }}>{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
         {/* Premium Background Effects - @navi brand */}
         <AuroraBackground className="opacity-30" />
         <MorphingBlob className="w-[600px] h-[600px] -top-[200px] -right-[200px]" color="oklch(0.65 0.19 230 / 0.08)" />
         <MorphingBlob className="w-[400px] h-[400px] bottom-[10%] -left-[100px]" color="oklch(0.55 0.15 160 / 0.06)" />
-        
-        <motion.div 
+
+        <motion.div
           className="max-w-7xl mx-auto px-4 md:px-8 w-full relative z-10 py-12 md:py-0"
           style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
             <div>
-              <motion.div 
-                className="inline-flex items-center gap-2 px-4 py-2 border border-border/50 bg-background/50 backdrop-blur-sm mb-6 md:mb-8"
+              <motion.div
+                className="inline-flex items-center gap-2 px-4 py-2 border border-white/10 bg-white/5 backdrop-blur-sm mb-6 md:mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -140,10 +182,10 @@ export default function Home() {
                 >
                   <Sparkles className="w-4 h-4 text-accent" />
                 </motion.span>
-                <span className="text-xs uppercase tracking-widest text-muted-foreground">The Private Market Operating System</span>
+                <span className="text-xs uppercase tracking-widest text-white/60">The Private Market Operating System</span>
               </motion.div>
-              
-              <h1 className="text-6xl md:text-7xl lg:text-[120px] font-serif leading-[0.85] mb-8 md:mb-10">
+
+              <h1 className="font-display text-6xl md:text-7xl lg:text-[120px] font-serif leading-[0.85] mb-8 md:mb-10 text-white">
                 <span className="block overflow-hidden">
                   <motion.span
                     className="block"
@@ -171,22 +213,22 @@ export default function Home() {
                     animate={{ y: 0, rotateX: 0 }}
                     transition={{ duration: 1, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
                   >
-                    <GradientText className="font-serif">Relationships</GradientText>
+                    <span className="text-gradient-gold font-display">Relationships</span>
                   </motion.span>
                 </span>
               </h1>
-              
-              <motion.p 
-                className="text-lg md:text-xl text-muted-foreground max-w-lg mb-10 md:mb-14 leading-relaxed"
+
+              <motion.p
+                className="text-lg md:text-xl text-white/70 max-w-lg mb-10 md:mb-14 leading-relaxed"
                 initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ delay: 0.8, duration: 0.8 }}
               >
-                The first platform that lets you prove, protect, and profit from your professional relationships. 
+                The first platform that lets you prove, protect, and profit from your professional relationships.
                 Match anonymously. Close deals with confidence.
               </motion.p>
-              
-              <motion.div 
+
+              <motion.div
                 className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 md:gap-5"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -198,7 +240,8 @@ export default function Home() {
                       <motion.button
                         className="w-full sm:w-auto bg-foreground text-background px-8 md:px-12 py-5 md:py-6 text-sm uppercase tracking-widest flex items-center justify-center gap-4 group"
                         whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       >
                         <span>Enter Demo</span>
                         <motion.span
@@ -216,7 +259,8 @@ export default function Home() {
                   <motion.button
                     className="w-full sm:w-auto border border-border px-8 md:px-10 py-5 md:py-6 text-sm uppercase tracking-widest hover:bg-accent/10 hover:border-accent/50 transition-all duration-300 flex items-center justify-center gap-3 group"
                     whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   >
                     <Brain className="w-5 h-5 group-hover:text-accent transition-colors" />
                     <span>AI Intelligence</span>
@@ -224,7 +268,7 @@ export default function Home() {
                 </Link>
               </motion.div>
             </div>
-            
+
             {/* Hero Visual - Enhanced */}
             <motion.div
               className="relative hidden lg:block"
@@ -241,21 +285,21 @@ export default function Home() {
                     style={{
                       transform: `scale(${1 - i * 0.12})`,
                     }}
-                    animate={{ 
+                    animate={{
                       rotate: i % 2 === 0 ? [0, 360] : [360, 0],
                       borderColor: ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.15)", "rgba(255,255,255,0.05)"]
                     }}
-                    transition={{ 
+                    transition={{
                       rotate: { duration: 25 + i * 8, repeat: Infinity, ease: "linear" },
                       borderColor: { duration: 4, repeat: Infinity }
                     }}
                   />
                 ))}
-                
+
                 {/* Central glowing element - @navi sky blue */}
                 <motion.div
                   className="absolute inset-[25%] bg-gradient-to-br from-sky-500/20 via-sky-500/5 to-transparent border border-sky-500/30 flex items-center justify-center backdrop-blur-sm rounded-lg"
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.05, 1],
                     boxShadow: [
                       "0 0 60px oklch(0.65 0.19 230 / 0.15)",
@@ -272,7 +316,7 @@ export default function Home() {
                     <Network className="w-20 h-20 text-accent" />
                   </motion.div>
                 </motion.div>
-                
+
                 {/* Floating icons with trails */}
                 {[
                   { Icon: Shield, pos: "top-[5%] left-[20%]", delay: 0 },
@@ -284,17 +328,17 @@ export default function Home() {
                 ].map(({ Icon, pos, delay }, i) => (
                   <FloatingElement key={i} duration={3 + i * 0.5} distance={15}>
                     <motion.div
-                      className={`absolute ${pos} w-14 h-14 bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center`}
+                      className={`absolute ${pos} w-14 h-14 bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center`}
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 1 + delay * 0.2, type: "spring", stiffness: 200 }}
                       whileHover={{ scale: 1.1, borderColor: "oklch(0.65 0.19 230 / 0.5)" }}
                     >
-                      <Icon className="w-6 h-6 text-muted-foreground" />
+                      <Icon className="w-6 h-6 text-white/40" />
                     </motion.div>
                   </FloatingElement>
                 ))}
-                
+
                 {/* Particle dots */}
                 {[...Array(12)].map((_, i) => (
                   <motion.div
@@ -319,15 +363,15 @@ export default function Home() {
             </motion.div>
           </div>
         </motion.div>
-        
+
         {/* Scroll indicator */}
-        <motion.div 
+        <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
         >
-          <span className="text-xs uppercase tracking-widest text-muted-foreground">Scroll</span>
+          <span className="text-xs uppercase tracking-widest text-white/40">Scroll</span>
           <motion.div
             className="w-px h-12 bg-gradient-to-b from-accent to-transparent"
             animate={{ scaleY: [0, 1, 0], originY: 0 }}
@@ -337,8 +381,8 @@ export default function Home() {
       </section>
 
       {/* Marquee Section */}
-      <section className="py-6 border-y border-border/50 bg-accent/5 overflow-hidden">
-        <Marquee speed={30} className="text-muted-foreground">
+      <section className="py-6 border-y border-hairline bg-canvas-surface overflow-hidden">
+        <Marquee speed={30} className="text-white/50">
           <span className="flex items-center gap-12 px-6">
             {["Family Offices", "Venture Capital", "Private Equity", "Real Estate", "Commodities", "Deal Flow", "LP Management", "SPV Generation"].map((item, i) => (
               <span key={i} className="flex items-center gap-3 text-sm uppercase tracking-widest">
@@ -351,7 +395,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 md:py-32 relative">
+      <section className="py-20 md:py-32 bg-canvas-deep relative">
         <LiquidGradient className="opacity-30" />
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
@@ -363,12 +407,12 @@ export default function Home() {
             ].map((stat, i) => (
               <SmoothReveal key={i} delay={i * 0.1}>
                 <Spotlight className="text-center p-6 border border-transparent hover:border-border/50 transition-colors">
-                  <div className="text-4xl md:text-6xl font-serif mb-3">
+                  <div className="text-4xl md:text-6xl font-display font-serif text-white mb-3">
                     {stat.prefix}
                     <SmoothCounter value={stat.value} duration={2.5} />
                     {stat.suffix}
                   </div>
-                  <p className="text-xs md:text-sm text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+                  <p className="text-xs md:text-sm text-white/50 uppercase tracking-widest">{stat.label}</p>
                 </Spotlight>
               </SmoothReveal>
             ))}
@@ -377,12 +421,12 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 md:py-40 relative">
+      <section id="features" className="py-20 md:py-40 bg-canvas-mid relative">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <SmoothReveal>
             <div className="text-center mb-16 md:mb-24">
-              <motion.p 
-                className="text-xs uppercase tracking-[0.3em] text-accent mb-4 md:mb-6"
+              <motion.p
+                className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-4 md:mb-6"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
@@ -394,7 +438,7 @@ export default function Home() {
               </h2>
             </div>
           </SmoothReveal>
-          
+
           <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6" staggerDelay={0.1}>
             {[
               {
@@ -437,18 +481,18 @@ export default function Home() {
               <Link key={i} href={feature.link}>
                 <Card3D intensity={8} glare={true}>
                   <motion.div
-                    className="group p-8 md:p-10 border border-border/50 bg-background/50 backdrop-blur-sm cursor-pointer h-full relative overflow-hidden"
-                    whileHover={{ borderColor: "oklch(0.72 0.14 70 / 0.5)" }}
-                    transition={{ duration: 0.3 }}
+                    className="group p-8 md:p-10 glass-dark cursor-pointer h-full relative overflow-hidden"
+                    whileHover={{ y: -4, boxShadow: "0 20px 60px rgb(0 0 0 / 0.28), 0 0 40px oklch(0.75 0.18 200 / 0.12)" }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     />
-                    <feature.icon className="w-10 h-10 md:w-12 md:h-12 mb-6 md:mb-8 text-muted-foreground group-hover:text-accent transition-colors duration-300 relative z-10" />
-                    <h3 className="text-xl md:text-2xl font-medium mb-3 md:mb-4 relative z-10">{feature.title}</h3>
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed relative z-10">{feature.description}</p>
-                    <motion.div 
-                      className="mt-6 flex items-center gap-2 text-sm text-accent opacity-0 group-hover:opacity-100 transition-all duration-300 relative z-10"
+                    <feature.icon className="w-10 h-10 md:w-12 md:h-12 mb-6 md:mb-8 text-white/40 group-hover:text-[#22D4F5] transition-colors duration-300 relative z-10" />
+                    <h3 className="text-xl md:text-2xl font-medium text-white mb-3 md:mb-4 relative z-10">{feature.title}</h3>
+                    <p className="text-sm md:text-base text-white/60 leading-relaxed relative z-10">{feature.description}</p>
+                    <motion.div
+                      className="mt-6 flex items-center gap-2 text-sm text-[#22D4F5] opacity-0 group-hover:opacity-100 transition-all duration-300 relative z-10"
                       initial={{ x: -10 }}
                       whileHover={{ x: 0 }}
                     >
@@ -463,16 +507,16 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 md:py-40 bg-accent/5 relative overflow-hidden">
+      <section id="how-it-works" className="py-20 md:py-40 bg-canvas-deep relative overflow-hidden">
         <MorphingBlob className="w-[500px] h-[500px] top-[20%] -right-[150px]" color="oklch(0.72 0.14 70 / 0.08)" />
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
           <SmoothReveal>
             <div className="text-center mb-16 md:mb-24">
-              <p className="text-xs uppercase tracking-[0.3em] text-accent mb-4 md:mb-6">Process</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-4 md:mb-6">Process</p>
               <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif">How It Works</h2>
             </div>
           </SmoothReveal>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-6">
             {[
               { step: "01", title: "Connect", desc: "Sync your Fireflies, calendar, and CRM to import your network automatically." },
@@ -481,19 +525,19 @@ export default function Home() {
               { step: "04", title: "Close", desc: "Execute deals with compliant SPVs, capital management, and audit trails." },
             ].map((item, i) => (
               <SmoothReveal key={i} delay={i * 0.15}>
-                <motion.div 
+                <motion.div
                   className="text-center md:text-left relative group"
                   whileHover={{ y: -5 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <motion.div 
-                    className="text-7xl md:text-9xl font-serif text-accent/20 mb-4 md:mb-6 group-hover:text-accent/40 transition-colors duration-500"
-                    style={{ WebkitTextStroke: "1px oklch(0.72 0.14 70 / 0.3)" }}
+                  <motion.div
+                    className="font-display text-7xl md:text-9xl font-serif text-white/10 mb-4 md:mb-6 group-hover:text-white/20 transition-colors duration-500"
+                    style={{ WebkitTextStroke: "1px oklch(1 0 0 / 0.15)" }}
                   >
                     {item.step}
                   </motion.div>
                   <h3 className="text-2xl md:text-3xl font-medium mb-3 md:mb-4">{item.title}</h3>
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <p className="text-sm md:text-base text-white/60 leading-relaxed">{item.desc}</p>
                 </motion.div>
               </SmoothReveal>
             ))}
@@ -502,13 +546,13 @@ export default function Home() {
       </section>
 
       {/* Trust Section */}
-      <section id="trust" className="py-20 md:py-40 relative">
+      <section id="trust" className="py-20 md:py-40 bg-canvas-mid relative">
         <LiquidGradient className="opacity-20" />
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-24 items-center">
             <SmoothReveal>
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-accent mb-4 md:mb-6">Trust & Security</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-4 md:mb-6">Trust & Security</p>
                 <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif mb-8 md:mb-12 leading-[0.95]">
                   Your Relationships,<br />
                   <GradientText>Your Control</GradientText>
@@ -520,7 +564,7 @@ export default function Home() {
                     { icon: Shield, text: "SOC 2 Type II compliant infrastructure" },
                     { icon: CheckCircle2, text: "Immutable audit logs for every action" },
                   ].map((item, i) => (
-                    <motion.div 
+                    <motion.div
                       key={i}
                       className="flex items-center gap-4 md:gap-5 group"
                       initial={{ opacity: 0, x: -30 }}
@@ -528,19 +572,19 @@ export default function Home() {
                       transition={{ delay: i * 0.1, duration: 0.5 }}
                       viewport={{ once: true }}
                     >
-                      <motion.div 
+                      <motion.div
                         className="w-14 h-14 md:w-16 md:h-16 border border-border/50 flex items-center justify-center flex-shrink-0 group-hover:border-accent/50 group-hover:bg-accent/5 transition-all duration-300"
                         whileHover={{ scale: 1.05 }}
                       >
-                        <item.icon className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground group-hover:text-accent transition-colors" />
+                        <item.icon className="w-5 h-5 md:w-6 md:h-6 text-white/60 group-hover:text-accent transition-colors" />
                       </motion.div>
-                      <p className="text-base md:text-lg text-muted-foreground group-hover:text-foreground transition-colors">{item.text}</p>
+                      <p className="text-base md:text-lg text-white/60 group-hover:text-white transition-colors">{item.text}</p>
                     </motion.div>
                   ))}
                 </div>
               </div>
             </SmoothReveal>
-            
+
             <SmoothReveal delay={0.3}>
               <div className="relative aspect-square max-w-lg mx-auto hidden lg:block">
                 {/* Animated security visualization */}
@@ -559,7 +603,7 @@ export default function Home() {
                   animate={{ rotate: 360 }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
                 />
-                <motion.div 
+                <motion.div
                   className="absolute inset-20 bg-gradient-to-br from-sky-500/15 to-transparent flex items-center justify-center rounded-lg"
                   animate={{
                     boxShadow: [
@@ -572,7 +616,7 @@ export default function Home() {
                 >
                   <Shield className="w-20 h-20 text-sky-500" />
                 </motion.div>
-                
+
                 {/* Orbiting dots */}
                 {[...Array(8)].map((_, i) => (
                   <motion.div
@@ -608,18 +652,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* E38: Social Proof Section */}
-      <section className="py-16 md:py-24 border-t border-border/50">
+      {/* Social Proof Section */}
+      <section className="py-16 md:py-24 border-t border-hairline bg-canvas-deep">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <RevealOnScroll>
-            <p className="text-center text-sm uppercase tracking-[0.2em] text-muted-foreground mb-10">
+            <p className="text-center text-sm uppercase tracking-[0.2em] text-white/40 mb-10">
               Trusted by Leading Institutions
             </p>
             <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
               {["Institution I", "Institution II", "Institution III", "Institution IV", "Institution V", "Institution VI"].map((name) => (
                 <div
                   key={name}
-                  className="w-32 h-12 rounded-lg flex items-center justify-center text-xs font-semibold tracking-wider text-muted-foreground/40 border border-border/30"
+                  className="w-32 h-12 rounded-lg flex items-center justify-center text-xs font-semibold tracking-wider text-white/20 border border-white/10"
                   style={{ background: "linear-gradient(135deg, transparent, oklch(0.95 0.01 240 / 0.3))" }}
                 >
                   {name}
@@ -630,8 +674,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* E40: Testimonial Carousel */}
-      <section className="py-16 md:py-24 border-t border-border/50 relative overflow-hidden">
+      {/* Testimonial Carousel */}
+      <section className="py-16 md:py-24 border-t border-hairline bg-canvas-deep relative overflow-hidden">
         <div className="max-w-5xl mx-auto px-4 md:px-8">
           <SmoothReveal>
             <h3 className="text-3xl md:text-4xl font-serif text-center mb-12">
@@ -664,11 +708,11 @@ export default function Home() {
             ].map((t) => (
               <RevealOnScroll key={t.name}>
                 <Card3D intensity={8} glare={false}>
-                  <div className="bg-card border border-border/50 rounded-xl p-6 h-full flex flex-col">
-                    <p className="text-sm text-muted-foreground leading-relaxed flex-1 italic">
+                  <div className="glass-dark rounded-xl p-6 h-full flex flex-col">
+                    <p className="text-sm text-white/60 leading-relaxed flex-1 italic">
                       "{t.quote}"
                     </p>
-                    <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border/30">
+                    <div className="flex items-center gap-3 mt-6 pt-4 border-t border-white/10">
                       <div
                         className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold"
                         style={{ backgroundColor: t.color }}
@@ -676,8 +720,8 @@ export default function Home() {
                         {t.initials}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">{t.title}</p>
+                        <p className="text-sm font-semibold text-white">{t.name}</p>
+                        <p className="text-xs text-white/40">{t.title}</p>
                       </div>
                     </div>
                   </div>
@@ -688,20 +732,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* E39: Pricing/Value Section */}
-      <section className="py-16 md:py-24 border-t border-border/50 relative overflow-hidden">
+      {/* Enterprise/Pricing Section */}
+      <section className="py-16 md:py-24 border-t border-hairline bg-canvas-mid relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
           <SmoothReveal>
             <h3 className="text-3xl md:text-4xl font-serif mb-4">
               <GradientText>Enterprise Platform</GradientText>
             </h3>
-            <p className="text-muted-foreground mb-10 max-w-xl mx-auto">
+            <p className="text-white/60 mb-10 max-w-xl mx-auto">
               Everything you need to protect, match, and close private market transactions at institutional scale.
             </p>
           </SmoothReveal>
           <RevealOnScroll>
             <GlowingBorder>
-              <div className="bg-card rounded-xl p-8 md:p-10 text-left">
+              <div className="glass-dark rounded-xl p-8 md:p-10 text-left">
                 <div className="grid md:grid-cols-2 gap-6 mb-8">
                   {[
                     "Custody-grade relationship timestamps",
@@ -715,14 +759,14 @@ export default function Home() {
                   ].map((feature) => (
                     <div key={feature} className="flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 shrink-0 text-sky-500" />
-                      <span className="text-sm">{feature}</span>
+                      <span className="text-sm text-white/70">{feature}</span>
                     </div>
                   ))}
                 </div>
                 <div className="border-t border-border/30 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
                   <div>
-                    <p className="text-lg font-semibold">Starting at enterprise pricing</p>
-                    <p className="text-sm text-muted-foreground">Custom plans for institutions and funds</p>
+                    <p className="text-lg font-semibold text-white">Starting at enterprise pricing</p>
+                    <p className="text-sm text-white/50">Custom plans for institutions and funds</p>
                   </div>
                   <Link href="/register">
                     <ElasticButton className="bg-foreground text-background px-8 py-3 text-sm font-medium uppercase tracking-wider rounded-lg">
@@ -737,7 +781,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 md:py-40 border-t border-border/50 relative overflow-hidden">
+      <section className="py-24 md:py-40 border-t border-hairline bg-canvas-void relative overflow-hidden">
         <AuroraBackground className="opacity-40" />
         <div className="max-w-5xl mx-auto px-4 md:px-8 text-center relative z-10">
           <SmoothReveal>
@@ -745,8 +789,8 @@ export default function Home() {
               Ready to Transform Your<br />
               <GradientText>Deal Flow?</GradientText>
             </h2>
-            <p className="text-lg md:text-xl text-muted-foreground mb-12 md:mb-16 max-w-2xl mx-auto leading-relaxed">
-              Join the private market operating system trusted by family offices, 
+            <p className="text-lg md:text-xl text-white/60 mb-12 md:mb-16 max-w-2xl mx-auto leading-relaxed">
+              Join the private market operating system trusted by family offices,
               venture capitalists, and deal makers worldwide.
             </p>
             <Link href="/dashboard">
@@ -772,8 +816,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* E41: Enhanced Footer */}
-      <footer className="py-16 md:py-20 border-t border-border/50">
+      {/* Enhanced Footer */}
+      <footer className="py-16 md:py-20 bg-canvas-void border-t border-hairline">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             {/* Brand */}
@@ -781,66 +825,66 @@ export default function Home() {
               <div className="flex items-center gap-1 mb-4">
                 <span className="text-xl font-medium">@</span>
                 <span className="text-xl font-medium">navi</span>
-                <motion.span 
+                <motion.span
                   className="w-1.5 h-1.5 rounded-full bg-sky-500 mb-3"
                   animate={{ opacity: [1, 0.5, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-white/40 leading-relaxed">
                 The Private Market Operating System for institutional deal flow.
               </p>
             </div>
 
             {/* Product */}
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-4">Product</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">Product</h4>
               <ul className="space-y-2.5">
                 {["Dashboard", "Deal Rooms", "Matching Engine", "Verification"].map(item => (
-                  <li key={item}><span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{item}</span></li>
+                  <li key={item}><span className="text-sm text-white/40 hover:text-white/80 transition-colors cursor-pointer">{item}</span></li>
                 ))}
               </ul>
             </div>
 
             {/* Company */}
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-4">Company</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">Company</h4>
               <ul className="space-y-2.5">
                 {["About", "Careers", "Press", "Contact"].map(item => (
-                  <li key={item}><span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{item}</span></li>
+                  <li key={item}><span className="text-sm text-white/40 hover:text-white/80 transition-colors cursor-pointer">{item}</span></li>
                 ))}
               </ul>
             </div>
 
             {/* Legal */}
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-4">Legal</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">Legal</h4>
               <ul className="space-y-2.5">
                 {["Privacy Policy", "Terms of Service", "Cookie Policy"].map(item => (
-                  <li key={item}><span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{item}</span></li>
+                  <li key={item}><span className="text-sm text-white/40 hover:text-white/80 transition-colors cursor-pointer">{item}</span></li>
                 ))}
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-4">Support</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">Support</h4>
               <ul className="space-y-2.5">
                 {["Documentation", "API Reference", "Status", "Help Center"].map(item => (
-                  <li key={item}><span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{item}</span></li>
+                  <li key={item}><span className="text-sm text-white/40 hover:text-white/80 transition-colors cursor-pointer">{item}</span></li>
                 ))}
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-border/30 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground">
+          <div className="border-t border-hairline pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-white/40">
               © 2026 @navi. The Private Market Operating System. All rights reserved.
             </p>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <span className="hover:text-foreground transition-colors cursor-pointer">Privacy</span>
-              <span className="hover:text-foreground transition-colors cursor-pointer">Terms</span>
-              <span className="hover:text-foreground transition-colors cursor-pointer">Cookies</span>
+            <div className="flex items-center gap-6 text-sm text-white/40">
+              <span className="hover:text-white/80 transition-colors cursor-pointer">Privacy</span>
+              <span className="hover:text-white/80 transition-colors cursor-pointer">Terms</span>
+              <span className="hover:text-white/80 transition-colors cursor-pointer">Cookies</span>
             </div>
           </div>
         </div>

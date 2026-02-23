@@ -9,15 +9,18 @@ interface PageTransitionProps {
 const pageVariants = {
   initial: {
     opacity: 0,
-    y: 20,
+    scale: 0.98,
+    filter: "blur(4px)",
   },
   enter: {
     opacity: 1,
-    y: 0,
+    scale: 1.0,
+    filter: "blur(0px)",
   },
   exit: {
     opacity: 0,
-    y: -10,
+    scale: 0.98,
+    filter: "blur(4px)",
   },
 };
 
@@ -28,7 +31,11 @@ export function PageTransition({ children, className = "" }: PageTransitionProps
       animate="enter"
       exit="exit"
       variants={pageVariants}
-      transition={{ duration: 0.4 }}
+      transition={{
+        enter: { duration: 0.35, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] },
+        exit:  { duration: 0.20, ease: [0.4, 0, 1, 1] },
+        default: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
+      }}
       className={className}
     >
       {children}
@@ -65,11 +72,13 @@ interface StaggerItemProps {
 const itemVariants = {
   initial: {
     opacity: 0,
-    y: 20,
+    y: 16,
+    filter: "blur(6px)",
   },
   enter: {
     opacity: 1,
     y: 0,
+    filter: "blur(0px)",
   },
 };
 

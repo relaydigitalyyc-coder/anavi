@@ -47,6 +47,7 @@ import Intelligence from "./pages/Intelligence";
 import Demo from "./pages/Demo";
 import DashboardLayout from "./components/DashboardLayout";
 import { PageTransition } from "./components/PageTransition";
+import { CursorGlow } from "./components/CursorGlow";
 
 function ShellRoute({ component: Component }: { component: React.ComponentType }) {
   return (
@@ -149,6 +150,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
+      <CursorGlow />
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />

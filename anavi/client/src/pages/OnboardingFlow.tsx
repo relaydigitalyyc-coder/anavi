@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Handshake,
   TrendingUp,
@@ -361,8 +362,8 @@ function UploadZone({ label }: { label: string }) {
 
 function BenefitCard({ text }: { text: string }) {
   return (
-    <div className="mb-6 rounded-lg bg-[#2563EB]/5 border border-[#2563EB]/15 px-4 py-3">
-      <p className="text-sm text-[#2563EB]">{text}</p>
+    <div className="mb-6 rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+      <p className="text-sm text-[#22D4F5]">{text}</p>
     </div>
   );
 }
@@ -407,27 +408,25 @@ function ProgressBar({
             <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
               <div className="flex w-full items-center">
                 <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition ${
+                  className={`flex h-3 w-3 shrink-0 rounded-full transition-all duration-500 ${
                     completed
-                      ? "bg-[#059669] text-white"
+                      ? "progress-node-complete"
                       : active
-                        ? "bg-[#2563EB] text-white"
-                        : "border-2 border-[#D1DCF0] text-[#0A1628]/40"
+                        ? "progress-node-active"
+                        : "progress-node-pending"
                   }`}
-                >
-                  {completed ? <Check className="h-4 w-4" /> : i + 1}
-                </div>
+                />
                 {i < steps.length - 1 && (
                   <div
                     className={`mx-1 h-0.5 flex-1 rounded transition ${
-                      completed ? "bg-[#059669]" : "bg-[#D1DCF0]"
+                      completed ? "bg-[#C4972A]" : "bg-white/10"
                     }`}
                   />
                 )}
               </div>
               <span
                 className={`hidden text-[10px] font-medium sm:block ${
-                  active ? "text-[#2563EB]" : completed ? "text-[#059669]" : "text-[#0A1628]/40"
+                  active ? "text-[#22D4F5]" : completed ? "text-[#C4972A]" : "text-white/25"
                 }`}
               >
                 {s.name}
@@ -436,7 +435,7 @@ function ProgressBar({
           );
         })}
       </div>
-      <p className="mt-3 text-right text-xs text-[#0A1628]/50">
+      <p className="mt-3 text-right font-data-hud text-[10px] text-white/40">
         ~{remaining} min remaining
       </p>
     </div>
@@ -967,24 +966,24 @@ export default function OnboardingFlow() {
   // ---- PERSONA SELECTION (Step 0 / The Fork) ----
   if (!persona) {
     return (
-      <div className="min-h-screen bg-[#F3F7FC]">
+      <div className="min-h-screen bg-mesh">
         {/* Navy header */}
-        <header className="bg-[#0A1628] px-6 py-6">
+        <header className="glass-dark sticky top-0 z-20 px-6 py-6">
           <div className="mx-auto max-w-4xl">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-white">@</span>
               <span className="text-2xl font-bold text-white">navi</span>
-              <span className="ml-1 h-2 w-2 rounded-full bg-[#2563EB]" />
+              <span className="ml-1 h-2 w-2 rounded-full bg-[#22D4F5] animate-glow-pulse" />
             </div>
             <p className="mt-1 text-sm text-white/50">Private Market Operating System</p>
           </div>
         </header>
 
         <main className="mx-auto max-w-4xl px-6 py-12">
-          <h1 className="mb-2 text-center text-3xl font-bold text-[#0A1628]">
+          <h1 className="mb-2 text-center text-3xl font-bold text-white">
             My primary role is...
           </h1>
-          <p className="mb-10 text-center text-sm text-[#0A1628]/50">
+          <p className="mb-10 text-center text-sm text-white/50">
             Select the role that best describes how you operate in private markets.
           </p>
 
@@ -1000,13 +999,13 @@ export default function OnboardingFlow() {
                   setShowReceipt(false);
                   setShowIntentResult(false);
                 }}
-                className="hover-lift group cursor-pointer rounded-xl border bg-white p-6 text-left transition border-[#D1DCF0] hover:border-[#2563EB] hover:bg-[#2563EB]/[0.02]"
+                className="hover-lift group cursor-pointer glass-dark rounded-xl p-6 text-left border-0 hover:bg-white/[0.08] transition-all duration-200"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#2563EB]/8 transition group-hover:bg-[#2563EB]/15">
-                  <p.icon className="h-6 w-6 text-[#2563EB]" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#22D4F5]/10 transition group-hover:bg-[#22D4F5]/15">
+                  <p.icon className="h-6 w-6 text-[#22D4F5]" />
                 </div>
-                <h3 className="mb-1.5 text-base font-bold text-[#0A1628]">{p.label}</h3>
-                <p className="text-sm leading-relaxed text-[#0A1628]/60">{p.description}</p>
+                <h3 className="mb-1.5 text-base font-bold text-white">{p.label}</h3>
+                <p className="text-sm leading-relaxed text-white/60">{p.description}</p>
               </button>
             ))}
           </div>
@@ -1021,7 +1020,17 @@ export default function OnboardingFlow() {
   const hideNextOnFinal = isLastStep;
 
   return (
-    <div className="min-h-screen bg-[#F3F7FC]">
+    <div className="min-h-screen bg-canvas-void">
+      {/* Cinematic progress bar */}
+      <div className="fixed top-0 left-0 right-0 h-[2px] z-50 bg-white/5">
+        <motion.div
+          className="h-full bg-[#22D4F5]"
+          style={{ boxShadow: "0 0 8px oklch(0.75 0.18 200 / 0.60)" }}
+          animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
+          transition={{ type: "spring", stiffness: 200, damping: 25 }}
+        />
+      </div>
+
       {/* FVM celebration overlay */}
       {showFVM && (
         <FVMCelebration
@@ -1034,12 +1043,12 @@ export default function OnboardingFlow() {
       )}
 
       {/* Header */}
-      <header className="bg-[#0A1628] px-6 py-5">
+      <header className="glass-dark sticky top-0 z-20 px-6 py-5">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-white">@</span>
             <span className="text-xl font-bold text-white">navi</span>
-            <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#2563EB]" />
+            <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#22D4F5] animate-glow-pulse" />
           </div>
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/70">
             {PERSONAS.find((p) => p.id === persona)?.label}
@@ -1050,26 +1059,36 @@ export default function OnboardingFlow() {
       <main className="mx-auto max-w-3xl px-6 py-8">
         <ProgressBar steps={steps} current={step} />
 
-        <div className="rounded-2xl border border-[#D1DCF0] bg-white p-8 shadow-sm">
-          <h2 className="mb-1 text-xl font-bold text-[#0A1628]">{currentStepDef.name}</h2>
-          <p className="mb-4 text-xs text-[#0A1628]/40">~{currentStepDef.minutes} min</p>
+        <div className="glass-dark rounded-2xl p-8">
+          <h2 className="mb-1 text-xl font-bold text-white">{currentStepDef.name}</h2>
+          <p className="mb-4 text-xs text-white/40">~{currentStepDef.minutes} min</p>
 
           <BenefitCard text={currentStepDef.benefit} />
 
-          {renderStepContent()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${persona}-${step}`}
+              initial={{ opacity: 0, x: 20, filter: "blur(6px)" }}
+              animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, x: -20, filter: "blur(6px)" }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {renderStepContent()}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Navigation */}
           {!hideNextOnFinal && (
             <div className="mt-8 flex items-center justify-between">
               <button
                 onClick={handleBack}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-[#0A1628]/60 transition hover:bg-[#0A1628]/5"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-white/50 transition hover:bg-white/10"
               >
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
               <button
                 onClick={handleNext}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#2563EB] px-6 py-2.5 text-sm font-medium text-white transition hover:bg-[#2563EB]/90"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#C4972A] px-6 py-2.5 text-sm font-medium text-[#060A12] transition hover:bg-[#D4A73A]"
               >
                 {persona === "originator" && step === 2 && !showReceipt
                   ? "Secure Relationship"
@@ -1086,7 +1105,7 @@ export default function OnboardingFlow() {
             <div className="mt-8">
               <button
                 onClick={handleBack}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-[#0A1628]/60 transition hover:bg-[#0A1628]/5"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-white/50 transition hover:bg-white/10"
               >
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
@@ -1098,7 +1117,7 @@ export default function OnboardingFlow() {
             <div className="mt-4 text-center">
               <button
                 onClick={handleNext}
-                className="cursor-pointer text-sm text-[#0A1628]/40 underline transition hover:text-[#0A1628]/60"
+                className="cursor-pointer text-sm text-white/30 underline transition hover:text-white/50"
               >
                 Skip for now
               </button>
