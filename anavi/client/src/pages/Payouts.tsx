@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
-import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { FadeInView } from "@/components/PageTransition";
 import { SmoothCounter } from "@/components/PremiumAnimations";
 import {
   Select,
@@ -14,15 +13,10 @@ import {
 } from "@/components/ui/select";
 import {
   Wallet,
-  TrendingUp,
-  DollarSign,
-  Clock,
-  Check,
   AlertCircle,
   ChevronDown,
   ChevronRight,
   Link2,
-  Calendar,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
@@ -235,88 +229,42 @@ export default function Payouts() {
       </div>
       </FadeInView>
 
-      {/* ── Header Stats (4 cards) ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Earnings */}
-        <Card className="border" style={{ borderColor: BORDER, backgroundColor: SURFACE }}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Earnings</p>
-                <p className="text-3xl font-bold mt-1" style={{ color: GREEN }}>
-                  {fmtCurrency(totalEarnings)}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#ecfdf5" }}>
-                <TrendingUp className="w-6 h-6" style={{ color: GREEN }} />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">Lifetime completed payouts</p>
-          </CardContent>
-        </Card>
-
-        {/* Pending Payouts */}
-        <Card className="border" style={{ borderColor: BORDER }}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Pending Payouts</p>
-                <p className="text-3xl font-bold mt-1" style={{ color: GOLD }}>
-                  {fmtCurrency(pendingAmount)}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#fef9ee" }}>
-                <Clock className="w-6 h-6" style={{ color: GOLD }} />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">
-              {(payouts ?? []).filter((p) => p.status === "pending" || p.status === "processing").length} payouts awaiting
+      {/* ── Attribution Summary Hero ────────────────────────────────── */}
+      <div className="card-elevated p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Earnings (Lifetime Attribution) */}
+          <div>
+            <p className="data-label mb-1">Lifetime Attribution</p>
+            <p className="font-data-hud text-3xl font-bold" style={{ color: GREEN }}>
+              $<SmoothCounter value={totalEarnings} duration={1.2} />
             </p>
-          </CardContent>
-        </Card>
-
-        {/* This Month */}
-        <Card className="border" style={{ borderColor: BORDER }}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">This Month</p>
-                <p className="text-3xl font-bold mt-1" style={{ color: BLUE }}>
-                  {fmtCurrency(thisMonthEarnings)}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#eff6ff" }}>
-                <Calendar className="w-6 h-6" style={{ color: BLUE }} />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">
-              {format(new Date(), "MMMM yyyy")}
+          </div>
+          {/* Next Payout (Pending Amount) */}
+          <div>
+            <p className="data-label mb-1">Next Payout</p>
+            <p className="font-data-hud text-3xl font-bold" style={{ color: NAVY }}>
+              $<SmoothCounter value={pendingAmount} duration={1} />
             </p>
-          </CardContent>
-        </Card>
-
-        {/* Completed Deals */}
-        <Card className="border" style={{ borderColor: BORDER }}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Completed Deals</p>
-                <p className="text-3xl font-bold mt-1" style={{ color: NAVY }}>
-                  {completedDealCount}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: SURFACE }}>
-                <Check className="w-6 h-6" style={{ color: NAVY }} />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">Unique deals paid out</p>
-          </CardContent>
-        </Card>
+          </div>
+          {/* Pending Count */}
+          <div>
+            <p className="data-label mb-1">Pending</p>
+            <p className="font-data-hud text-3xl font-bold" style={{ color: GOLD }}>
+              <SmoothCounter value={(payouts ?? []).filter((p) => p.status === "pending" || p.status === "processing").length} duration={1} />
+            </p>
+          </div>
+          {/* This Month */}
+          <div>
+            <p className="data-label mb-1">This Month</p>
+            <p className="font-data-hud text-3xl font-bold" style={{ color: BLUE }}>
+              $<SmoothCounter value={thisMonthEarnings} duration={1} />
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ── Economics Overview ──────────────────────────────────────── */}
-      <Card className="border" style={{ borderColor: BORDER }}>
-        <CardContent className="p-6 space-y-5">
+      <div className="card-elevated p-6 space-y-5">
           <h3 className="text-lg font-semibold" style={{ color: NAVY }}>
             ANAVI Economics Model
           </h3>
@@ -343,17 +291,13 @@ export default function Payouts() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             When deals close through ANAVI, payouts are automated. Originators receive the largest share — guaranteed at close.
           </p>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* ── Attribution History ─────────────────────────────────────── */}
-      <Card className="border" style={{ borderColor: BORDER }}>
-        <CardHeader>
-          <CardTitle className="text-lg" style={{ color: NAVY }}>
-            Attribution History
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="card-elevated p-6 space-y-6">
+        <h3 className="data-label" style={{ color: NAVY }}>
+          Attribution History
+        </h3>
           {/* Filter Bar */}
           <div className="flex flex-wrap gap-3">
             <Select
@@ -413,100 +357,57 @@ export default function Payouts() {
               <p className="text-muted-foreground">No payouts match the selected filters.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-muted-foreground" style={{ borderBottom: `1px solid ${BORDER}` }}>
-                    <th className="pb-3 font-medium">Deal</th>
-                    <th className="pb-3 font-medium">Type</th>
-                    <th className="pb-3 font-medium text-right">Amount</th>
-                    <th className="pb-3 font-medium text-right">Attribution</th>
-                    <th className="pb-3 font-medium">Relationship</th>
-                    <th className="pb-3 font-medium">Status</th>
-                    <th className="pb-3 font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPayouts.map((p) => (
-                    <tr
-                      key={p.id}
-                      className="group hover:bg-[#F3F7FC] transition-colors"
-                      style={{ borderBottom: `1px solid ${BORDER}` }}
-                    >
-                      <td className="py-4 font-medium" style={{ color: BLUE }}>
-                        Deal&nbsp;#{p.dealId}
-                      </td>
-                      <td className="py-4">
-                        <span className="flex items-center gap-2">
-                          <Badge
-                            className="border-0 text-[11px]"
-                            style={getTypeBadgeStyle(p.payoutType)}
-                          >
-                            {getTypeLabel(p.payoutType)}
-                          </Badge>
-                          {p.isFollowOn && (
-                            <span
-                              className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-                              style={{ backgroundColor: "#eff6ff", color: BLUE }}
-                            >
-                              Follow-on
-                            </span>
-                          )}
-                        </span>
-                      </td>
-                      <td className="py-4 text-right font-bold" style={{ color: NAVY }}>
-                        {fmtCurrency(parseFloat(p.amount))}
-                      </td>
-                      <td className="py-4 text-right text-muted-foreground">
-                        {p.attributionPercentage
-                          ? `${parseFloat(p.attributionPercentage)}%`
-                          : "—"}
-                      </td>
-                      <td className="py-4">
-                        {p.relationshipId ? (
-                          <span className="inline-flex items-center gap-1 text-xs" style={{ color: BLUE }}>
-                            <Link2 className="w-3 h-3" />
-                            REL-{p.relationshipId}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="py-4">
-                        <Badge className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}>
-                          {p.status ?? "pending"}
-                        </Badge>
-                        {p.status === "completed" && p.paidAt && (
-                          <p className="text-[11px] mt-0.5" style={{ color: GREEN }}>
-                            Paid on {format(new Date(p.paidAt), "MMM d, yyyy")}
-                          </p>
-                        )}
-                      </td>
-                      <td className="py-4 text-muted-foreground text-xs">
-                        {format(new Date(p.createdAt), "MMM d, yyyy")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex flex-col gap-3">
+              {filteredPayouts.map((p) => (
+                <div
+                  key={p.id}
+                  className="card-elevated px-4 py-3 flex items-center justify-between hover:translate-y-[-1px] transition-transform"
+                >
+                  <div>
+                    <p className="font-data-hud text-base font-semibold" style={{ color: NAVY }}>
+                      {fmtCurrency(parseFloat(p.amount))}
+                    </p>
+                    <p className="data-label mt-0.5">{getTypeLabel(p.payoutType)}</p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="font-medium text-sm" style={{ color: BLUE }}>
+                      Deal&nbsp;#{p.dealId}
+                    </span>
+                    <span className="data-label">{format(new Date(p.createdAt), "MMM d")}</span>
+                    <Badge className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}>
+                      {p.status ?? "pending"}
+                    </Badge>
+                    {p.relationshipId && (
+                      <span className="inline-flex items-center gap-1 text-xs" style={{ color: BLUE }}>
+                        <Link2 className="w-3 h-3" />
+                        REL-{p.relationshipId}
+                      </span>
+                    )}
+                    {p.isFollowOn && (
+                      <span
+                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: "#eff6ff", color: BLUE }}
+                      >
+                        Follow-on
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* ── Deal Payout Timeline ───────────────────────────────────── */}
       {!empty && dealGroups.length > 0 && (
-        <Card className="border" style={{ borderColor: BORDER }}>
-          <CardHeader>
-            <CardTitle className="text-lg" style={{ color: NAVY }}>
-              Deal Payout Timeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="card-elevated p-6 space-y-6">
+          <h3 className="data-label" style={{ color: NAVY }}>
+            Deal Payout Timeline
+          </h3>
             {dealGroups.map((group) => {
               const isExpanded = expandedDeal === group.dealId;
               return (
-                <div key={group.dealId} className="rounded-xl border p-4" style={{ borderColor: BORDER }}>
+                <div key={group.dealId} className="card-elevated p-4">
                   {/* Deal header */}
                   <button
                     type="button"
@@ -526,9 +427,9 @@ export default function Payouts() {
                         {group.payouts.length} payout{group.payouts.length !== 1 && "s"}
                       </span>
                     </div>
-                    <span className="font-bold shrink-0" style={{ color: GREEN }}>
-                      {fmtCurrency(group.total)}
-                    </span>
+                                <span className="font-data-hud font-bold shrink-0" style={{ color: GREEN }}>
+                                    {fmtCurrency(group.total)}
+                                  </span>
                   </button>
 
                   {/* Milestone Timeline */}
@@ -597,7 +498,7 @@ export default function Payouts() {
                                     </p>
                                   )}
                                 </div>
-                                <span className="font-bold text-sm" style={{ color: NAVY }}>
+                                <span className="font-data-hud font-bold text-sm" style={{ color: NAVY }}>
                                   {fmtCurrency(parseFloat(p.amount))}
                                 </span>
                               </div>
@@ -609,8 +510,7 @@ export default function Payouts() {
                 </div>
               );
             })}
-          </CardContent>
-        </Card>
+        </div>
       )}
     </div>
   );
