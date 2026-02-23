@@ -4,8 +4,9 @@ import { Lock } from "lucide-react";
 interface FVMCelebrationProps {
   title: string;
   subtitle: string;
-  ctaLabel: string;
-  onCta: () => void;
+  ctaLabel?: string;
+  onCta?: () => void;
+  onClose?: () => void;
   icon?: ReactNode;
 }
 
@@ -36,19 +37,21 @@ function ConfettiPiece({ index }: { index: number }) {
 export default function FVMCelebration({
   title,
   subtitle,
-  ctaLabel,
+  ctaLabel = "Continue",
   onCta,
+  onClose,
   icon,
 }: FVMCelebrationProps) {
   const [visible, setVisible] = useState(true);
+  const handleClose = onClose ?? onCta ?? (() => {});
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
-      onCta();
+      handleClose();
     }, 5000);
     return () => clearTimeout(timer);
-  }, [onCta]);
+  }, [onClose, onCta]);
 
   if (!visible) return null;
 
@@ -58,7 +61,7 @@ export default function FVMCelebration({
         className="absolute inset-0 bg-[#0A1628]/80 backdrop-blur-sm"
         onClick={() => {
           setVisible(false);
-          onCta();
+          handleClose();
         }}
       />
 
@@ -82,7 +85,7 @@ export default function FVMCelebration({
         <button
           onClick={() => {
             setVisible(false);
-            onCta();
+            handleClose();
           }}
           className="btn-gold w-full cursor-pointer text-base"
         >

@@ -22,19 +22,19 @@ const SUPPRESSED_KEY = 'anavi_tooltip_suppressed';
 const SESSION_COUNT_KEY = 'anavi_tooltip_count';
 const MAX_UNSOLICITED = 5;
 
-function getSuppressedSet(): Set<string> {
+function loadSuppressedSet(): Set<string> {
   try {
     const raw = localStorage.getItem(SUPPRESSED_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set<string>();
   } catch {
-    return new Set();
+    return new Set<string>();
   }
 }
 
 function suppressTooltip(id: string) {
-  const set = getSuppressedSet();
+  const set = loadSuppressedSet();
   set.add(id);
-  localStorage.setItem(SUPPRESSED_KEY, JSON.stringify([...set]));
+  localStorage.setItem(SUPPRESSED_KEY, JSON.stringify(Array.from(set)));
 }
 
 function getSessionCount(): number {
@@ -106,8 +106,8 @@ export default function ConceptTooltip({
 
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const [suppressed, setSuppressed] = useState(() => getSuppressedSet().has(id));
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [suppressed, setSuppressed] = useState(loadSuppressedSet().has(id));
 
   const reposition = useCallback(() => {
     const trigger = triggerRef.current;

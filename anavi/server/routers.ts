@@ -400,6 +400,18 @@ const matchRouter = router({
       return { success: true, mutualInterest: otherConsent };
     }),
   
+  decline: protectedProcedure
+    .input(z.object({ matchId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const matches = await db.getMatchesByUser(ctx.user.id);
+      const match = matches.find(m => m.id === input.matchId);
+      if (!match) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+      await db.updateMatch(input.matchId, { status: 'declined' as const });
+      return { success: true };
+    }),
+
   createDealRoom: protectedProcedure
     .input(z.object({ matchId: z.number() }))
     .mutation(async ({ ctx, input }) => {

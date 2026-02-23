@@ -32,9 +32,9 @@ export function PageTransition({ children, className = "" }: PageTransitionProps
       exit="exit"
       variants={pageVariants}
       transition={{
-        enter: { duration: 0.35, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] },
-        exit:  { duration: 0.20, ease: [0.4, 0, 1, 1] },
-        default: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
+        duration: 0.35,
+        delay: 0.08,
+        ease: [0.25, 0.1, 0.25, 1],
       }}
       className={className}
     >

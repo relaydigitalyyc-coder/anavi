@@ -175,7 +175,7 @@ export default function Settings() {
               <Button className="mt-4" variant="outline">
                 Add More Handles
               </Button>
-            </div>
+          </div>
         </TabsContent>
 
         {/* Verification Tab */}

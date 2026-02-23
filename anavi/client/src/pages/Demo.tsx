@@ -142,9 +142,9 @@ function PersonaSelector({
                   <div className="mb-3 flex items-center gap-3">
                     <div
                       className="flex h-10 w-10 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: `${C.gold}15` }}
+                      style={{ backgroundColor: `${C.gold}15`, color: C.gold }}
                     >
-                      <Icon className="h-5 w-5" style={{ color: C.gold }} />
+                      <Icon className="h-5 w-5" />
                     </div>
                     <div>
                       <p className="text-sm font-bold" style={{ color: C.navy }}>

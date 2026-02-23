@@ -6,6 +6,10 @@ import { SignJWT } from "jose";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { ENV } from "./env";
+import type { User } from "../../drizzle/schema";
+
+/** Synthetic user id when DB is unavailable in dev. Context treats this specially. */
+const BYPASS_USER_ID = 0;
 
 async function createSessionJWT(user: { id: number; email: string | null }) {
   const secretKey = new TextEncoder().encode(ENV.cookieSecret);
@@ -91,6 +95,89 @@ export function registerAuthRoutes(app: Express) {
     } catch (error) {
       console.error("[Auth] Login failed", error);
       res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  const DEMO_PASSWORD = "demo123";
+
+  app.post("/api/auth/bypass", async (req: Request, res: Response) => {
+    if (ENV.isProduction) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    try {
+      const demoEmail = "demo@prelaunch.local";
+      let user: User | null = (await db.getUserByEmail(demoEmail)) ?? null;
+      if (!user) {
+        const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+        await db.upsertUser({
+          openId: "prelaunch-bypass-demo",
+          name: "Demo User",
+          email: demoEmail,
+          passwordHash,
+          loginMethod: "bypass",
+          lastSignedIn: new Date(),
+        });
+        user = (await db.getUserByEmail(demoEmail)) ?? (await db.getUserByOpenId("prelaunch-bypass-demo")) ?? null;
+      } else if (!user.passwordHash) {
+        // Existing demo user from old bypass — add password so email sign-in works
+        const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+        await db.updateUserProfile(user.id, { passwordHash });
+      }
+      if (!user) {
+        // DB unavailable (e.g. no DATABASE_URL) — use synthetic user for prelaunch
+        const synthetic: User = {
+          id: BYPASS_USER_ID,
+          openId: "prelaunch-bypass-demo",
+          name: "Demo User",
+          email: demoEmail,
+          passwordHash: null,
+          emailVerified: false,
+          loginMethod: "bypass",
+          role: "user",
+          verificationTier: "none",
+          trustScore: "0.00",
+          verificationBadge: null,
+          kybStatus: "pending",
+          kycStatus: "pending",
+          participantType: null,
+          onboardingStep: 0,
+          onboardingCompleted: false,
+          company: null,
+          title: null,
+          bio: null,
+          avatar: null,
+          website: null,
+          location: null,
+          phone: null,
+          investmentFocus: null,
+          dealVerticals: null,
+          typicalDealSize: null,
+          geographicFocus: null,
+          yearsExperience: null,
+          linkedinUrl: null,
+          sanctionsCleared: false,
+          pepStatus: false,
+          adverseMediaCleared: true,
+          complianceLastChecked: null,
+          jurisdictions: null,
+          totalDeals: 0,
+          totalDealValue: "0.00",
+          totalEarnings: "0.00",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastSignedIn: new Date(),
+        } as User;
+        user = synthetic;
+      }
+      const token = await createSessionJWT(user);
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.json({ user });
+    } catch (error) {
+      console.error("[Auth] Bypass failed", error);
+      const msg = error instanceof Error ? error.message : "Bypass failed";
+      res.status(500).json({ error: !ENV.isProduction ? msg : "Bypass failed" });
     }
   });
 

@@ -10,6 +10,29 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  async function handleBypass() {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/bypass", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Bypass failed");
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      const next = data?.user?.onboardingCompleted ? "/dashboard" : "/onboarding";
+      window.location.href = next;
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -40,7 +63,9 @@ export default function Login() {
   }
 
   return (
-    <div className="relative min-h-screen bg-mesh flex items-center justify-center overflow-hidden font-sans">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans">
+      {/* Mesh background (separate layer so only the gradient drifts, not the form) */}
+      <div className="absolute inset-0 bg-mesh pointer-events-none" aria-hidden />
 
       {/* Background orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
@@ -66,6 +91,23 @@ export default function Login() {
               <span className="w-1.5 h-1.5 rounded-full bg-[#22D4F5] animate-glow-pulse" />
             </div>
             <p className="text-sm text-white/40">The Private Market Operating System</p>
+          </div>
+
+          {/* Prelaunch demo credentials */}
+          <div className="rounded-lg border border-[#22D4F5]/20 bg-[#22D4F5]/5 px-4 py-3 text-center">
+            <p className="text-xs font-semibold text-[#22D4F5]/80 uppercase tracking-wider mb-1">Prelaunch demo</p>
+            <p className="text-sm text-white/90 font-mono">demo@prelaunch.local / demo123</p>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail("demo@prelaunch.local");
+                setPassword("demo123");
+                setError("");
+              }}
+              className="mt-2 text-xs text-[#22D4F5] hover:text-[#22D4F5]/80 transition-colors"
+            >
+              Fill credentials
+            </button>
           </div>
 
           {/* Form — keep existing handleSubmit */}
@@ -127,6 +169,15 @@ export default function Login() {
             >
               {loading ? "Signing in…" : "Sign In"}
             </motion.button>
+
+            <button
+              type="button"
+              onClick={handleBypass}
+              disabled={loading}
+              className="w-full py-2 text-xs text-white/40 hover:text-white/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Skip sign-in (prelaunch)
+            </button>
           </form>
 
           {/* Footer links */}

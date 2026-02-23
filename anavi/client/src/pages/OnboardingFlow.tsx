@@ -174,9 +174,9 @@ function InputField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-[#0A1628]">
+      <span className="mb-1.5 block text-sm font-medium text-white/90">
         {label}
-        {required && <span className="text-red-500"> *</span>}
+        {required && <span className="text-red-400"> *</span>}
       </span>
       <input
         type={type}
@@ -204,7 +204,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-[#0A1628]">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -235,7 +235,7 @@ function MultiSelectChips({
   };
   return (
     <div>
-      <span className="mb-2 block text-sm font-medium text-[#0A1628]">{label}</span>
+      <span className="mb-2 block text-sm font-medium text-white/90">{label}</span>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const active = selected.includes(opt);
@@ -274,7 +274,7 @@ function TextArea({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-[#0A1628]">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -299,7 +299,7 @@ function RadioGroup({
 }) {
   return (
     <div>
-      <span className="mb-2 block text-sm font-medium text-[#0A1628]">{label}</span>
+      <span className="mb-2 block text-sm font-medium text-white/90">{label}</span>
       <div className="flex flex-wrap gap-3">
         {options.map((opt) => (
           <label
@@ -336,15 +336,15 @@ function UploadZone({ label }: { label: string }) {
   const [fileName, setFileName] = useState<string | null>(null);
   return (
     <div>
-      <span className="mb-1.5 block text-sm font-medium text-[#0A1628]">{label}</span>
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#D1DCF0] bg-[#F3F7FC] px-6 py-8 text-center transition hover:border-[#2563EB]/50">
-        <Upload className="h-6 w-6 text-[#2563EB]/60" />
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/30 bg-white/5 px-6 py-8 text-center transition hover:border-[#2563EB]/50">
+        <Upload className="h-6 w-6 text-[#2563EB]" />
         {fileName ? (
           <span className="text-sm font-medium text-[#059669]">{fileName}</span>
         ) : (
           <>
-            <span className="text-sm text-[#0A1628]/60">Drag & drop or click to upload</span>
-            <span className="text-xs text-[#0A1628]/40">PDF, JPG, PNG up to 10MB</span>
+            <span className="text-sm text-white/70">Drag & drop or click to upload</span>
+            <span className="text-xs text-white/50">PDF, JPG, PNG up to 10MB</span>
           </>
         )}
         <input
@@ -376,9 +376,9 @@ function CustodyReceipt() {
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#059669]/10">
         <Lock className="h-6 w-6 text-[#059669]" />
       </div>
-      <p className="text-lg font-bold text-[#0A1628]">Relationship Secured</p>
-      <p className="mt-1 text-xs text-[#0A1628]/50">Custody ID: {id}</p>
-      <p className="text-xs text-[#0A1628]/50">Timestamp: {ts}</p>
+      <p className="text-lg font-bold text-white">Relationship Secured</p>
+      <p className="mt-1 text-xs text-white/60">Custody ID: {id}</p>
+      <p className="text-xs text-white/60">Timestamp: {ts}</p>
       <p className="mt-3 text-sm font-medium text-[#059669]">
         Your relationship is now protected. Forever.
       </p>
@@ -459,7 +459,7 @@ function IdentityStep({
       <InputField label="Email Address" value={(formData.email as string) ?? ""} onChange={(v) => set("email", v)} type="email" required placeholder="jane@example.com" />
       <div>
         <InputField label="Phone Number" value={(formData.phone as string) ?? ""} onChange={(v) => set("phone", v)} type="tel" placeholder="+1 (555) 000-0000" />
-        <p className="mt-1 text-xs text-[#0A1628]/40">We may send a verification SMS</p>
+        <p className="mt-1 text-xs text-white/40">We may send a verification SMS</p>
       </div>
       <SelectField label="Country of Operation" value={(formData.country as string) ?? ""} onChange={(v) => set("country", v)} options={["United States", "United Kingdom", "Canada", "UAE", "Singapore", "Switzerland", "Australia", "Germany", "Other"]} />
     </div>
@@ -515,17 +515,17 @@ function OriginatorUpgradeStep() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-[#D1DCF0] p-5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#0A1628]/40">Current — Tier 1</p>
-          <ul className="space-y-2 text-sm text-[#0A1628]/70">
+        <div className="rounded-xl border border-white/20 bg-white/5 p-5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Current — Tier 1</p>
+          <ul className="space-y-2 text-sm text-white/80">
             <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#059669]" /> Relationship custody</li>
             <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#059669]" /> Basic AI matching</li>
             <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#059669]" /> 5 relationships/month</li>
           </ul>
         </div>
-        <div className="rounded-xl border-2 border-[#C4972A] bg-[#C4972A]/5 p-5">
+        <div className="rounded-xl border-2 border-[#C4972A] bg-[#C4972A]/10 p-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#C4972A]">Upgrade — Tier 2</p>
-          <ul className="space-y-2 text-sm text-[#0A1628]/70">
+          <ul className="space-y-2 text-sm text-white/80">
             <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#C4972A]" /> Priority deal room access</li>
             <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#C4972A]" /> Unlimited relationships</li>
             <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#C4972A]" /> Advanced AI analytics</li>
@@ -535,7 +535,7 @@ function OriginatorUpgradeStep() {
       </div>
       <UploadZone label="Business Registration Document" />
       <UploadZone label="Government-Issued ID" />
-      <p className="text-center text-xs text-[#0A1628]/40">You can skip this and complete verification later from Settings.</p>
+      <p className="text-center text-xs text-white/40">You can skip this and complete verification later from Settings.</p>
     </div>
   );
 }
@@ -546,8 +546,8 @@ function DashboardIntroStep({ onGo }: { onGo: () => void }) {
       <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#059669]/10">
         <Check className="h-8 w-8 text-[#059669]" />
       </div>
-      <h3 className="mb-2 text-2xl font-bold text-[#0A1628]">You&apos;re ready.</h3>
-      <ul className="mx-auto mb-8 max-w-sm space-y-3 text-left text-sm text-[#0A1628]/70">
+      <h3 className="mb-2 text-2xl font-bold text-white">You&apos;re ready.</h3>
+      <ul className="mx-auto mb-8 max-w-sm space-y-3 text-left text-sm text-white/80">
         <li className="flex items-start gap-2"><Shield className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" /> Your relationships are custodied and timestamped</li>
         <li className="flex items-start gap-2"><BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" /> AI matching is already scanning for opportunities</li>
         <li className="flex items-start gap-2"><Eye className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" /> Your dashboard tracks everything in real time</li>
@@ -626,8 +626,8 @@ function IntentCreationStep({
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB]/10">
           <Target className="h-6 w-6 text-[#2563EB]" />
         </div>
-        <p className="text-lg font-bold text-[#0A1628]">Intent Created</p>
-        <p className="mt-2 text-sm text-[#0A1628]/70">
+        <p className="text-lg font-bold text-white">Intent Created</p>
+        <p className="mt-2 text-sm text-white/80">
           Your intent matches <span className="font-bold text-[#2563EB]">{matchCount}</span> verified opportunities
         </p>
       </div>
@@ -659,11 +659,11 @@ function MarketDepthStep({ onGo }: { onGo: () => void }) {
   ];
   return (
     <div>
-      <p className="mb-4 text-sm text-[#0A1628]/70">Live market depth across key sectors:</p>
+      <p className="mb-4 text-sm text-white/80">Live market depth across key sectors:</p>
       <div className="mb-8 grid gap-3">
         {markets.map((m) => (
-          <div key={m.sector} className="flex items-center justify-between rounded-lg border border-[#D1DCF0] bg-white px-4 py-3">
-            <span className="text-sm font-medium text-[#0A1628]">{m.sector}</span>
+          <div key={m.sector} className="flex items-center justify-between rounded-lg border border-white/20 bg-white/10 px-4 py-3">
+            <span className="text-sm font-medium text-white">{m.sector}</span>
             <div className="flex gap-4 text-xs">
               <span className="text-[#2563EB]">{m.buyers} buyers</span>
               <span className="text-[#C4972A]">{m.sellers} sellers</span>
@@ -704,11 +704,11 @@ function DeveloperProjectStep({
 function DeveloperVerificationStep() {
   return (
     <div className="space-y-5">
-      <p className="text-sm text-[#0A1628]/60">Upload project documentation to fast-track verification. Verified projects receive 3× more investor engagement.</p>
+      <p className="text-sm text-white/70">Upload project documentation to fast-track verification. Verified projects receive 3× more investor engagement.</p>
       <UploadZone label="Permits / Interconnection Agreement" />
       <UploadZone label="Financial Model" />
       <UploadZone label="Legal Entity Documentation" />
-      <p className="text-center text-xs text-[#0A1628]/40">You can skip uploads and complete verification later.</p>
+      <p className="text-center text-xs text-white/40">You can skip uploads and complete verification later.</p>
     </div>
   );
 }
@@ -719,13 +719,13 @@ function BlindMatchingIntroStep({ onGo }: { onGo: () => void }) {
       <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#2563EB]/10">
         <Eye className="h-8 w-8 text-[#2563EB]" />
       </div>
-      <h3 className="mb-3 text-xl font-bold text-[#0A1628]">Blind Matching</h3>
-      <p className="mx-auto mb-6 max-w-md text-sm text-[#0A1628]/70">
+      <h3 className="mb-3 text-xl font-bold text-white">Blind Matching</h3>
+      <p className="mx-auto mb-6 max-w-md text-sm text-white/80">
         ANAVI uses blind matching to protect your competitive position. Investors see your project parameters — sector, size, stage, returns — without identifying details until both parties opt in. Your project identity stays confidential until you choose to reveal it.
       </p>
       <div className="mx-auto mb-8 grid max-w-sm gap-3">
         {["Your identity stays hidden", "Parameters are matched by AI", "Both parties must opt in to connect"].map((t) => (
-          <div key={t} className="flex items-center gap-2 rounded-lg border border-[#D1DCF0] bg-white px-4 py-2.5 text-left text-sm text-[#0A1628]/70">
+          <div key={t} className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-left text-sm text-white/80">
             <Shield className="h-4 w-4 shrink-0 text-[#059669]" /> {t}
           </div>
         ))}
@@ -788,13 +788,13 @@ function PipelinePreviewStep({ onGo, label }: { onGo: () => void; label: string 
   ];
   return (
     <div>
-      <p className="mb-4 text-sm text-[#0A1628]/70">{label}</p>
+      <p className="mb-4 text-sm text-white/80">{label}</p>
       <div className="mb-8 space-y-3">
         {pipeline.map((p) => (
-          <div key={p.name} className="flex items-center justify-between rounded-lg border border-[#D1DCF0] bg-white px-4 py-3">
+          <div key={p.name} className="flex items-center justify-between rounded-lg border border-white/20 bg-white/10 px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-[#0A1628]">{p.name}</p>
-              <p className="text-xs text-[#0A1628]/50">{p.size}</p>
+              <p className="text-sm font-medium text-white">{p.name}</p>
+              <p className="text-xs text-white/60">{p.size}</p>
             </div>
             <span className="rounded-full bg-[#2563EB]/10 px-3 py-1 text-xs font-medium text-[#2563EB]">{p.status}</span>
           </div>
@@ -839,7 +839,7 @@ function AcquirerDDStep({
 }) {
   return (
     <div className="space-y-5">
-      <p className="text-sm text-[#0A1628]/60">Pre-configure your due diligence requirements to accelerate future deals.</p>
+      <p className="text-sm text-white/70">Pre-configure your due diligence requirements to accelerate future deals.</p>
       <MultiSelectChips label="Key DD Criteria" options={["Financial Audit", "Legal Review", "Environmental", "IP / Technology", "Management Assessment", "Market Analysis", "Tax Structure"]} selected={((formData.ddCriteria as string[]) ?? [])} onChange={(v) => set("ddCriteria", v)} />
       <InputField label="Internal DD Team Size" value={(formData.ddTeamSize as string) ?? ""} onChange={(v) => set("ddTeamSize", v)} type="number" placeholder="5" />
       <SelectField label="Typical DD Timeline" value={(formData.ddTimeline as string) ?? ""} onChange={(v) => set("ddTimeline", v)} options={["< 30 days", "30-60 days", "60-90 days", "90+ days"]} />

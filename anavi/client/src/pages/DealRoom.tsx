@@ -662,7 +662,7 @@ function AuditTab({ entries }: { entries: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
 
-  const actionTypes = [...new Set((entries || []).map((e: any) => e.action).filter(Boolean))];
+  const actionTypes = Array.from(new Set((entries || []).map((e: any) => e.action).filter(Boolean)));
 
   const filtered = (entries || []).filter((e: any) => {
     const q = searchQuery.toLowerCase();
