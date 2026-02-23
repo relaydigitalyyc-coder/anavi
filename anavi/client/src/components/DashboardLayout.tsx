@@ -242,9 +242,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         {/* Content */}
         <main
           role="main"
-          className="flex-1 overflow-y-auto pb-16 scrollbar-premium md:pb-0"
+          className="flex-1 overflow-y-auto pb-16 scrollbar-premium md:pb-0 relative"
           style={{ backgroundColor: "#F3F7FC" }}
         >
+          {/* Subtle ambient depth — very faint, non-animated for performance */}
+          <div
+            className="pointer-events-none absolute top-0 right-0 w-[600px] h-[400px]"
+            style={{
+              background: "radial-gradient(ellipse at top right, rgb(196 151 42 / 0.04) 0%, transparent 60%)",
+            }}
+            aria-hidden="true"
+          />
           <div className="mx-auto w-full max-w-[1280px] px-4 py-6 md:px-8">
             {children}
           </div>
