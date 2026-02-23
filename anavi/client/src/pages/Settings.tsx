@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,30 +39,30 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="dash-heading text-3xl">Settings</h1>
+        <p className="mt-1.5 text-sm text-[#1E3A5F]/60">
           Manage your account, verification, and preferences
         </p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="bg-muted/50 p-1">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+        <TabsList className="card-elevated p-1">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
             <User className="w-4 h-4 mr-2" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="verification" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="verification" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
             <Shield className="w-4 h-4 mr-2" />
             Verification
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="notifications" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
             <Bell className="w-4 h-4 mr-2" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="security" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
             <Key className="w-4 h-4 mr-2" />
             Security
           </TabsTrigger>
@@ -71,17 +70,15 @@ export default function Settings() {
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Personal Information</CardTitle>
-              <CardDescription>
-                Update your profile information visible to verified counterparties
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
+          <div className="card-elevated p-6">
+            <h3 className="dash-heading text-lg mb-2">Personal Information</h3>
+            <p className="text-sm text-[#1E3A5F]/60 mb-5">
+              Update your profile information visible to verified counterparties
+            </p>
+            <div className="space-y-5">
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Full Name</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Full Name</Label>
                   <Input
                     value={profile.name}
                     onChange={(e) => setProfile({ ...profile, name: e.target.value })}
@@ -90,7 +87,7 @@ export default function Settings() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Job Title</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Job Title</Label>
                   <Input
                     value={profile.title}
                     onChange={(e) => setProfile({ ...profile, title: e.target.value })}
@@ -102,7 +99,7 @@ export default function Settings() {
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Company</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Company</Label>
                   <Input
                     value={profile.company}
                     onChange={(e) => setProfile({ ...profile, company: e.target.value })}
@@ -111,7 +108,7 @@ export default function Settings() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Location</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Location</Label>
                   <Input
                     value={profile.location}
                     onChange={(e) => setProfile({ ...profile, location: e.target.value })}
@@ -122,7 +119,7 @@ export default function Settings() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Website</Label>
+                <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Website</Label>
                 <Input
                   value={profile.website}
                   onChange={(e) => setProfile({ ...profile, website: e.target.value })}
@@ -132,7 +129,7 @@ export default function Settings() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Bio</Label>
+                <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Bio</Label>
                 <Textarea
                   value={profile.bio}
                   onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
@@ -142,21 +139,18 @@ export default function Settings() {
                 />
               </div>
 
-              <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending}>
+              <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending} className="btn-gold px-6">
                 <Save className="w-4 h-4 mr-2" />
                 {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Contact Handles</CardTitle>
-              <CardDescription>
-                Add your communication channels for verified connections
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <div className="card-elevated p-6">
+            <h3 className="dash-heading text-lg mb-2">Contact Handles</h3>
+            <p className="text-sm text-[#1E3A5F]/60 mb-5">
+              Add your communication channels for verified connections
+            </p>
               <div className="grid md:grid-cols-2 gap-4">
                 {[
                   { platform: "Email", icon: "📧", placeholder: "john@example.com" },
@@ -181,20 +175,16 @@ export default function Settings() {
               <Button className="mt-4" variant="outline">
                 Add More Handles
               </Button>
-            </CardContent>
-          </Card>
+            </div>
         </TabsContent>
 
         {/* Verification Tab */}
         <TabsContent value="verification" className="space-y-6">
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Verification Status</CardTitle>
-              <CardDescription>
-                Complete verification to unlock full platform features
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <div className="card-elevated p-6">
+            <h3 className="dash-heading text-lg mb-2">Verification Status</h3>
+            <p className="text-sm text-[#1E3A5F]/60 mb-5">
+              Complete verification to unlock full platform features
+            </p>
               <div className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-r from-primary/10 to-amber-500/10 border border-primary/20 mb-6">
                 <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center shadow-lg">
                   <Shield className="w-8 h-8 text-white" />
@@ -290,17 +280,13 @@ export default function Settings() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </div>
 
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Upload Documents</CardTitle>
-              <CardDescription>
-                Submit verification documents securely
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <div className="card-elevated p-6">
+            <h3 className="dash-heading text-lg mb-2">Upload Documents</h3>
+            <p className="text-sm text-[#1E3A5F]/60 mb-5">
+              Submit verification documents securely
+            </p>
               <div className="grid md:grid-cols-2 gap-4">
                 {[
                   { name: "Government ID", description: "Passport, Driver's License, or National ID" },
@@ -324,20 +310,16 @@ export default function Settings() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </div>
         </TabsContent>
 
         {/* Notifications Tab */}
         <TabsContent value="notifications" className="space-y-6">
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Notification Preferences</CardTitle>
-              <CardDescription>
-                Choose how you want to be notified
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <div className="card-elevated p-6">
+            <h3 className="dash-heading text-lg mb-2">Notification Preferences</h3>
+            <p className="text-sm text-[#1E3A5F]/60 mb-5">
+              Choose how you want to be notified
+            </p>
               <div className="space-y-3">
                 {[
                   { name: "New Matches", description: "When AI finds compatible counterparties" },
@@ -359,30 +341,27 @@ export default function Settings() {
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
                         <Switch defaultChecked id={`${notification.name}-email`} />
-                        <Label htmlFor={`${notification.name}-email`} className="text-sm text-muted-foreground">Email</Label>
+                        <Label htmlFor={`${notification.name}-email`} className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Email</Label>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch defaultChecked id={`${notification.name}-push`} />
-                        <Label htmlFor={`${notification.name}-push`} className="text-sm text-muted-foreground">Push</Label>
+                        <Label htmlFor={`${notification.name}-push`} className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Push</Label>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </div>
         </TabsContent>
 
         {/* Security Tab */}
         <TabsContent value="security" className="space-y-6">
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Security Settings</CardTitle>
-              <CardDescription>
-                Manage your account security and authentication
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="card-elevated p-6">
+            <h3 className="dash-heading text-lg mb-2">Security Settings</h3>
+            <p className="text-sm text-[#1E3A5F]/60 mb-5">
+              Manage your account security and authentication
+            </p>
+            <div className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded-xl border border-border">
                 <div>
                   <div className="font-semibold">Two-Factor Authentication</div>
@@ -414,8 +393,8 @@ export default function Settings() {
                 </div>
                 <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400">Delete</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
