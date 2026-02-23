@@ -155,7 +155,7 @@ function CompatibilityRing({
 export default function DealMatching() {
   const [activeTab, setActiveTab] = useState<TabKey>("intents");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [reviewMatchId, setReviewMatchId] = useState<string | null>(null);
+  const [reviewMatchId, setReviewMatchId] = useState<number | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
 
   const { data: intents, isLoading: intentsLoading, refetch: refetchIntents } = trpc.intent.list.useQuery();
@@ -165,6 +165,14 @@ export default function DealMatching() {
     onSuccess: () => {
       toast.success("Intent updated");
       refetchIntents();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const declineMatchMutation = trpc.match.decline.useMutation({
+    onSuccess: () => {
+      toast.success("Match declined");
+      refetchMatches();
     },
     onError: (e) => toast.error(e.message),
   });
@@ -226,7 +234,7 @@ export default function DealMatching() {
         <FadeInView>
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-display" style={{ color: COLORS.navy }}>
+              <h1 className="dash-heading text-3xl">
                 Deal Matching
               </h1>
               <p className="mt-1 text-sm text-gray-500">
@@ -244,33 +252,26 @@ export default function DealMatching() {
         </FadeInView>
 
         {/* ── Tabs ────────────────────────────────── */}
-        <div className="flex gap-1 border-b mb-6" style={{ borderColor: COLORS.border }}>
+        <div className="card-elevated p-1.5 flex gap-1 mb-6 w-fit">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className="relative px-5 py-3 text-sm font-medium transition-colors"
-              style={{
-                color: activeTab === t.key ? COLORS.blue : "#6B7280",
-              }}
+              className={activeTab === t.key
+                ? "rounded-md px-3 py-2 text-sm font-semibold bg-[#0A1628] text-white"
+                : "rounded-md px-3 py-2 text-sm font-medium text-[#1E3A5F]/60 hover:text-[#0A1628] hover:bg-[#0A1628]/5 transition-colors"}
             >
               {t.label}
               {t.count !== undefined && t.count > 0 && (
                 <span
                   className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
                   style={{
-                    backgroundColor: activeTab === t.key ? "#EFF6FF" : "#F3F4F6",
-                    color: activeTab === t.key ? COLORS.blue : "#6B7280",
+                    backgroundColor: activeTab === t.key ? "rgba(255,255,255,0.15)" : "#F3F4F6",
+                    color: activeTab === t.key ? "white" : "#6B7280",
                   }}
                 >
                   {t.count}
                 </span>
-              )}
-              {activeTab === t.key && (
-                <span
-                  className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t"
-                  style={{ backgroundColor: COLORS.blue }}
-                />
               )}
             </button>
           ))}
@@ -281,7 +282,7 @@ export default function DealMatching() {
           <IntentsTab
             intents={intents ?? []}
             loading={intentsLoading}
-            onToggleStatus={(id: string, status: string) =>
+            onToggleStatus={(id: number, status: string) =>
               updateIntentMutation.mutate({
                 id,
                 status: status === "active" ? "paused" : "active",
@@ -294,8 +295,8 @@ export default function DealMatching() {
           <IncomingTab
             matches={incomingMatches}
             loading={matchesLoading}
-            onReview={(id: string) => setReviewMatchId(id)}
-            onDecline={(id: string) => {
+            onReview={(id: number) => setReviewMatchId(id)}
+            onDecline={(id: number) => {
               toast("Match declined", {
                 description: "This match has been removed",
                 action: {
@@ -303,9 +304,7 @@ export default function DealMatching() {
                   onClick: () => toast.success("Decline cancelled"),
                 },
               });
-              setTimeout(() => {
-                expressInterestMutation.mutate({ matchId: id, interested: false });
-              }, 3000);
+              declineMatchMutation.mutate({ matchId: id });
             }}
           />
         )}
@@ -345,7 +344,7 @@ export default function DealMatching() {
             setReviewMatchId(null);
           }}
           onDecline={() => {
-            expressInterestMutation.mutate({ matchId: reviewMatch.id, interested: false });
+            declineMatchMutation.mutate({ matchId: reviewMatch.id });
             setReviewMatchId(null);
           }}
         />
@@ -365,7 +364,7 @@ function IntentsTab({
 }: {
   intents: any[];
   loading: boolean;
-  onToggleStatus: (id: string, status: string) => void;
+  onToggleStatus: (id: number, status: string) => void;
   onCreateIntent: () => void;
 }) {
   if (loading) return <LoadingSkeleton />;
@@ -385,15 +384,13 @@ function IntentsTab({
         return (
           <div
             key={intent.id}
-            className="bg-white rounded-lg p-6 flex flex-col gap-4 transition-shadow hover:shadow-md"
-            style={{ border: `1px solid ${COLORS.border}` }}
+            className="card-elevated p-6 flex flex-col gap-4 transition-shadow hover:shadow-md"
           >
             {/* header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
                 <span
-                  className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                  style={{ color: cfg.color, backgroundColor: cfg.bg }}
+                  className="bg-[#C4972A]/15 text-[#C4972A] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                 >
                   {cfg.label}
                 </span>
@@ -488,8 +485,8 @@ function IncomingTab({
 }: {
   matches: any[];
   loading: boolean;
-  onReview: (id: string) => void;
-  onDecline: (id: string) => void;
+  onReview: (id: number) => void;
+  onDecline: (id: number) => void;
 }) {
   if (loading) return <LoadingSkeleton />;
 
@@ -503,7 +500,7 @@ function IncomingTab({
 
   return (
     <div className="flex flex-col gap-5">
-      {matches.map((m: any) => {
+      {matches.map((m: any, index: number) => {
         const score = m.compatibilityScore ?? 0;
         const scoreColor =
           score >= 80 ? COLORS.green : score >= 60 ? COLORS.gold : COLORS.red;
@@ -511,23 +508,18 @@ function IncomingTab({
         return (
           <div
             key={m.id}
-            className="bg-white rounded-lg p-6 flex flex-col sm:flex-row gap-6"
-            style={{
-              border: `1px solid ${COLORS.border}`,
-              borderLeft: `4px solid ${COLORS.gold}`,
-            }}
+            className={`card-elevated p-6 flex flex-col sm:flex-row gap-6 hover:translate-y-[-2px] transition-transform ${index === 0 ? "border-[#22D4F5]/25" : ""}`}
+            style={index === 0 ? { boxShadow: "0 4px 24px rgb(10 22 40 / 0.08), 0 0 0 1px rgb(34 212 245 / 0.18)" } : undefined}
           >
             {/* score column */}
             <div className="flex flex-col items-center justify-center shrink-0 w-28">
               <span
-                className="text-xs font-bold px-2.5 py-0.5 rounded-full mb-2"
-                style={{ color: COLORS.gold, backgroundColor: "#FFFBEB" }}
+                className="bg-[#C4972A]/15 text-[#C4972A] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-2"
               >
                 MATCH
               </span>
               <span
-                className="text-3xl font-bold"
-                style={{ color: scoreColor }}
+                className="font-data-hud text-2xl font-bold text-[#22D4F5]"
               >
                 {score}%
               </span>
@@ -572,7 +564,7 @@ function IncomingTab({
                   <span className="font-semibold block mb-1" style={{ color: COLORS.blue }}>
                     Your Intent
                   </span>
-                  <span className="text-gray-600">Intent #{m.intent1Id?.slice(-6) ?? "—"}</span>
+                  <span className="text-gray-600">Intent #{m.intent1Id != null ? String(m.intent1Id).slice(-6) : "—"}</span>
                 </div>
                 <div
                   className="rounded-md p-3"
@@ -581,7 +573,7 @@ function IncomingTab({
                   <span className="font-semibold block mb-1" style={{ color: COLORS.gold }}>
                     Their Intent
                   </span>
-                  <span className="text-gray-600">Intent #{m.intent2Id?.slice(-6) ?? "—"}</span>
+                  <span className="text-gray-600">Intent #{m.intent2Id != null ? String(m.intent2Id).slice(-6) : "—"}</span>
                 </div>
               </div>
             </div>
@@ -641,7 +633,7 @@ function HistoryTab({ matches, loading }: { matches: any[]; loading: boolean }) 
   };
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden" style={{ border: `1px solid ${COLORS.border}` }}>
+    <div className="card-elevated overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr style={{ backgroundColor: COLORS.surface }}>
@@ -682,7 +674,7 @@ function HistoryTab({ matches, loading }: { matches: any[]; loading: boolean }) 
                 </td>
                 <td className="px-5 py-4">
                   <span
-                    className="text-xs font-medium px-2.5 py-1 rounded-full"
+                    className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                     style={{ color: cfg.color, backgroundColor: cfg.bg }}
                   >
                     {cfg.label}
@@ -766,12 +758,12 @@ function CreateIntentModal({
 
   const handleActivate = () => {
     createMutation.mutate({
-      intentType: form.intentType as any,
+      intentType: form.intentType as "buy" | "sell" | "invest" | "seek_investment" | "partner",
       title: form.title,
       description: form.description,
-      assetType: form.assetType || undefined,
-      minValue: form.minValue ? parseFloat(form.minValue) : undefined,
-      maxValue: form.maxValue ? parseFloat(form.maxValue) : undefined,
+      assetType: form.assetType as "commodity" | "real_estate" | "equity" | "debt" | "infrastructure" | "renewable_energy" | "mining" | "oil_gas" | "business" | "other" | undefined,
+      minValue: form.minValue || undefined,
+      maxValue: form.maxValue || undefined,
       targetTimeline: form.targetTimeline || undefined,
       isAnonymous: true,
     });
@@ -1280,7 +1272,7 @@ function MatchReviewPanel({
       />
 
       {/* panel */}
-      <SlideIn direction="right" className="fixed top-0 right-0 z-50 h-full bg-white shadow-2xl flex flex-col w-full md:w-1/2" >
+      <SlideIn direction="right" className="fixed top-0 right-0 z-50 h-full shadow-2xl flex flex-col w-full md:w-1/2" >
       <div
         style={{ borderLeft: `1px solid ${COLORS.border}`, height: "100%", display: "flex", flexDirection: "column" }}
       >
@@ -1308,10 +1300,7 @@ function MatchReviewPanel({
               <CompatibilityRing score={score} size={140} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span
-                  className="text-3xl font-bold"
-                  style={{
-                    color: score >= 80 ? COLORS.green : score >= 60 ? COLORS.gold : COLORS.red,
-                  }}
+                  className="font-data-hud text-2xl font-bold text-[#22D4F5]"
                 >
                   {score}%
                 </span>
@@ -1507,10 +1496,13 @@ function StatusPill({ status }: { status: string }) {
     expired: { label: "Expired", color: "#6B7280", bg: "#F3F4F6" },
   };
   const c = config[status] ?? config.expired;
+  const isActive = status === "active";
   return (
     <span
-      className="text-xs font-medium px-2.5 py-1 rounded-full"
-      style={{ color: c.color, backgroundColor: c.bg }}
+      className={isActive
+        ? "bg-[#22D4F5]/10 text-[#22D4F5]/80 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+        : "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"}
+      style={isActive ? undefined : { color: c.color, backgroundColor: c.bg }}
     >
       {c.label}
     </span>
@@ -1523,8 +1515,7 @@ function LoadingSkeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="bg-white rounded-lg p-6 animate-pulse"
-          style={{ border: `1px solid ${COLORS.border}` }}
+          className="card-elevated p-6 animate-pulse"
         >
           <div className="h-5 w-16 rounded bg-gray-200 mb-4" />
           <div className="h-5 w-3/4 rounded bg-gray-200 mb-3" />
