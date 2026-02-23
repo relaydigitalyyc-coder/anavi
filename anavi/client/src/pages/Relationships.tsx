@@ -152,19 +152,21 @@ export default function Relationships() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.surface }}>
+      {/* Page Heading */}
+      <div style={{ padding: "32px 32px 12px" }}>
+        <h1 className="dash-heading text-3xl">Relationships</h1>
+      </div>
+
       {/* Header Stats Bar */}
       <FadeInView>
-        <div style={{ padding: "32px 32px 0" }}>
+        <div style={{ padding: "0 32px 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
             {statCards.map((s) => (
               <div
                 key={s.label}
-                className="hover-lift"
+                className="hover-lift card-elevated"
                 style={{
-                  background: "#fff",
-                  borderRadius: 12,
                   padding: "24px 28px",
-                  border: `1px solid ${COLORS.border}`,
                 }}
               >
                 <div style={{ fontSize: 28, fontWeight: 700, color: COLORS.navy }}>{s.value}</div>
@@ -308,11 +310,9 @@ export default function Relationships() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
+                className="card-elevated"
                 style={{
-                  background: "#fff",
-                  borderRadius: 12,
                   padding: 24,
-                  border: `1px solid ${COLORS.border}`,
                   height: 220,
                 }}
               >
@@ -322,11 +322,9 @@ export default function Relationships() {
           </div>
         ) : filteredRelationships.length === 0 ? (
           <div
+            className="card-elevated"
             style={{
-              background: "#fff",
-              borderRadius: 12,
               padding: "64px 32px",
-              border: `1px solid ${COLORS.border}`,
               textAlign: "center",
             }}
           >
@@ -381,9 +379,8 @@ export default function Relationships() {
           }}
         >
           <div
+            className="card-elevated"
             style={{
-              background: "#fff",
-              borderRadius: 16,
               width: 560,
               maxHeight: "90vh",
               overflow: "auto",
@@ -580,11 +577,9 @@ function RelationshipCard({ rel, onCopyHash, isFirst = false }: { rel: any; onCo
   if (flipped) {
     return (
       <div
+        className="card-elevated"
         style={{
-          background: "#fff",
-          borderRadius: 12,
           padding: 24,
-          border: `1px solid ${COLORS.border}`,
           minHeight: 320,
           display: "flex",
           flexDirection: "column",
@@ -633,11 +628,9 @@ function RelationshipCard({ rel, onCopyHash, isFirst = false }: { rel: any; onCo
 
   return (
     <div
+      className="card-elevated"
       style={{
-        background: "#fff",
-        borderRadius: 12,
         padding: 24,
-        border: `1px solid ${COLORS.border}`,
         transition: "transform 0.15s, box-shadow 0.15s",
         cursor: "pointer",
       }}
@@ -695,11 +688,14 @@ function RelationshipCard({ rel, onCopyHash, isFirst = false }: { rel: any; onCo
           value={`${formatCurrency(parseFloat(rel.totalEarnings || "0"))} earned`}
           color={COLORS.gold}
         />
-        <StatusItem
-          label="Custody"
-          value={rel.isBlind ? "Protected ✓" : "Visible"}
-          color={rel.isBlind ? COLORS.green : "#94A3B8"}
-        />
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+          <span style={{ color: "#6B7A90" }}>Custody</span>
+          {rel.isBlind ? (
+            <span className="bg-[#059669]/15 text-[#059669] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Protected</span>
+          ) : (
+            <span className="bg-[#F59E0B]/15 text-[#F59E0B] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Visible</span>
+          )}
+        </div>
       </div>
 
       {/* Custody Hash */}
@@ -771,8 +767,8 @@ function CustodyHashRow({ hash, onCopy }: { hash: string; onCopy: (h: string) =>
         gap: 8,
       }}
     >
-      <span style={{ fontSize: 11, fontFamily: "monospace", color: "#6B7A90", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        Custody: {hash?.slice(0, 24)}...
+      <span className="font-data-hud text-[10px] text-[#1E3A5F]/50" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        Custody: {hash?.slice(0, 8)}...{hash?.slice(-6)}
       </span>
       <button
         onClick={(e) => {
@@ -823,7 +819,7 @@ function StatusItem({ label, value, color }: { label: string; value: string; col
 
 function RelationshipTable({ relationships, onCopyHash }: { relationships: any[]; onCopyHash: (h: string) => void }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
+    <div className="card-elevated" style={{ overflow: "hidden" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
         <thead>
           <tr style={{ background: COLORS.surface }}>
@@ -1208,12 +1204,10 @@ function ModalStepConfirmation({ id, hash, onDone }: { id: string; hash: string;
       <p style={{ fontSize: 14, color: "#6B7A90", marginBottom: 28 }}>Custody receipt generated successfully.</p>
 
       <div
+        className="card-elevated"
         style={{
-          background: COLORS.surface,
-          borderRadius: 12,
           padding: 20,
           textAlign: "left",
-          border: `1px solid ${COLORS.border}`,
           marginBottom: 28,
         }}
       >
