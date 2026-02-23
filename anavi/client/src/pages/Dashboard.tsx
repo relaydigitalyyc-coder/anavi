@@ -10,7 +10,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Link } from "wouter";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { SmoothCounter } from "@/components/PremiumAnimations";
 import { toast } from "sonner";
@@ -104,16 +105,66 @@ function TrustRing({ score }: { score: number }) {
 function DashCard({
   title,
   children,
+  className = "",
 }: {
   title: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="rounded-lg border border-[#D1DCF0] bg-white p-6">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
+    <div className={`card-elevated p-6 ${className}`}>
+      <h3 className="mb-4 data-label">
         {title}
       </h3>
       {children}
+    </div>
+  );
+}
+
+// ── Welcome Banner (shown once after onboarding) ───────────────────────────
+const PERSONA_SUBTITLES: Record<string, string> = {
+  originator: "Your first relationship has been custodied. Deal matching is live.",
+  investor:   "Your investment intent is broadcasting to verified counterparties.",
+  developer:  "Your project is verified. Qualified capital matches are incoming.",
+  allocator:  "Your fund mandate is active. Institutional pipeline is open.",
+  acquirer:   "Your acquisition criteria are live. Confidential matches are sourcing.",
+};
+
+const PERSONA_LABELS: Record<string, string> = {
+  originator: "Deal Originator",
+  investor:   "Investor",
+  developer:  "Project Developer",
+  allocator:  "Institutional Allocator",
+  acquirer:   "Strategic Acquirer",
+};
+
+function WelcomeBanner({ name, persona, onDismiss }: { name: string; persona: string; onDismiss: () => void }) {
+  const subtitle = PERSONA_SUBTITLES[persona] ?? "Your profile is ready.";
+  const personaLabel = PERSONA_LABELS[persona] ?? persona;
+  return (
+    <div className="mb-6 card-elevated border-l-4 border-l-[#C4972A] p-4 flex items-start justify-between gap-4">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A]/15">
+          <svg className="h-4 w-4 text-[#C4972A]" viewBox="0 0 16 16" fill="currentColor">
+            <path fillRule="evenodd" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#0A1628]">
+            Welcome, {name}. Your {personaLabel} profile is ready.
+          </p>
+          <p className="mt-0.5 text-sm text-[#1E3A5F]/70">{subtitle}</p>
+        </div>
+      </div>
+      <button
+        onClick={onDismiss}
+        className="mt-0.5 shrink-0 rounded p-1 text-[#1E3A5F]/40 hover:bg-[#1E3A5F]/8 hover:text-[#1E3A5F]/70 transition-colors"
+        aria-label="Dismiss welcome banner"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+        </svg>
+      </button>
     </div>
   );
 }
@@ -122,7 +173,7 @@ function DashboardSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
       <div className="space-y-6">
-        <div className="rounded-lg border border-[#D1DCF0] bg-white p-6">
+        <div className="card-elevated p-6">
           <div className="h-4 w-24 animate-shimmer rounded mb-4" />
           <div className="mx-auto h-[140px] w-[140px] animate-shimmer rounded-full" />
           <div className="mt-4 h-3 w-20 animate-shimmer rounded mx-auto" />
@@ -143,7 +194,7 @@ function DashboardSkeleton() {
       </div>
       <div className="space-y-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-lg border border-[#D1DCF0] bg-white p-6">
+          <div key={i} className="card-elevated p-6">
             <div className="h-4 w-32 animate-shimmer rounded mb-4" />
             <div className="space-y-2">
               {[1, 2, 3].map((j) => (
@@ -164,15 +215,18 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function MarketDepthBar({ label, value, max }: { label: string; value: number; max: number }) {
+function MarketDepthBar({ label, value, max, index = 0 }: { label: string; value: number; max: number; index?: number }) {
   const pct = Math.round((value / max) * 100);
   return (
     <div className="flex items-center gap-2">
-      <span className="w-8 text-right font-data-mono text-xs text-[#1E3A5F]/70">{value}</span>
-      <div className="h-4 flex-1 overflow-hidden rounded-full bg-[#0A1628]/5">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, background: label === "buyers" ? "#2563EB" : "#C4972A" }}
+      <span className="w-8 text-right font-data-hud text-[10px] text-[#1E3A5F]/60">{value}</span>
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#0A1628]/6">
+        <motion.div
+          className="h-full rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+          style={{ background: label === "buyers" ? "#2563EB" : "#C4972A" }}
         />
       </div>
     </div>
@@ -181,6 +235,24 @@ function MarketDepthBar({ label, value, max }: { label: string; value: number; m
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [welcomePersona, setWelcomePersona] = useState<string | null>(() => {
+    try {
+      const raw = localStorage.getItem("anavi_onboarding");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const welcomed = localStorage.getItem("anavi_welcomed");
+      if (welcomed) return null;
+      return parsed.persona ?? null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleDismissWelcome = useCallback(() => {
+    localStorage.setItem("anavi_welcomed", "true");
+    setWelcomePersona(null);
+  }, []);
+
   const { data: stats, isLoading: statsLoading } = trpc.user.getStats.useQuery();
   const { data: notificationsData, isLoading: notificationsLoading } = trpc.notification.list.useQuery({
     limit: 10,
@@ -206,11 +278,18 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
+      {welcomePersona && (
+        <WelcomeBanner
+          name={user?.name?.split(" ")[0] ?? "there"}
+          persona={welcomePersona}
+          onDismiss={handleDismissWelcome}
+        />
+      )}
       {/* E13: Personalized greeting */}
       <FadeInView>
         <div className="mb-6 flex items-baseline justify-between">
           <div>
-            <h1 className="text-display text-[#0A1628]">
+            <h1 className="dash-heading text-3xl">
               {getGreeting()}, {user?.name?.split(" ")[0] ?? "there"}
             </h1>
             <p className="mt-1 text-sm text-[#1E3A5F]/60">
@@ -229,7 +308,7 @@ export default function Dashboard() {
           {/* Trust Score Widget — E11: clickable */}
           <StaggerItem>
             <Link href="/verification">
-              <div className="group cursor-pointer rounded-lg border border-[#D1DCF0] bg-white p-6 text-center transition-all duration-200 hover:border-[#2563EB]/40 hover:shadow-lg">
+              <div className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
                 <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
                   Trust Score
                 </h3>
@@ -237,7 +316,7 @@ export default function Dashboard() {
                 <div className="relative mx-auto w-[140px] transition-transform duration-200 group-hover:scale-105">
                   <TrustRing score={trustScore} />
                   <span
-                    className="text-trust-score absolute inset-0 flex items-center justify-center"
+                    className="font-data-hud text-4xl font-bold absolute inset-0 flex items-center justify-center"
                     style={{ color: scoreColor }}
                   >
                     <SmoothCounter value={Math.round(trustScore)} duration={1} />
@@ -249,9 +328,9 @@ export default function Dashboard() {
                   <span style={{ color: "#059669" }}>+3</span> this month
                 </p>
 
-                {stats?.verificationTier && (
+                {stats?.verificationLevel && (
                   <span className="mt-3 inline-block rounded-full bg-[#0A1628]/10 px-3 py-1 text-xs font-semibold text-[#0A1628]">
-                    {stats.verificationTier}
+                    {stats.verificationLevel}
                   </span>
                 )}
 
@@ -292,7 +371,7 @@ export default function Dashboard() {
 
         {/* ───────── Center Column ───────── */}
         <FadeInView delay={0.1}>
-          <h2 className="mb-4 text-heading text-[#0A1628]">Activity</h2>
+          <h2 className="mb-4 dash-heading text-2xl">Activity</h2>
 
           {notifications.length > 0 ? (
             <StaggerContainer className="space-y-3">
@@ -301,7 +380,7 @@ export default function Dashboard() {
                 return (
                   <StaggerItem key={n.id}>
                     <div
-                      className={`rounded-lg border border-[#D1DCF0] border-l-4 bg-white p-4 hover-lift ${style.border}`}
+                      className={`card-elevated border-l-4 p-4 hover:translate-y-[-2px] ${style.border}`}
                     >
                       <div className="mb-1 flex items-center gap-2">
                         <span
@@ -334,7 +413,7 @@ export default function Dashboard() {
               })}
             </StaggerContainer>
           ) : (
-            <div className="rounded-lg border border-[#D1DCF0] bg-white p-6">
+            <div className="card-elevated p-6">
               <EmptyState {...EMPTY_STATES.notifications} />
             </div>
           )}
@@ -346,11 +425,11 @@ export default function Dashboard() {
           <StaggerItem>
             <DashCard title="Market Depth">
               <div className="space-y-4">
-                {MARKET_DEPTH.map((m) => (
+                {MARKET_DEPTH.map((m, i) => (
                   <div key={m.sector}>
-                    <p className="mb-1 text-xs font-semibold text-[#0A1628]">{m.sector}</p>
-                    <MarketDepthBar label="buyers" value={m.buyers} max={maxDepth} />
-                    <MarketDepthBar label="sellers" value={m.sellers} max={maxDepth} />
+                    <p className="mb-1.5 text-xs font-semibold text-[#0A1628]">{m.sector}</p>
+                    <MarketDepthBar label="buyers" value={m.buyers} max={maxDepth} index={i * 2} />
+                    <MarketDepthBar label="sellers" value={m.sellers} max={maxDepth} index={i * 2 + 1} />
                   </div>
                 ))}
                 <div className="flex items-center gap-4 border-t border-[#D1DCF0] pt-2 text-[10px] text-[#1E3A5F]/60">
@@ -394,14 +473,14 @@ export default function Dashboard() {
                   {payouts.slice(0, 3).map((p) => (
                     <div
                       key={p.id}
-                      className="flex items-center justify-between rounded border border-[#D1DCF0] px-3 py-2 text-sm hover-lift"
+                      className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
                     >
                       <div>
                         <span className="font-semibold text-[#0A1628]">
                           ${parseFloat(p.amount).toLocaleString()}
                         </span>
                         <span className="ml-2 text-xs text-[#1E3A5F]/60">
-                          {p.type.replace(/_/g, " ")}
+                          {p.payoutType.replace(/_/g, " ")}
                         </span>
                       </div>
                       <span
