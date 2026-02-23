@@ -411,13 +411,6 @@
    CINEMATIC UI — KEYFRAME ANIMATIONS
    ============================================================ */
 
-@keyframes mesh-drift {
-  0%   { transform: rotate(0deg) scale(1); }
-  33%  { transform: rotate(120deg) scale(1.08); }
-  66%  { transform: rotate(240deg) scale(0.96); }
-  100% { transform: rotate(360deg) scale(1); }
-}
-
 @keyframes hud-float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   50%       { transform: translateY(-8px) rotate(1deg); }
@@ -449,14 +442,13 @@
   .bg-canvas-mid     { background-color: #0D1628; }
   .bg-canvas-surface { background-color: #162040; }
 
-  /* Animated gradient mesh */
+  /* Gradient mesh (no animation — rotation affected entire pages) */
   .bg-mesh {
     background:
       radial-gradient(ellipse 80% 50% at 20% 30%, oklch(0.65 0.19 230 / 0.12) 0%, transparent 60%),
       radial-gradient(ellipse 60% 70% at 80% 70%, oklch(0.65 0.22 280 / 0.08) 0%, transparent 55%),
       radial-gradient(ellipse 100% 80% at 50% 50%, oklch(0.55 0.15 200 / 0.06) 0%, transparent 70%),
       #060A12;
-    animation: mesh-drift 120s ease-in-out infinite;
   }
 
   /* Glass surfaces */
@@ -513,7 +505,6 @@
   /* Animation utilities */
   .animate-hud-float   { animation: hud-float 6s ease-in-out infinite; }
   .animate-glow-pulse  { animation: glow-pulse 2s ease-in-out infinite; }
-  .animate-mesh-drift  { animation: mesh-drift 120s ease-in-out infinite; }
 
   /* Onboarding progress nodes */
   .progress-node-active {
@@ -545,4 +536,41 @@
   .border-subtle      { border: 1px solid oklch(1 0 0 / 0.12); }
   .border-accent-glow { border: 1px solid oklch(0.75 0.18 200 / 0.30); }
   .border-gold-glow   { border: 1px solid oklch(0.72 0.14 70 / 0.40); }
+
+  /* ── Elevated light card — authenticated dashboard pages ── */
+  .card-elevated {
+    background: rgb(255 255 255 / 0.75);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border: 1px solid rgb(255 255 255 / 0.70);
+    box-shadow:
+      0 4px 24px rgb(10 22 40 / 0.08),
+      0 1px 4px rgb(10 22 40 / 0.04);
+    border-radius: 16px;
+    transition: box-shadow 200ms ease, transform 200ms ease;
+  }
+
+  .card-elevated:hover {
+    box-shadow:
+      0 8px 40px rgb(10 22 40 / 0.12),
+      0 2px 8px rgb(10 22 40 / 0.06);
+  }
+
+  /* Dashboard heading — Inter 800 tight tracking */
+  .dash-heading {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: #0A1628;
+  }
+
+  /* Data HUD label — mono tabular uppercase */
+  .data-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(30 58 95 / 0.50);
+    font-variant-numeric: tabular-nums;
+  }
 }
