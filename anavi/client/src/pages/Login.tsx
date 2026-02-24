@@ -172,11 +172,10 @@ export default function Login() {
 
             <button
               type="button"
-              onClick={handleBypass}
-              disabled={loading}
-              className="w-full py-2 text-xs text-white/40 hover:text-white/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => { window.location.href = "/onboarding"; }}
+              className="w-full py-2 text-xs text-white/40 hover:text-white/70 transition-colors"
             >
-              Skip sign-in (prelaunch)
+              Login Demo
             </button>
           </form>
 
