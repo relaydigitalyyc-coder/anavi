@@ -115,6 +115,7 @@ function buildMonthOptions() {
 
 export default function Payouts() {
   const { data: payouts, isLoading } = trpc.payout.list.useQuery();
+  useEffect(() => { document.title = "Payouts | ANAVI"; }, []);
 
   const [statusFilter, setStatusFilter] = useState<PayoutStatus>("all");
   const [typeFilter, setTypeFilter] = useState<PayoutTypeFilter>("all");
@@ -206,8 +207,6 @@ export default function Payouts() {
   }
 
   const empty = !payouts || payouts.length === 0;
-
-  useEffect(() => { document.title = "Payouts | ANAVI"; }, []);
 
   return (
     <div className="p-8 space-y-8">

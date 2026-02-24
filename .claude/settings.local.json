@@ -8,7 +8,30 @@
       "WebFetch(domain:hex.tech)",
       "WebFetch(domain:swap-commerce.com)",
       "Bash(cat /home/ariel/Documents/anavi-main/anavi/index.html 2>/dev/null && cat /home/ariel/Documents/anavi-main/anavi/package.json | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
-      "Bash(python3 -c \"import json; d=json.load\\(open\\('/home/ariel/Documents/anavi-main/anavi/package.json'\\)\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")"
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/home/ariel/Documents/anavi-main/anavi/package.json'\\)\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(pnpm build:*)",
+      "Bash(/home/ariel/.local/node20/lib/node_modules/corepack/shims/pnpm build)",
+      "Bash(PATH=\"/home/ariel/.local/node20/bin:$PATH\" npx vite build:*)",
+      "Bash(PATH=\"/home/ariel/.local/node20/bin:$PATH\" node_modules/.bin/vite build:*)",
+      "Bash(python3:*)",
+      "Bash(node_modules/.bin/pnpm build)",
+      "Bash(/home/ariel/.local/node20/bin/npm run build)",
+      "Bash(/home/ariel/.local/share/pnpm/pnpm build:*)",
+      "Bash(PATH=\"/home/ariel/.local/node20/bin:$PATH\")",
+      "Bash(npx pnpm build)",
+      "Bash(export PATH=\"/home/ariel/.local/node20/bin:/usr/bin:/bin:$PATH\")",
+      "Bash(/home/ariel/Documents/anavi-main/anavi/client/src/components/PageTransition.tsx:*)",
+      "Bash(/home/ariel/.local/share/pnpm/.tools/pnpm/10.4.1_tmp_8734/bin/pnpm build:*)",
+      "Bash(npm run build:*)",
+      "Bash(export PATH=\"/home/ariel/.local/node20/lib/node_modules/corepack/shims:$PATH\")",
+      "Bash(export PATH=\"/home/ariel/.local/node20/bin:/home/ariel/.local/node20/lib/node_modules/corepack/shims:/usr/bin:/usr/local/bin:/bin:$PATH\")",
+      "Bash(export PATH:*)",
+      "Bash(pnpm dev)",
+      "Bash(node:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ]
   }
 }
