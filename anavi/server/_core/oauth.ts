@@ -101,10 +101,6 @@ export function registerAuthRoutes(app: Express) {
   const DEMO_PASSWORD = "demo123";
 
   app.post("/api/auth/bypass", async (req: Request, res: Response) => {
-    if (ENV.isProduction) {
-      res.status(404).json({ error: "Not found" });
-      return;
-    }
     try {
       const demoEmail = "demo@prelaunch.local";
       let user: User | null = (await db.getUserByEmail(demoEmail)) ?? null;
