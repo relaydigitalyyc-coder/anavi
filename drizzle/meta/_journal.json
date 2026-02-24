@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1768049994190,
+      "tag": "0000_workable_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1768050240233,
+      "tag": "0001_adorable_titania",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1768061476335,
+      "tag": "0002_optimal_goliath",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1768062266975,
+      "tag": "0003_windy_human_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1768062684159,
+      "tag": "0004_jittery_snowbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1768089804088,
+      "tag": "0005_fresh_omega_red",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1768627452852,
+      "tag": "0006_tan_jetstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1768628421298,
+      "tag": "0007_past_magdalene",
+      "breakpoints": true
+    }
+  ]
+}
