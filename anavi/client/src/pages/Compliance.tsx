@@ -17,19 +17,72 @@ const COMPLIANCE_CHECKS = [
   { id: "kyc", label: "KYC Verification", description: "Know Your Customer identity verification" },
   { id: "kyb", label: "KYB Verification", description: "Know Your Business entity verification" },
   { id: "jurisdiction", label: "Jurisdiction Check", description: "Regulatory compliance by region" },
-];
+] as const;
+
+function checkStatusBadge(status: string | undefined) {
+  switch (status) {
+    case "passed":
+      return { label: "Passed", className: "bg-sky-100 text-sky-700 hover:bg-sky-100 border-0" };
+    case "failed":
+    case "flagged":
+      return { label: status === "failed" ? "Failed" : "Flagged", className: "bg-red-100 text-red-700 hover:bg-red-100 border-0" };
+    case "pending":
+      return { label: "Pending", className: "bg-amber-100 text-amber-700 hover:bg-amber-100 border-0" };
+    default:
+      return { label: "Not Checked", className: "bg-muted text-muted-foreground hover:bg-muted border-0" };
+  }
+}
+
+function checkStatusIcon(status: string | undefined) {
+  switch (status) {
+    case "passed":
+      return <CheckCircle2 className="w-5 h-5 text-sky-600" />;
+    case "failed":
+    case "flagged":
+      return <AlertCircle className="w-5 h-5 text-red-600" />;
+    case "pending":
+      return <Clock className="w-5 h-5 text-amber-600" />;
+    default:
+      return <Shield className="w-5 h-5 text-muted-foreground" />;
+  }
+}
 
 export default function Compliance() {
   const { data: user } = trpc.user.getProfile.useQuery();
-  
+  const { data: checkResults } = trpc.compliance.getChecks.useQuery(
+    { entityType: "user", entityId: user?.id ?? 0 },
+    { enabled: !!user?.id },
+  );
+
+  const utils = trpc.useUtils();
   const runCheckMutation = trpc.compliance.runCheck.useMutation({
     onSuccess: () => {
       toast.success("Compliance check initiated");
+      utils.compliance.getChecks.invalidate();
     },
     onError: (error) => {
       toast.error(error.message);
     },
   });
+
+  const resultsByType = new Map(
+    (checkResults ?? []).map((r) => [r.checkType, r]),
+  );
+  const passedCount = COMPLIANCE_CHECKS.filter(
+    (c) => resultsByType.get(c.id)?.status === "passed",
+  ).length;
+  const hasFailed = COMPLIANCE_CHECKS.some((c) => {
+    const s = resultsByType.get(c.id)?.status;
+    return s === "failed" || s === "flagged";
+  });
+  const hasPending = COMPLIANCE_CHECKS.some(
+    (c) => resultsByType.get(c.id)?.status === "pending",
+  );
+
+  const overallLabel = hasFailed ? "Alert" : passedCount === COMPLIANCE_CHECKS.length ? "Clear" : hasPending ? "Pending" : "Not Checked";
+  const overallColor = hasFailed ? "text-red-600" : passedCount === COMPLIANCE_CHECKS.length ? "text-sky-600" : hasPending ? "text-amber-600" : "text-muted-foreground";
+  const overallBg = hasFailed ? "bg-red-100" : passedCount === COMPLIANCE_CHECKS.length ? "bg-sky-100" : hasPending ? "bg-amber-100" : "bg-muted";
+  const overallGradient = hasFailed ? "border-red-200 bg-gradient-to-br from-red-50 to-white" : passedCount === COMPLIANCE_CHECKS.length ? "border-sky-200 bg-gradient-to-br from-emerald-50 to-white" : hasPending ? "border-amber-200 bg-gradient-to-br from-amber-50 to-white" : "border-border";
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
@@ -65,14 +118,14 @@ export default function Compliance() {
 
       {/* Overall Status */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-border/60 shadow-sm border-sky-200 bg-gradient-to-br from-emerald-50 to-white">
+        <Card className={`border-border/60 shadow-sm ${overallGradient}`}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-sky-100 flex items-center justify-center">
-                <CheckCircle2 className="w-7 h-7 text-sky-600" />
+              <div className={`w-14 h-14 rounded-xl ${overallBg} flex items-center justify-center`}>
+                {hasFailed ? <AlertCircle className={`w-7 h-7 ${overallColor}`} /> : <CheckCircle2 className={`w-7 h-7 ${overallColor}`} />}
               </div>
               <div>
-                <div className="text-2xl font-bold text-sky-600">Clear</div>
+                <div className={`text-2xl font-bold ${overallColor}`}>{overallLabel}</div>
                 <div className="text-sm text-muted-foreground">Overall Status</div>
               </div>
             </div>
@@ -118,42 +171,46 @@ export default function Compliance() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {COMPLIANCE_CHECKS.map((check, index) => (
-              <div
-                key={check.id}
-                className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/30 hover:shadow-sm transition-all"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-sky-600" />
+            {COMPLIANCE_CHECKS.map((check, index) => {
+              const result = resultsByType.get(check.id);
+              const badge = checkStatusBadge(result?.status ?? undefined);
+              return (
+                <div
+                  key={check.id}
+                  className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/30 hover:shadow-sm transition-all"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center">
+                      {checkStatusIcon(result?.status ?? undefined)}
+                    </div>
+                    <div>
+                      <div className="font-semibold">{check.label}</div>
+                      <div className="text-sm text-muted-foreground">{check.description}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-semibold">{check.label}</div>
-                    <div className="text-sm text-muted-foreground">{check.description}</div>
+                  <div className="flex items-center gap-3">
+                    <Badge className={badge.className}>{badge.label}</Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hover:bg-muted"
+                      onClick={() => {
+                        if (user?.id) {
+                          runCheckMutation.mutate({
+                            entityType: "user",
+                            entityId: user.id,
+                            checkType: check.id as any,
+                          });
+                        }
+                      }}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge className="bg-sky-100 text-sky-700 hover:bg-sky-100 border-0">Passed</Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:bg-muted"
-                    onClick={() => {
-                      if (user?.id) {
-                        runCheckMutation.mutate({
-                          entityType: 'user',
-                          entityId: user.id,
-                          checkType: check.id as any,
-                        });
-                      }
-                    }}
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -171,9 +228,9 @@ export default function Compliance() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Overall Progress</span>
-                <span className="text-sm font-semibold text-primary">3 of 5 completed</span>
+                <span className="text-sm font-semibold text-primary">{passedCount} of {COMPLIANCE_CHECKS.length} completed</span>
               </div>
-              <Progress value={60} className="h-2" />
+              <Progress value={Math.round((passedCount / COMPLIANCE_CHECKS.length) * 100)} className="h-2" />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">

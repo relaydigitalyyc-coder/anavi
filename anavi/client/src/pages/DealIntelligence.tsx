@@ -4,7 +4,7 @@ import {
   Brain, Sparkles, TrendingUp, AlertCircle, CheckCircle2, Clock, 
   Users, DollarSign, Target, Zap, Bell, ArrowRight, ChevronDown,
   Building2, Pill, Smartphone, Bot, CreditCard, Network, Calendar,
-  MessageSquare, FileText, ExternalLink, Star, Activity
+  MessageSquare, FileText, ExternalLink, Star, Activity, Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -21,8 +22,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { trpc } from '@/lib/trpc';
 
-// Extracted deals from Fireflies transcripts
+// TODO: Wire to dedicated backend endpoint when available
 const extractedDeals = [
   {
     id: 'peptide-ecommerce',
@@ -161,7 +163,7 @@ const extractedDeals = [
   },
 ];
 
-// Network connections needed
+// TODO: Wire to dedicated backend endpoint when available
 const neededConnections = [
   {
     deal: 'Peptide E-Commerce',
@@ -251,6 +253,12 @@ export default function DealIntelligence() {
   const [selectedDeal, setSelectedDeal] = useState<typeof extractedDeals[0] | null>(null);
   const [activeTab, setActiveTab] = useState('deals');
 
+  const { data: sectorData, isLoading: loadingSector } = trpc.intelligence.sectorOverview.useQuery();
+  const { data: marketData, isLoading: loadingDepth } = trpc.intelligence.marketDepth.useQuery();
+  const sectorIntelMutation = trpc.ai.sectorIntelligence.useMutation();
+
+  const marketInsights = sectorData ?? [];
+
   const totalDeals = extractedDeals.length;
   const readyDeals = extractedDeals.filter(d => d.status === 'ready').length;
   const primedDeals = extractedDeals.filter(d => d.status === 'primed').length;
@@ -276,6 +284,21 @@ export default function DealIntelligence() {
                 <Bell className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">{aiNotifications.length} Alerts</span>
                 <span className="sm:hidden">{aiNotifications.length}</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-violet-500/30 text-violet-300 hover:bg-violet-500/20"
+                disabled={sectorIntelMutation.isPending}
+                onClick={() => sectorIntelMutation.mutate({ sector: 'fintech' })}
+              >
+                {sectorIntelMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Brain className="w-4 h-4 mr-2" />
+                )}
+                <span className="hidden sm:inline">Generate Insights</span>
+                <span className="sm:hidden">Insights</span>
               </Button>
               <Button size="sm" className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700">
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -397,6 +420,80 @@ export default function DealIntelligence() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Market Intelligence (from backend) */}
+        {(loadingSector || loadingDepth) ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 md:mb-8">
+            {[0, 1, 2].map(i => (
+              <Card key={i} className="bg-white/5 border-white/10">
+                <CardContent className="p-4 space-y-3">
+                  <Skeleton className="h-4 w-24 bg-white/10" />
+                  <Skeleton className="h-6 w-16 bg-white/10" />
+                  <Skeleton className="h-3 w-full bg-white/10" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (marketInsights.length > 0 || (marketData && marketData.length > 0)) ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 md:mb-8">
+            {marketInsights.slice(0, 3).map((item, i) => (
+              <motion.div
+                key={item.sector}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 + i * 0.1 }}
+              >
+                <Card className="bg-white/5 border-white/10">
+                  <CardContent className="p-4">
+                    <p className="text-xs text-slate-400 mb-1">Sector</p>
+                    <p className="text-sm font-semibold text-white capitalize mb-2">{item.sector}</p>
+                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                      <TrendingUp className="w-3 h-3 text-sky-400" />
+                      <span>{item.count} active intent{item.count !== 1 ? 's' : ''}</span>
+                    </div>
+                    {marketData?.find(m => m.sector === item.sector) && (
+                      <div className="flex items-center gap-3 mt-2 text-xs">
+                        <span className="text-green-400">{marketData.find(m => m.sector === item.sector)!.buyers} buyers</span>
+                        <span className="text-red-400">{marketData.find(m => m.sector === item.sector)!.sellers} sellers</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        ) : null}
+
+        {/* AI-Generated Sector Insight */}
+        {sectorIntelMutation.data && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 md:mb-8"
+          >
+            <Card className="bg-violet-500/10 border-violet-500/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-sm flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-violet-400" />
+                  AI Sector Intelligence — {sectorIntelMutation.data.sector}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Badge variant="outline" className="text-xs border-violet-500/30 text-violet-300 capitalize">
+                  {sectorIntelMutation.data.sentiment}
+                </Badge>
+                <ul className="text-sm text-slate-300 space-y-1">
+                  {sectorIntelMutation.data.keyInsights?.slice(0, 3).map((insight: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <Sparkles className="w-3 h-3 text-violet-400 mt-1 shrink-0" />
+                      {insight}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">

@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -99,8 +98,7 @@ When we say yes, it means something.`,
 
 export default function Manifesto() {
   return (
-    <DashboardLayout>
-      <div className="space-y-8 p-4 md:p-6 max-w-4xl mx-auto">
+    <div className="space-y-8 p-4 md:p-6 max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -242,6 +240,5 @@ export default function Manifesto() {
           </p>
         </motion.div>
       </div>
-    </DashboardLayout>
   );
 }

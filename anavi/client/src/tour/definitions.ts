@@ -1,3 +1,7 @@
+/**
+ * Main app tour (DashboardLayout, TourOverlay, useTour).
+ * Demo tour: @/lib/tourDefinitions.ts (GuidedTour, Demo page)
+ */
 export type TourPlacement = "top" | "bottom" | "left" | "right" | "center";
 
 export interface TourStep {

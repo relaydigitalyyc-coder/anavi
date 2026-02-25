@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,8 +101,7 @@ export default function CapitalManagement() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-8">
+    <div className="p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -616,6 +614,5 @@ export default function CapitalManagement() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 }

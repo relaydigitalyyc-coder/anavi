@@ -88,7 +88,9 @@ function Router() {
       <Route path="/onboarding">
         <ProtectedPage component={OnboardingFlow} />
       </Route>
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/dashboard">
+        <ShellRoute component={Dashboard} />
+      </Route>
       <Route path="/relationships">
         <ShellRoute component={Relationships} />
       </Route>
@@ -129,43 +131,43 @@ function Router() {
         <ShellRoute component={Analytics} />
       </Route>
       <Route path="/spv-generator">
-        <ProtectedPage component={SPVGenerator} />
+        <ShellRoute component={SPVGenerator} />
       </Route>
       <Route path="/lp-portal">
-        <ProtectedPage component={LPPortal} />
+        <ShellRoute component={LPPortal} />
       </Route>
       <Route path="/capital-management">
-        <ProtectedPage component={CapitalManagement} />
+        <ShellRoute component={CapitalManagement} />
       </Route>
       <Route path="/audit-logs">
-        <ProtectedPage component={AuditLogs} />
+        <ShellRoute component={AuditLogs} />
       </Route>
       <Route path="/commodities">
-        <ProtectedPage component={Commodities} />
+        <ShellRoute component={Commodities} />
       </Route>
       <Route path="/real-estate">
-        <ProtectedPage component={RealEstate} />
+        <ShellRoute component={RealEstate} />
       </Route>
       <Route path="/transaction-matching">
-        <ProtectedPage component={TransactionMatching} />
+        <ShellRoute component={TransactionMatching} />
       </Route>
       <Route path="/trading">
-        <ProtectedPage component={TradingPlatform} />
+        <ShellRoute component={TradingPlatform} />
       </Route>
       <Route path="/member-onboarding">
-        <ProtectedPage component={MemberOnboarding} />
+        <ShellRoute component={MemberOnboarding} />
       </Route>
       <Route path="/fee-management">
-        <ProtectedPage component={FeeManagement} />
+        <ShellRoute component={FeeManagement} />
       </Route>
       <Route path="/deal-rooms/:id">
         <ShellRoute component={DealRoom} />
       </Route>
       <Route path="/manifesto">
-        <ProtectedPage component={Manifesto} />
+        <ShellRoute component={Manifesto} />
       </Route>
       <Route path="/operator-intake">
-        <ProtectedPage component={OperatorIntake} />
+        <ShellRoute component={OperatorIntake} />
       </Route>
       <Route path="/knowledge-graph">
         <ShellRoute component={KnowledgeGraphPage} />
@@ -180,10 +182,10 @@ function Router() {
         <ShellRoute component={Verification} />
       </Route>
       <Route path="/crypto-assets">
-        <ProtectedPage component={CryptoAssets} />
+        <ShellRoute component={CryptoAssets} />
       </Route>
       <Route path="/ai-brain">
-        <ProtectedPage component={AIBrain} />
+        <ShellRoute component={AIBrain} />
       </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

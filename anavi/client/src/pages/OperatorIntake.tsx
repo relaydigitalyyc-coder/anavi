@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +15,7 @@ import {
   Target, Globe, Calendar
 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 const ASSET_CLASSES = [
   "Real Estate",
@@ -64,32 +64,37 @@ export default function OperatorIntake() {
     noAutomation: false,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const submitMutation = trpc.ai.chat.useMutation({
+    onSuccess: () => {
+      setIsSubmitted(true);
+      toast.success("Submission Received", {
+        description: "Our team will review your submission and reach out within 5-7 business days.",
+      });
+    },
+    onError: (error) => {
+      toast.error(`Submission failed: ${error.message}`);
+    },
+  });
 
   const updateFormData = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    toast.success("Submission Received", {
-      description: "Our team will review your submission and reach out within 5-7 business days.",
+    submitMutation.mutate({
+      messages: [{
+        role: 'user',
+        content: `OPERATOR INTAKE SUBMISSION:\n${JSON.stringify(formData, null, 2)}`,
+      }],
     });
   };
 
   if (isSubmitted) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[60vh] p-4">
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -115,13 +120,11 @@ export default function OperatorIntake() {
             </div>
           </motion.div>
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
+    <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -426,9 +429,9 @@ export default function OperatorIntake() {
           <Button 
             type="submit" 
             className="w-full bg-sky-500 hover:bg-sky-600 h-12"
-            disabled={isSubmitting || !formData.accreditedOnly || !formData.manualReview || !formData.noAutomation}
+            disabled={submitMutation.isPending || !formData.accreditedOnly || !formData.manualReview || !formData.noAutomation}
           >
-            {isSubmitting ? (
+            {submitMutation.isPending ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                 Submitting...
@@ -442,6 +445,5 @@ export default function OperatorIntake() {
           </Button>
         </motion.form>
       </div>
-    </DashboardLayout>
   );
 }

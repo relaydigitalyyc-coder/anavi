@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -594,8 +593,7 @@ export default function SPVGenerator() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-4 md:p-8 max-w-5xl mx-auto">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-2">SPV Generator</h1>
@@ -689,6 +687,5 @@ export default function SPVGenerator() {
           )}
         </div>
       </div>
-    </DashboardLayout>
   );
 }

@@ -13,7 +13,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DashboardLayout from "@/components/DashboardLayout";
 
 // Demo fee data
 const feeStats = {
@@ -74,8 +73,7 @@ export default function FeeManagement() {
   const maxRevenue = Math.max(...monthlyRevenue.map(m => m.revenue));
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -366,6 +364,5 @@ export default function FeeManagement() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }

@@ -1,5 +1,4 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import DashboardLayout from "@/components/DashboardLayout";
 import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
 import { trpc } from "@/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
@@ -269,15 +268,11 @@ export default function Dashboard() {
   const maxDepth = Math.max(...MARKET_DEPTH.map((m) => Math.max(m.buyers, m.sellers)));
 
   if (loading) {
-    return (
-      <DashboardLayout>
-        <DashboardSkeleton />
-      </DashboardLayout>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <DashboardLayout>
+    <>
       {welcomePersona && (
         <WelcomeBanner
           name={user?.name?.split(" ")[0] ?? "there"}
@@ -504,6 +499,6 @@ export default function Dashboard() {
           </StaggerItem>
         </StaggerContainer>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

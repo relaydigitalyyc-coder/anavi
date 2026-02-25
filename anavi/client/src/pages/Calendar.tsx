@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calendar as CalendarIcon, Plus, Clock, MapPin, Users, Video,
   ChevronLeft, ChevronRight, Check, X, Bell, Briefcase,
-  ExternalLink, MoreHorizontal
+  ExternalLink, MoreHorizontal, Trash2, Pencil, Unplug, Link2
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
@@ -14,9 +14,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -87,6 +89,9 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [view, setView] = useState<"month" | "week" | "day">("month");
   const [showEventDialog, setShowEventDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showReminderDialog, setShowReminderDialog] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
   const [newEvent, setNewEvent] = useState({
     title: "",
     description: "",
@@ -96,8 +101,24 @@ export default function Calendar() {
     endTime: "",
     eventType: "meeting" as const,
   });
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    location: "",
+    startTime: "",
+    endTime: "",
+    notes: "",
+  });
+  const [reminderForm, setReminderForm] = useState({
+    title: "",
+    notes: "",
+    priority: "medium" as "low" | "medium" | "high" | "urgent",
+    dueDate: "",
+  });
 
-  const { data: events, refetch } = trpc.calendar.events.useQuery({
+  const utils = trpc.useUtils();
+
+  const { data: events } = trpc.calendar.events.useQuery({
     startDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString(),
     endDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString(),
   });
@@ -118,10 +139,66 @@ export default function Calendar() {
         endTime: "",
         eventType: "meeting",
       });
-      refetch();
+      utils.calendar.events.invalidate();
     },
     onError: () => {
       toast.error("Failed to create event");
+    },
+  });
+
+  const updateEvent = trpc.calendar.updateEvent.useMutation({
+    onSuccess: () => {
+      toast.success("Event updated");
+      setShowEditDialog(false);
+      setEditingEvent(null);
+      utils.calendar.events.invalidate();
+    },
+    onError: () => {
+      toast.error("Failed to update event");
+    },
+  });
+
+  const deleteEvent = trpc.calendar.deleteEvent.useMutation({
+    onSuccess: () => {
+      toast.success("Event deleted");
+      setShowEditDialog(false);
+      setEditingEvent(null);
+      utils.calendar.events.invalidate();
+    },
+    onError: () => {
+      toast.error("Failed to delete event");
+    },
+  });
+
+  const connectCalendar = trpc.calendar.connect.useMutation({
+    onSuccess: () => {
+      toast.success("Calendar connected");
+      utils.calendar.connections.invalidate();
+    },
+    onError: () => {
+      toast.error("Failed to connect calendar");
+    },
+  });
+
+  const disconnectCalendar = trpc.calendar.disconnect.useMutation({
+    onSuccess: () => {
+      toast.success("Calendar disconnected");
+      utils.calendar.connections.invalidate();
+    },
+    onError: () => {
+      toast.error("Failed to disconnect calendar");
+    },
+  });
+
+  const createReminder = trpc.calendar.createReminder.useMutation({
+    onSuccess: () => {
+      toast.success("Reminder created");
+      setShowReminderDialog(false);
+      setReminderForm({ title: "", notes: "", priority: "medium", dueDate: "" });
+      utils.calendar.reminders.invalidate();
+    },
+    onError: () => {
+      toast.error("Failed to create reminder");
     },
   });
 
@@ -134,7 +211,6 @@ export default function Calendar() {
     const startPadding = firstDay.getDay();
     const days: { date: Date; isCurrentMonth: boolean }[] = [];
 
-    // Previous month padding
     for (let i = startPadding - 1; i >= 0; i--) {
       days.push({
         date: new Date(year, month, -i),
@@ -142,7 +218,6 @@ export default function Calendar() {
       });
     }
 
-    // Current month
     for (let i = 1; i <= lastDay.getDate(); i++) {
       days.push({
         date: new Date(year, month, i),
@@ -150,7 +225,6 @@ export default function Calendar() {
       });
     }
 
-    // Next month padding
     const remaining = 42 - days.length;
     for (let i = 1; i <= remaining; i++) {
       days.push({
@@ -193,6 +267,57 @@ export default function Calendar() {
       return;
     }
     createEvent.mutate(newEvent);
+  };
+
+  const openEditDialog = (event: any) => {
+    setEditingEvent(event);
+    const toLocal = (iso: string) => {
+      const d = new Date(iso);
+      const offset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+    };
+    setEditForm({
+      title: event.title ?? "",
+      description: event.description ?? "",
+      location: event.location ?? "",
+      startTime: event.startTime ? toLocal(event.startTime) : "",
+      endTime: event.endTime ? toLocal(event.endTime) : "",
+      notes: event.notes ?? "",
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateEvent = () => {
+    if (!editingEvent) return;
+    updateEvent.mutate({
+      eventId: editingEvent.id,
+      title: editForm.title || undefined,
+      description: editForm.description || undefined,
+      location: editForm.location || undefined,
+      startTime: editForm.startTime || undefined,
+      endTime: editForm.endTime || undefined,
+      notes: editForm.notes || undefined,
+    });
+  };
+
+  const handleDeleteEvent = () => {
+    if (!editingEvent) return;
+    deleteEvent.mutate({ eventId: editingEvent.id });
+  };
+
+  const handleCreateReminder = () => {
+    if (!reminderForm.title || !reminderForm.dueDate) {
+      toast.error("Title and due date are required");
+      return;
+    }
+    createReminder.mutate({
+      targetType: "deal",
+      targetId: 0,
+      title: reminderForm.title,
+      notes: reminderForm.notes || undefined,
+      priority: reminderForm.priority,
+      dueDate: new Date(reminderForm.dueDate).toISOString(),
+    });
   };
 
   return (
@@ -321,7 +446,8 @@ export default function Calendar() {
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className={`text-xs p-1 mb-1 truncate border-l-2 ${colors.bg} ${colors.text} ${colors.border}`}
+                            className={`text-xs p-1 mb-1 truncate border-l-2 cursor-pointer hover:opacity-80 ${colors.bg} ${colors.text} ${colors.border}`}
+                            onClick={(e) => { e.stopPropagation(); openEditDialog(event); }}
                           >
                             {event.title}
                           </motion.div>
@@ -345,9 +471,6 @@ export default function Calendar() {
             <motion.div variants={itemVariants} className="border border-neutral-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium uppercase tracking-wider">Connections</h3>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Plus className="w-4 h-4" />
-                </Button>
               </div>
               <div className="space-y-3">
                 {connections?.map((conn: any) => (
@@ -356,18 +479,31 @@ export default function Calendar() {
                       <div className={`w-2 h-2 ${conn.isActive ? "bg-sky-500" : "bg-neutral-300"}`} />
                       <span className="text-sm capitalize">{conn.provider}</span>
                     </div>
-                    <Check className="w-4 h-4 text-sky-500" />
+                    <button
+                      onClick={() => disconnectCalendar.mutate({ connectionId: conn.id })}
+                      className="p-1 text-neutral-400 hover:text-red-500 transition-colors"
+                      title="Disconnect"
+                    >
+                      <Unplug className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
                 {(!connections || connections.length === 0) && (
                   <div className="text-center py-4">
                     <CalendarIcon className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
                     <p className="text-xs text-neutral-400">No calendars connected</p>
-                    <Button variant="outline" size="sm" className="mt-3 text-xs">
-                      Connect Calendar
-                    </Button>
                   </div>
                 )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs mt-2"
+                  disabled={connectCalendar.isPending}
+                  onClick={() => connectCalendar.mutate({ provider: "google" })}
+                >
+                  <Link2 className="w-3.5 h-3.5 mr-1.5" />
+                  {connectCalendar.isPending ? "Connecting…" : "Connect Google Calendar"}
+                </Button>
               </div>
             </motion.div>
 
@@ -375,7 +511,13 @@ export default function Calendar() {
             <motion.div variants={itemVariants} className="border border-neutral-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium uppercase tracking-wider">Reminders</h3>
-                <Bell className="w-4 h-4 text-neutral-400" />
+                <button
+                  onClick={() => setShowReminderDialog(true)}
+                  className="p-1 hover:bg-neutral-100 transition-colors rounded"
+                  title="Add Reminder"
+                >
+                  <Plus className="w-4 h-4 text-neutral-400" />
+                </button>
               </div>
               <div className="space-y-3">
                 {reminders?.slice(0, 5).map((reminder: any) => (
@@ -418,7 +560,8 @@ export default function Calendar() {
                     return (
                       <div
                         key={event.id}
-                        className={`p-3 border-l-2 ${colors.bg} ${colors.border}`}
+                        className={`p-3 border-l-2 cursor-pointer hover:opacity-80 ${colors.bg} ${colors.border}`}
+                        onClick={() => openEditDialog(event)}
                       >
                         <p className="text-sm font-medium">{event.title}</p>
                         <div className="flex items-center gap-2 mt-2 text-xs text-neutral-500">
@@ -448,6 +591,7 @@ export default function Calendar() {
           <DialogContent className="sm:max-w-[500px] rounded-none border-neutral-200">
             <DialogHeader>
               <DialogTitle className="text-xl font-light">New Event</DialogTitle>
+              <DialogDescription className="sr-only">Create a new calendar event</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div>
@@ -541,6 +685,170 @@ export default function Calendar() {
                   className="bg-black text-white hover:bg-neutral-800 rounded-none"
                 >
                   {createEvent.isPending ? "Creating..." : "Create Event"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Event Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={(open) => { if (!open) { setShowEditDialog(false); setEditingEvent(null); } }}>
+          <DialogContent className="sm:max-w-[500px] rounded-none border-neutral-200">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-light">Edit Event</DialogTitle>
+              <DialogDescription className="sr-only">Edit or delete this calendar event</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Title</label>
+                <Input
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="rounded-none border-neutral-200"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Start</label>
+                  <Input
+                    type="datetime-local"
+                    value={editForm.startTime}
+                    onChange={(e) => setEditForm({ ...editForm, startTime: e.target.value })}
+                    className="rounded-none border-neutral-200"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">End</label>
+                  <Input
+                    type="datetime-local"
+                    value={editForm.endTime}
+                    onChange={(e) => setEditForm({ ...editForm, endTime: e.target.value })}
+                    className="rounded-none border-neutral-200"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Location</label>
+                <Input
+                  value={editForm.location}
+                  onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                  className="rounded-none border-neutral-200"
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Description</label>
+                <Textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="rounded-none border-neutral-200 min-h-[80px]"
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Notes</label>
+                <Textarea
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                  placeholder="Post-meeting notes, outcomes…"
+                  className="rounded-none border-neutral-200 min-h-[60px]"
+                />
+              </div>
+              <div className="flex justify-between pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleDeleteEvent}
+                  disabled={deleteEvent.isPending}
+                  className="rounded-none text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {deleteEvent.isPending ? "Deleting…" : "Delete"}
+                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => { setShowEditDialog(false); setEditingEvent(null); }}
+                    className="rounded-none"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUpdateEvent}
+                    disabled={updateEvent.isPending}
+                    className="bg-black text-white hover:bg-neutral-800 rounded-none"
+                  >
+                    {updateEvent.isPending ? "Saving…" : "Save Changes"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Reminder Dialog */}
+        <Dialog open={showReminderDialog} onOpenChange={setShowReminderDialog}>
+          <DialogContent className="sm:max-w-[420px] rounded-none border-neutral-200">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-light">New Reminder</DialogTitle>
+              <DialogDescription className="sr-only">Create a follow-up reminder</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Title</label>
+                <Input
+                  value={reminderForm.title}
+                  onChange={(e) => setReminderForm({ ...reminderForm, title: e.target.value })}
+                  placeholder="Reminder title"
+                  className="rounded-none border-neutral-200"
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Due Date</label>
+                <Input
+                  type="datetime-local"
+                  value={reminderForm.dueDate}
+                  onChange={(e) => setReminderForm({ ...reminderForm, dueDate: e.target.value })}
+                  className="rounded-none border-neutral-200"
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Priority</label>
+                <Select
+                  value={reminderForm.priority}
+                  onValueChange={(v: any) => setReminderForm({ ...reminderForm, priority: v })}
+                >
+                  <SelectTrigger className="rounded-none border-neutral-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-wider text-neutral-500 mb-2 block">Notes</label>
+                <Textarea
+                  value={reminderForm.notes}
+                  onChange={(e) => setReminderForm({ ...reminderForm, notes: e.target.value })}
+                  placeholder="Optional notes…"
+                  className="rounded-none border-neutral-200 min-h-[60px]"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReminderDialog(false)}
+                  className="rounded-none"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateReminder}
+                  disabled={createReminder.isPending}
+                  className="bg-black text-white hover:bg-neutral-800 rounded-none"
+                >
+                  {createReminder.isPending ? "Creating…" : "Create Reminder"}
                 </Button>
               </div>
             </div>

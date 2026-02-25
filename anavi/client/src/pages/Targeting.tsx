@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -17,7 +18,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import {
   Target,
@@ -36,6 +55,9 @@ import {
   XCircle,
   Pause,
   ArrowUpRight,
+  Trash2,
+  Eye,
+  Activity,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -78,6 +100,16 @@ export default function Targeting() {
   const [priorityFilter, setPriorityFilter] = useState<string>("");
   const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [activityDialogOpen, setActivityDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [detailTargetId, setDetailTargetId] = useState<number | null>(null);
+  const [newTarget, setNewTarget] = useState({
+    familyOfficeId: 0,
+    priority: "medium" as "low" | "medium" | "high" | "critical",
+    notes: "",
+    primaryContactName: "",
+    primaryContactTitle: "",
+  });
   const [newActivity, setNewActivity] = useState({
     activityType: "email_sent" as const,
     subject: "",
@@ -85,16 +117,55 @@ export default function Targeting() {
     outcome: "",
   });
 
-  const { data: targetsData, refetch } = trpc.targeting.list.useQuery({
+  const utils = trpc.useUtils();
+
+  const { data: targetsData } = trpc.targeting.list.useQuery({
     status: statusFilter || undefined,
     priority: priorityFilter || undefined,
   });
   const { data: stats } = trpc.targeting.stats.useQuery();
+
+  const { data: detailData } = trpc.targeting.get.useQuery(
+    { id: detailTargetId! },
+    { enabled: !!detailTargetId }
+  );
+
+  const { data: activities } = trpc.targeting.getActivities.useQuery(
+    { targetId: detailTargetId! },
+    { enabled: !!detailTargetId && detailSheetOpen }
+  );
   
   const updateTarget = trpc.targeting.update.useMutation({
     onSuccess: () => {
-      refetch();
+      utils.targeting.list.invalidate();
+      utils.targeting.get.invalidate();
       toast.success("Target updated");
+    },
+  });
+
+  const createTarget = trpc.targeting.create.useMutation({
+    onSuccess: () => {
+      utils.targeting.list.invalidate();
+      utils.targeting.stats.invalidate();
+      setCreateDialogOpen(false);
+      setNewTarget({ familyOfficeId: 0, priority: "medium", notes: "", primaryContactName: "", primaryContactTitle: "" });
+      toast.success("Target created");
+    },
+    onError: () => {
+      toast.error("Failed to create target");
+    },
+  });
+
+  const deleteTarget = trpc.targeting.delete.useMutation({
+    onSuccess: () => {
+      utils.targeting.list.invalidate();
+      utils.targeting.stats.invalidate();
+      setDetailSheetOpen(false);
+      setDetailTargetId(null);
+      toast.success("Target deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete target");
     },
   });
 
@@ -102,11 +173,17 @@ export default function Targeting() {
     onSuccess: () => {
       setActivityDialogOpen(false);
       setNewActivity({ activityType: "email_sent", subject: "", description: "", outcome: "" });
+      utils.targeting.getActivities.invalidate();
       toast.success("Activity logged");
     },
   });
 
   const targets = targetsData?.data || [];
+
+  const handleRowClick = (targetId: number) => {
+    setDetailTargetId(targetId);
+    setDetailSheetOpen(true);
+  };
 
   // Group targets by status for Kanban view
   const targetsByStatus = targets.reduce((acc, item) => {
@@ -132,6 +209,94 @@ export default function Targeting() {
             Manage your prospecting pipeline and track outreach
           </p>
         </div>
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New Target
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Target</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-sm font-medium text-stone-700">Family Office ID *</label>
+                <Input
+                  className="mt-1"
+                  type="number"
+                  value={newTarget.familyOfficeId || ""}
+                  onChange={(e) => setNewTarget({ ...newTarget, familyOfficeId: parseInt(e.target.value) || 0 })}
+                  placeholder="Enter family office ID"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-stone-700">Contact Name</label>
+                <Input
+                  className="mt-1"
+                  value={newTarget.primaryContactName}
+                  onChange={(e) => setNewTarget({ ...newTarget, primaryContactName: e.target.value })}
+                  placeholder="Primary contact name"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-stone-700">Contact Title</label>
+                <Input
+                  className="mt-1"
+                  value={newTarget.primaryContactTitle}
+                  onChange={(e) => setNewTarget({ ...newTarget, primaryContactTitle: e.target.value })}
+                  placeholder="e.g. Chief Investment Officer"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-stone-700">Priority</label>
+                <Select
+                  value={newTarget.priority}
+                  onValueChange={(value) => setNewTarget({ ...newTarget, priority: value as any })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-stone-700">Notes</label>
+                <Textarea
+                  className="mt-1"
+                  value={newTarget.notes}
+                  onChange={(e) => setNewTarget({ ...newTarget, notes: e.target.value })}
+                  placeholder="Any initial notes..."
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  if (!newTarget.familyOfficeId) {
+                    toast.error("Family Office ID is required");
+                    return;
+                  }
+                  createTarget.mutate({
+                    familyOfficeId: newTarget.familyOfficeId,
+                    priority: newTarget.priority,
+                    notes: newTarget.notes || undefined,
+                    primaryContactName: newTarget.primaryContactName || undefined,
+                    primaryContactTitle: newTarget.primaryContactTitle || undefined,
+                  });
+                }}
+                disabled={createTarget.isPending}
+              >
+                Create Target
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats */}
@@ -238,7 +403,8 @@ export default function Targeting() {
           targets.map((item) => (
             <div
               key={item.target.id}
-              className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-stone-100 hover:bg-stone-50 transition-colors items-center"
+              className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-stone-100 hover:bg-stone-50 transition-colors items-center cursor-pointer"
+              onClick={() => handleRowClick(item.target.id)}
             >
               <div className="col-span-4">
                 <div className="flex items-center gap-3">
@@ -259,7 +425,7 @@ export default function Targeting() {
                 </div>
               </div>
               
-              <div className="col-span-2">
+              <div className="col-span-2" onClick={(e) => e.stopPropagation()}>
                 <Select
                   value={item.target.status || "identified"}
                   onValueChange={(value) => handleStatusChange(item.target.id, value)}
@@ -289,7 +455,7 @@ export default function Targeting() {
                   : "Never"}
               </div>
               
-              <div className="col-span-2 flex items-center gap-2">
+              <div className="col-span-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 {item.target.primaryContactEmail && (
                   <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                     <a href={`mailto:${item.target.primaryContactEmail}`}>
@@ -392,6 +558,128 @@ export default function Targeting() {
           ))
         )}
       </div>
+
+      {/* Detail Sheet */}
+      <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
+        <SheetContent className="w-[500px] sm:max-w-[500px]">
+          <SheetHeader>
+            <SheetTitle className="text-xl font-serif font-light">
+              {detailData?.familyOffice?.name || "Target Details"}
+            </SheetTitle>
+          </SheetHeader>
+          
+          {detailData && (
+            <ScrollArea className="h-[calc(100vh-120px)] mt-6 pr-4">
+              <div className="space-y-6">
+                {/* Target Info */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-stone-100">
+                    <span className="text-sm text-stone-500">Status</span>
+                    <Badge className={statusColors[detailData.target.status || "identified"]}>
+                      {statusLabels[detailData.target.status || "identified"]}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-stone-100">
+                    <span className="text-sm text-stone-500">Priority</span>
+                    <Badge className={priorityColors[detailData.target.priority || "medium"]}>
+                      {(detailData.target.priority || "medium").charAt(0).toUpperCase() + (detailData.target.priority || "medium").slice(1)}
+                    </Badge>
+                  </div>
+                  {detailData.target.primaryContactName && (
+                    <div className="flex items-center justify-between py-2 border-b border-stone-100">
+                      <span className="text-sm text-stone-500">Contact</span>
+                      <span className="text-sm font-medium">{detailData.target.primaryContactName}</span>
+                    </div>
+                  )}
+                  {detailData.target.primaryContactTitle && (
+                    <div className="flex items-center justify-between py-2 border-b border-stone-100">
+                      <span className="text-sm text-stone-500">Title</span>
+                      <span className="text-sm">{detailData.target.primaryContactTitle}</span>
+                    </div>
+                  )}
+                  {detailData.target.notes && (
+                    <div className="py-2">
+                      <span className="text-sm text-stone-500">Notes</span>
+                      <p className="text-sm mt-1">{detailData.target.notes}</p>
+                    </div>
+                  )}
+                  {detailData.target.lastContactDate && (
+                    <div className="flex items-center justify-between py-2 border-b border-stone-100">
+                      <span className="text-sm text-stone-500">Last Contact</span>
+                      <span className="text-sm">{new Date(detailData.target.lastContactDate).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Activity Log */}
+                <div>
+                  <h4 className="text-sm font-medium text-stone-700 mb-3 flex items-center gap-2">
+                    <Activity className="w-4 h-4" />
+                    Activity Log
+                  </h4>
+                  {activities && activities.length > 0 ? (
+                    <div className="space-y-3">
+                      {activities.map((act: any) => (
+                        <div key={act.id} className="p-3 bg-stone-50 rounded-lg border border-stone-100">
+                          <div className="flex items-center justify-between mb-1">
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {(act.activityType || "").replace(/_/g, " ")}
+                            </Badge>
+                            <span className="text-xs text-stone-400">
+                              {act.createdAt ? new Date(act.createdAt).toLocaleDateString() : ""}
+                            </span>
+                          </div>
+                          {act.subject && <p className="text-sm font-medium">{act.subject}</p>}
+                          {act.description && <p className="text-xs text-stone-500 mt-1">{act.description}</p>}
+                          {act.outcome && (
+                            <p className="text-xs text-stone-600 mt-1">
+                              <span className="font-medium">Outcome:</span> {act.outcome}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-stone-400 text-center py-4">No activities logged yet</p>
+                  )}
+                </div>
+
+                {/* Delete Target */}
+                <div className="pt-4 border-t border-stone-200">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Target
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this target?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently remove this target and all associated data. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            if (detailTargetId) {
+                              deleteTarget.mutate({ id: detailTargetId });
+                            }
+                          }}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

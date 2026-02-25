@@ -4,9 +4,13 @@ import { motion } from "framer-motion";
 import { 
   TrendingUp, TrendingDown, DollarSign, Clock, Target, 
   BarChart3, PieChart, Activity, ArrowUpRight, ArrowDownRight,
-  Calendar, Users, Briefcase, Zap
+  Calendar, Users, Briefcase, Zap, Filter, ArrowRight
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Animation variants
 const containerVariants = {
@@ -173,11 +177,36 @@ function FunnelChart({ stages }: { stages: { name: string; value: number; color:
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedPeriod, setSelectedPeriod] = useState("30d");
   
   const { data: analytics, isLoading } = trpc.analytics.calculate.useQuery();
   const { data: summary } = trpc.analytics.dashboardSummary.useQuery();
 
-  // Sample data for visualizations
+  const dealAnalyticsPeriod = useMemo(() => {
+    const end = new Date();
+    const start = new Date();
+    if (selectedPeriod === "7d") start.setDate(end.getDate() - 7);
+    else if (selectedPeriod === "30d") start.setDate(end.getDate() - 30);
+    else if (selectedPeriod === "90d") start.setDate(end.getDate() - 90);
+    else start.setFullYear(end.getFullYear() - 1);
+    return {
+      periodType: selectedPeriod === "7d" ? "daily" as const : selectedPeriod === "1y" ? "monthly" as const : "weekly" as const,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+    };
+  }, [selectedPeriod]);
+
+  const { data: dealAnalytics } = trpc.analytics.dealAnalytics.useQuery(dealAnalyticsPeriod, { enabled: activeTab === "deal-analytics" });
+
+  const funnelDates = useMemo(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 90);
+    return { startDate: start.toISOString(), endDate: end.toISOString() };
+  }, []);
+  const { data: funnels } = trpc.analytics.funnels.useQuery(funnelDates, { enabled: activeTab === "funnels" });
+
   const weeklyDeals = [3, 5, 2, 8, 4, 6, 7];
   const monthlyRevenue = [45000, 62000, 38000, 71000, 55000, 89000];
   
@@ -197,339 +226,457 @@ export default function Analytics() {
   ];
 
   return (
+    <div className="p-8 space-y-8">
+      {/* Header */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="p-8 space-y-8"
       >
-        {/* Header */}
         <motion.div variants={itemVariants} className="flex items-end justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-2">Performance</p>
             <h1 className="text-4xl font-light tracking-tight">Analytics</h1>
           </div>
-          
-          {/* Time Range Selector */}
-          <div className="flex gap-1 p-1 bg-neutral-100">
-            {(["7d", "30d", "90d", "1y"] as const).map((range) => (
-              <motion.button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-4 py-2 text-xs uppercase tracking-wider transition-all ${
-                  timeRange === range
-                    ? "bg-black text-white"
-                    : "text-neutral-500 hover:text-black"
-                }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {range}
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Key Metrics Row */}
-        <motion.div variants={itemVariants} className="grid grid-cols-4 gap-6">
-          {/* Total Pipeline */}
-          <motion.div 
-            className="bg-black text-white p-6 group"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex items-start justify-between mb-6">
-              <DollarSign className="w-5 h-5 text-[#C9A962]" />
-              <motion.div 
-                className="flex items-center gap-1 text-sky-400 text-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <ArrowUpRight className="w-3 h-3" />
-                <span>+12.5%</span>
-              </motion.div>
-            </div>
-            <motion.p 
-              className="text-3xl font-light mb-1"
-              variants={numberVariants}
-            >
-              $<AnimatedNumber value={analytics?.totalPipelineValue || 2450000} />
-            </motion.p>
-            <p className="text-xs uppercase tracking-wider text-neutral-400">Total Pipeline</p>
-          </motion.div>
-
-          {/* Conversion Rate */}
-          <motion.div 
-            className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex items-start justify-between mb-6">
-              <Target className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
-              <motion.div 
-                className="flex items-center gap-1 text-sky-500 text-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                <ArrowUpRight className="w-3 h-3" />
-                <span>+3.2%</span>
-              </motion.div>
-            </div>
-            <motion.p 
-              className="text-3xl font-light mb-1"
-              variants={numberVariants}
-            >
-              <AnimatedNumber value={Number(analytics?.conversionRate) || 24} suffix="%" />
-            </motion.p>
-            <p className="text-xs uppercase tracking-wider text-neutral-400">Conversion Rate</p>
-          </motion.div>
-
-          {/* Avg Deal Cycle */}
-          <motion.div 
-            className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex items-start justify-between mb-6">
-              <Clock className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
-              <motion.div 
-                className="flex items-center gap-1 text-sky-500 text-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-              >
-                <ArrowDownRight className="w-3 h-3" />
-                <span>-5 days</span>
-              </motion.div>
-            </div>
-            <motion.p 
-              className="text-3xl font-light mb-1"
-              variants={numberVariants}
-            >
-              <AnimatedNumber value={analytics?.avgDealCycleTime || 42} /> <span className="text-lg text-neutral-400">days</span>
-            </motion.p>
-            <p className="text-xs uppercase tracking-wider text-neutral-400">Avg Deal Cycle</p>
-          </motion.div>
-
-          {/* Active Deals */}
-          <motion.div 
-            className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex items-start justify-between mb-6">
-              <Briefcase className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
-              <MiniBarChart data={weeklyDeals} color="#C9A962" />
-            </div>
-            <motion.p 
-              className="text-3xl font-light mb-1"
-              variants={numberVariants}
-            >
-              <AnimatedNumber value={analytics?.activeDeals || 18} />
-            </motion.p>
-            <p className="text-xs uppercase tracking-wider text-neutral-400">Active Deals</p>
-          </motion.div>
-        </motion.div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-3 gap-6">
-          {/* Conversion Funnel */}
-          <motion.div 
-            variants={chartVariants}
-            className="col-span-2 border border-neutral-200 p-6"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Pipeline</p>
-                <h3 className="text-lg font-light">Conversion Funnel</h3>
-              </div>
-              <BarChart3 className="w-5 h-5 text-neutral-300" />
-            </div>
-            <FunnelChart stages={dealStages} />
-          </motion.div>
-
-          {/* Deal Sources */}
-          <motion.div 
-            variants={chartVariants}
-            className="border border-neutral-200 p-6"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Sources</p>
-                <h3 className="text-lg font-light">Deal Origins</h3>
-              </div>
-              <PieChart className="w-5 h-5 text-neutral-300" />
-            </div>
-            <div className="flex items-center justify-center mb-6">
-              <DonutChart segments={sourceBreakdown} size={140} />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {sourceBreakdown.map((source) => (
-                <div key={source.label} className="flex items-center gap-2">
-                  <div className="w-2 h-2" style={{ backgroundColor: source.color }} />
-                  <span className="text-xs text-neutral-500">{source.label}</span>
-                  <span className="text-xs font-medium ml-auto">{source.value}%</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Bottom Row */}
-        <div className="grid grid-cols-3 gap-6">
-          {/* Top Relationship Sources */}
-          <motion.div 
-            variants={chartVariants}
-            className="border border-neutral-200 p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Network</p>
-                <h3 className="text-lg font-light">Top Sources</h3>
-              </div>
-              <Users className="w-5 h-5 text-neutral-300" />
-            </div>
-            <div className="space-y-4">
-              {[
-                { name: "Walton Family Office", deals: 8, value: 12500000 },
-                { name: "Koch Industries", deals: 5, value: 8200000 },
-                { name: "Mars Family", deals: 4, value: 6100000 },
-                { name: "Gates Foundation", deals: 3, value: 4500000 },
-              ].map((source, index) => (
-                <motion.div
-                  key={source.name}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  className="flex items-center justify-between py-2 border-b border-neutral-100 last:border-0"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{source.name}</p>
-                    <p className="text-xs text-neutral-400">{source.deals} deals</p>
-                  </div>
-                  <p className="text-sm text-[#C9A962]">${(source.value / 1000000).toFixed(1)}M</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Upcoming Events */}
-          <motion.div 
-            variants={chartVariants}
-            className="border border-neutral-200 p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Schedule</p>
-                <h3 className="text-lg font-light">Upcoming</h3>
-              </div>
-              <Calendar className="w-5 h-5 text-neutral-300" />
-            </div>
-            <div className="space-y-3">
-              {(summary?.upcomingEvents || []).slice(0, 4).map((event: any, index: number) => (
-                <motion.div
-                  key={event.id || index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  className="p-3 bg-neutral-50 hover:bg-neutral-100 transition-colors"
-                >
-                  <p className="text-sm font-medium truncate">{event.title}</p>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    {new Date(event.startTime).toLocaleDateString()}
-                  </p>
-                </motion.div>
-              ))}
-              {(!summary?.upcomingEvents || summary.upcomingEvents.length === 0) && (
-                <p className="text-sm text-neutral-400 text-center py-8">No upcoming events</p>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Pending Reminders */}
-          <motion.div 
-            variants={chartVariants}
-            className="border border-neutral-200 p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Tasks</p>
-                <h3 className="text-lg font-light">Follow-ups</h3>
-              </div>
-              <Zap className="w-5 h-5 text-neutral-300" />
-            </div>
-            <div className="space-y-3">
-              {(summary?.pendingReminders || []).slice(0, 4).map((reminder: any, index: number) => (
-                <motion.div
-                  key={reminder.id || index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  className="p-3 border-l-2 border-[#C9A962] bg-neutral-50"
-                >
-                  <p className="text-sm font-medium truncate">{reminder.title}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-xs px-2 py-0.5 ${
-                      reminder.priority === 'urgent' ? 'bg-red-100 text-red-600' :
-                      reminder.priority === 'high' ? 'bg-sky-100 text-sky-600' :
-                      'bg-neutral-100 text-neutral-500'
-                    }`}>
-                      {reminder.priority}
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      Due {new Date(reminder.dueDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-              {(!summary?.pendingReminders || summary.pendingReminders.length === 0) && (
-                <p className="text-sm text-neutral-400 text-center py-8">No pending reminders</p>
-              )}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Performance Summary */}
-        <motion.div 
-          variants={chartVariants}
-          className="bg-gradient-to-r from-black to-neutral-900 text-white p-8"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-2">This Period</p>
-              <h3 className="text-2xl font-light mb-4">Performance Summary</h3>
-              <div className="flex gap-12">
-                <div>
-                  <p className="text-4xl font-light text-[#C9A962]">
-                    <AnimatedNumber value={analytics?.closedDeals || 7} />
-                  </p>
-                  <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">Deals Closed</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-light">
-                    $<AnimatedNumber value={analytics?.closedValue || 1250000} />
-                  </p>
-                  <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">Revenue Generated</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-light">
-                    <AnimatedNumber value={analytics?.recentDeals || 12} />
-                  </p>
-                  <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">New Opportunities</p>
-                </div>
-              </div>
-            </div>
-            <motion.div 
-              className="w-32 h-32 border border-[#C9A962]/30 flex items-center justify-center"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <Activity className="w-12 h-12 text-[#C9A962]" />
-            </motion.div>
-          </div>
         </motion.div>
       </motion.div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="deal-analytics">Deal Analytics</TabsTrigger>
+          <TabsTrigger value="funnels">Conversion Funnels</TabsTrigger>
+        </TabsList>
+
+        {/* ===== Overview Tab ===== */}
+        <TabsContent value="overview">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-8"
+          >
+            {/* Time Range Selector */}
+            <motion.div variants={itemVariants} className="flex justify-end">
+              <div className="flex gap-1 p-1 bg-neutral-100">
+                {(["7d", "30d", "90d", "1y"] as const).map((range) => (
+                  <motion.button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-4 py-2 text-xs uppercase tracking-wider transition-all ${
+                      timeRange === range
+                        ? "bg-black text-white"
+                        : "text-neutral-500 hover:text-black"
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {range}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Key Metrics Row */}
+            <motion.div variants={itemVariants} className="grid grid-cols-4 gap-6">
+              <motion.div 
+                className="bg-black text-white p-6 group"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <DollarSign className="w-5 h-5 text-[#C9A962]" />
+                  <motion.div 
+                    className="flex items-center gap-1 text-sky-400 text-xs"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <ArrowUpRight className="w-3 h-3" />
+                    <span>+12.5%</span>
+                  </motion.div>
+                </div>
+                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
+                  $<AnimatedNumber value={analytics?.totalPipelineValue || 2450000} />
+                </motion.p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">Total Pipeline</p>
+              </motion.div>
+
+              <motion.div 
+                className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <Target className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
+                  <motion.div 
+                    className="flex items-center gap-1 text-sky-500 text-xs"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <ArrowUpRight className="w-3 h-3" />
+                    <span>+3.2%</span>
+                  </motion.div>
+                </div>
+                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
+                  <AnimatedNumber value={Number(analytics?.conversionRate) || 24} suffix="%" />
+                </motion.p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">Conversion Rate</p>
+              </motion.div>
+
+              <motion.div 
+                className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <Clock className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
+                  <motion.div 
+                    className="flex items-center gap-1 text-sky-500 text-xs"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                  >
+                    <ArrowDownRight className="w-3 h-3" />
+                    <span>-5 days</span>
+                  </motion.div>
+                </div>
+                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
+                  <AnimatedNumber value={analytics?.avgDealCycleTime || 42} /> <span className="text-lg text-neutral-400">days</span>
+                </motion.p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">Avg Deal Cycle</p>
+              </motion.div>
+
+              <motion.div 
+                className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <Briefcase className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
+                  <MiniBarChart data={weeklyDeals} color="#C9A962" />
+                </div>
+                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
+                  <AnimatedNumber value={analytics?.activeDeals || 18} />
+                </motion.p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">Active Deals</p>
+              </motion.div>
+            </motion.div>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-3 gap-6">
+              <motion.div variants={chartVariants} className="col-span-2 border border-neutral-200 p-6">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Pipeline</p>
+                    <h3 className="text-lg font-light">Conversion Funnel</h3>
+                  </div>
+                  <BarChart3 className="w-5 h-5 text-neutral-300" />
+                </div>
+                <FunnelChart stages={dealStages} />
+              </motion.div>
+
+              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Sources</p>
+                    <h3 className="text-lg font-light">Deal Origins</h3>
+                  </div>
+                  <PieChart className="w-5 h-5 text-neutral-300" />
+                </div>
+                <div className="flex items-center justify-center mb-6">
+                  <DonutChart segments={sourceBreakdown} size={140} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {sourceBreakdown.map((source) => (
+                    <div key={source.label} className="flex items-center gap-2">
+                      <div className="w-2 h-2" style={{ backgroundColor: source.color }} />
+                      <span className="text-xs text-neutral-500">{source.label}</span>
+                      <span className="text-xs font-medium ml-auto">{source.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Bottom Row */}
+            <div className="grid grid-cols-3 gap-6">
+              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Network</p>
+                    <h3 className="text-lg font-light">Top Sources</h3>
+                  </div>
+                  <Users className="w-5 h-5 text-neutral-300" />
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { name: "Walton Family Office", deals: 8, value: 12500000 },
+                    { name: "Koch Industries", deals: 5, value: 8200000 },
+                    { name: "Mars Family", deals: 4, value: 6100000 },
+                    { name: "Gates Foundation", deals: 3, value: 4500000 },
+                  ].map((source, index) => (
+                    <motion.div
+                      key={source.name}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="flex items-center justify-between py-2 border-b border-neutral-100 last:border-0"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{source.name}</p>
+                        <p className="text-xs text-neutral-400">{source.deals} deals</p>
+                      </div>
+                      <p className="text-sm text-[#C9A962]">${(source.value / 1000000).toFixed(1)}M</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Schedule</p>
+                    <h3 className="text-lg font-light">Upcoming</h3>
+                  </div>
+                  <Calendar className="w-5 h-5 text-neutral-300" />
+                </div>
+                <div className="space-y-3">
+                  {(summary?.upcomingEvents || []).slice(0, 4).map((event: any, index: number) => (
+                    <motion.div
+                      key={event.id || index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="p-3 bg-neutral-50 hover:bg-neutral-100 transition-colors"
+                    >
+                      <p className="text-sm font-medium truncate">{event.title}</p>
+                      <p className="text-xs text-neutral-400 mt-1">
+                        {new Date(event.startTime).toLocaleDateString()}
+                      </p>
+                    </motion.div>
+                  ))}
+                  {(!summary?.upcomingEvents || summary.upcomingEvents.length === 0) && (
+                    <p className="text-sm text-neutral-400 text-center py-8">No upcoming events</p>
+                  )}
+                </div>
+              </motion.div>
+
+              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Tasks</p>
+                    <h3 className="text-lg font-light">Follow-ups</h3>
+                  </div>
+                  <Zap className="w-5 h-5 text-neutral-300" />
+                </div>
+                <div className="space-y-3">
+                  {(summary?.pendingReminders || []).slice(0, 4).map((reminder: any, index: number) => (
+                    <motion.div
+                      key={reminder.id || index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="p-3 border-l-2 border-[#C9A962] bg-neutral-50"
+                    >
+                      <p className="text-sm font-medium truncate">{reminder.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-xs px-2 py-0.5 ${
+                          reminder.priority === 'urgent' ? 'bg-red-100 text-red-600' :
+                          reminder.priority === 'high' ? 'bg-sky-100 text-sky-600' :
+                          'bg-neutral-100 text-neutral-500'
+                        }`}>
+                          {reminder.priority}
+                        </span>
+                        <span className="text-xs text-neutral-400">
+                          Due {new Date(reminder.dueDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {(!summary?.pendingReminders || summary.pendingReminders.length === 0) && (
+                    <p className="text-sm text-neutral-400 text-center py-8">No pending reminders</p>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Performance Summary */}
+            <motion.div 
+              variants={chartVariants}
+              className="bg-gradient-to-r from-black to-neutral-900 text-white p-8"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-2">This Period</p>
+                  <h3 className="text-2xl font-light mb-4">Performance Summary</h3>
+                  <div className="flex gap-12">
+                    <div>
+                      <p className="text-4xl font-light text-[#C9A962]">
+                        <AnimatedNumber value={analytics?.closedDeals || 7} />
+                      </p>
+                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">Deals Closed</p>
+                    </div>
+                    <div>
+                      <p className="text-4xl font-light">
+                        $<AnimatedNumber value={analytics?.closedValue || 1250000} />
+                      </p>
+                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">Revenue Generated</p>
+                    </div>
+                    <div>
+                      <p className="text-4xl font-light">
+                        <AnimatedNumber value={analytics?.recentDeals || 12} />
+                      </p>
+                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">New Opportunities</p>
+                    </div>
+                  </div>
+                </div>
+                <motion.div 
+                  className="w-32 h-32 border border-[#C9A962]/30 flex items-center justify-center"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                >
+                  <Activity className="w-12 h-12 text-[#C9A962]" />
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </TabsContent>
+
+        {/* ===== Deal Analytics Tab ===== */}
+        <TabsContent value="deal-analytics">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Trends</p>
+                <h2 className="text-2xl font-light">Deal Analytics</h2>
+              </div>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">Last 7 days</SelectItem>
+                  <SelectItem value="30d">Last 30 days</SelectItem>
+                  <SelectItem value="90d">Last 90 days</SelectItem>
+                  <SelectItem value="1y">Last year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {dealAnalytics && Array.isArray(dealAnalytics) && dealAnalytics.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {dealAnalytics.map((period: any, idx: number) => (
+                  <Card key={idx} className="border-neutral-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-neutral-500">
+                        {period.periodStart
+                          ? new Date(period.periodStart).toLocaleDateString()
+                          : `Period ${idx + 1}`}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-neutral-500">New Deals</span>
+                        <span className="text-lg font-light">{period.newDeals ?? 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-neutral-500">Closed Deals</span>
+                        <span className="text-lg font-light">{period.closedDeals ?? 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-neutral-500">Pipeline Value</span>
+                        <span className="text-lg font-light text-[#C9A962]">
+                          ${Number(period.totalValue ?? 0).toLocaleString()}
+                        </span>
+                      </div>
+                      {period.avgDealSize != null && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-neutral-500">Avg Deal Size</span>
+                          <span className="text-sm font-light">
+                            ${Number(period.avgDealSize).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 border border-neutral-200">
+                <BarChart3 className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+                <p className="text-neutral-500">No deal analytics data for this period</p>
+                <p className="text-sm text-neutral-400 mt-1">Try selecting a different time range</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* ===== Conversion Funnels Tab ===== */}
+        <TabsContent value="funnels">
+          <div className="space-y-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Pipeline</p>
+              <h2 className="text-2xl font-light">Conversion Funnels</h2>
+              <p className="text-sm text-neutral-500 mt-1">Last 90 days</p>
+            </div>
+
+            {funnels && Array.isArray(funnels) && funnels.length > 0 ? (
+              <div className="space-y-4 max-w-2xl">
+                {funnels.map((stage: any, idx: number) => {
+                  const maxVal = Math.max(...funnels.map((s: any) => Number(s.totalEntered ?? 0)), 1);
+                  const val = Number(stage.totalEntered ?? 0);
+                  const prevVal = idx > 0 ? Number(funnels[idx - 1].totalEntered ?? 0) : 0;
+                  const conversionRate = idx > 0 && prevVal > 0 ? ((val / prevVal) * 100).toFixed(1) : null;
+
+                  return (
+                    <motion.div
+                      key={stage.stage ?? idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium capitalize">
+                            {(stage.stage ?? "").replace(/_/g, " ")}
+                          </span>
+                          {conversionRate && (
+                            <Badge variant="outline" className="text-xs">
+                              {conversionRate}% from previous
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-sm font-medium">{val}</span>
+                      </div>
+                      <div className="h-8 bg-neutral-100 overflow-hidden relative">
+                        <motion.div
+                          className="h-full bg-gradient-to-r from-[#C9A962] to-[#8B7355]"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(val / maxVal) * 100}%` }}
+                          transition={{ duration: 0.8, delay: idx * 0.1 }}
+                        />
+                      </div>
+                      {idx < funnels.length - 1 && (
+                        <div className="flex justify-center py-1">
+                          <ArrowRight className="w-4 h-4 text-neutral-300 rotate-90" />
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-16 border border-neutral-200">
+                <Filter className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+                <p className="text-neutral-500">No funnel data available</p>
+                <p className="text-sm text-neutral-400 mt-1">Funnel data will populate as deals progress through stages</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

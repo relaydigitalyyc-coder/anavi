@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -202,8 +201,7 @@ export default function CryptoAssets() {
   }, 0);
 
   return (
-    <DashboardLayout>
-      <div className="p-4 md:p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -511,6 +509,5 @@ export default function CryptoAssets() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 }

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 import { 
   Building2, MapPin, Search, Filter, Plus, DollarSign,
   TrendingUp, Users, Calendar, Eye, MessageSquare, Star,
   Home, Warehouse, Hotel, ShoppingBag, Factory, Trees,
   ChevronRight, Verified, FileText, BarChart3, Percent,
-  Square, Layers, ArrowUpRight, Brain
+  Square, Layers, ArrowUpRight, Brain, X, Bed, Bath, Ruler
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import DashboardLayout from "@/components/DashboardLayout";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 // Fallback demo data when no DB records (for demo mode)
 const DEMO_PROPERTIES = [
@@ -166,7 +167,7 @@ const propertyCategories = [
   { id: "hotel", label: "Hotel", count: 4 },
 ];
 
-const PropertyCard = ({ property }: { property: any }) => {
+const PropertyCard = ({ property, onSelect }: { property: any; onSelect: (id: number) => void }) => {
   const PropertyIcon = propertyTypeIcons[property.propertyType] || Building2;
 
   const getStatusBadge = () => {
@@ -195,7 +196,7 @@ const PropertyCard = ({ property }: { property: any }) => {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 cursor-pointer" onClick={() => onSelect(property.id)}>
         {/* Property Image */}
         <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50">
           <div className="absolute inset-0 flex items-center justify-center">
@@ -297,10 +298,10 @@ const PropertyCard = ({ property }: { property: any }) => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onSelect(property.id); }}>
                 <Eye className="h-4 w-4" />
               </Button>
-              <Button size="sm">
+              <Button size="sm" onClick={(e) => e.stopPropagation()}>
                 <MessageSquare className="h-4 w-4 mr-1" />
                 Inquire
               </Button>
@@ -312,10 +313,22 @@ const PropertyCard = ({ property }: { property: any }) => {
   );
 };
 
+const INITIAL_FORM = {
+  title: "",
+  address: "",
+  propertyType: "" as string,
+  askingPrice: "",
+  totalSqFt: "",
+};
+
 export default function RealEstate() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [form, setForm] = useState(INITIAL_FORM);
+
+  const utils = trpc.useUtils();
 
   const { data: dbProperties = [] } = trpc.realEstate.list.useQuery({});
   const realEstateProperties = dbProperties.length > 0
@@ -330,6 +343,38 @@ export default function RealEstate() {
       }))
     : DEMO_PROPERTIES;
 
+  const { data: selectedProperty, isLoading: isLoadingDetail } = trpc.realEstate.get.useQuery(
+    { id: selectedPropertyId! },
+    { enabled: !!selectedPropertyId },
+  );
+
+  const createProperty = trpc.realEstate.create.useMutation({
+    onSuccess: () => {
+      toast.success("Property listed successfully");
+      utils.realEstate.list.invalidate();
+      setShowCreateDialog(false);
+      setForm(INITIAL_FORM);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to create listing");
+    },
+  });
+
+  const handleSubmitProperty = () => {
+    if (!form.title || !form.address || !form.propertyType) {
+      toast.error("Please fill in required fields (title, address, property type)");
+      return;
+    }
+    createProperty.mutate({
+      title: form.title,
+      address: form.address,
+      propertyType: form.propertyType as any,
+      askingPrice: form.askingPrice || undefined,
+      totalSqFt: form.totalSqFt || undefined,
+      status: "active",
+    });
+  };
+
   const filteredProperties = realEstateProperties.filter((property: any) => {
     if (selectedCategory !== "all" && property.propertyType !== selectedCategory) return false;
     if (searchQuery) {
@@ -339,9 +384,10 @@ export default function RealEstate() {
     return true;
   });
 
+  const detailProp = selectedProperty as any;
+
   return (
-    <DashboardLayout>
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -367,8 +413,8 @@ export default function RealEstate() {
               <div className="space-y-6 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Property Type</Label>
-                    <Select>
+                    <Label>Property Type *</Label>
+                    <Select value={form.propertyType} onValueChange={(v) => setForm({ ...form, propertyType: v })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -379,6 +425,8 @@ export default function RealEstate() {
                         <SelectItem value="retail">Retail</SelectItem>
                         <SelectItem value="hotel">Hotel</SelectItem>
                         <SelectItem value="land">Land</SelectItem>
+                        <SelectItem value="warehouse">Warehouse</SelectItem>
+                        <SelectItem value="mixed_use">Mixed Use</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -398,83 +446,49 @@ export default function RealEstate() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Property Title</Label>
-                  <Input placeholder="e.g., Class A Office Tower - Midtown Manhattan" />
+                  <Label>Property Title *</Label>
+                  <Input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="e.g., Class A Office Tower - Midtown Manhattan"
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Address</Label>
-                  <Input placeholder="Full street address" />
+                  <Label>Address *</Label>
+                  <Input
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    placeholder="Full street address"
+                  />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>City</Label>
-                    <Input placeholder="New York" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>State</Label>
-                    <Input placeholder="NY" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Zip Code</Label>
-                    <Input placeholder="10019" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Total SF</Label>
-                    <Input type="number" placeholder="450000" />
+                    <Input
+                      type="number"
+                      value={form.totalSqFt}
+                      onChange={(e) => setForm({ ...form, totalSqFt: e.target.value })}
+                      placeholder="450000"
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Floors</Label>
-                    <Input type="number" placeholder="42" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Year Built</Label>
-                    <Input type="number" placeholder="1988" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Asking Price ($)</Label>
-                    <Input type="number" placeholder="285000000" />
+                    <Input
+                      type="number"
+                      value={form.askingPrice}
+                      onChange={(e) => setForm({ ...form, askingPrice: e.target.value })}
+                      placeholder="285000000"
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label>NOI ($)</Label>
-                    <Input type="number" placeholder="14820000" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Occupancy Rate (%)</Label>
-                    <Input type="number" placeholder="94" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Total Tenants</Label>
-                    <Input type="number" placeholder="28" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Air Rights (if applicable)</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input type="number" placeholder="Available SF" />
-                    <Input placeholder="Zoning" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Development Potential</Label>
-                  <Textarea placeholder="Describe any development or value-add opportunities..." rows={3} />
                 </div>
 
                 <div className="flex justify-end gap-3">
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
-                  <Button>Submit Property</Button>
+                  <Button onClick={handleSubmitProperty} disabled={createProperty.isPending}>
+                    {createProperty.isPending ? "Submitting…" : "Submit Property"}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
@@ -576,7 +590,7 @@ export default function RealEstate() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <AnimatePresence mode="popLayout">
             {filteredProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
+              <PropertyCard key={property.id} property={property} onSelect={setSelectedPropertyId} />
             ))}
           </AnimatePresence>
         </div>
@@ -588,7 +602,145 @@ export default function RealEstate() {
             <p className="text-muted-foreground">Try adjusting your search or filters</p>
           </div>
         )}
+
+        {/* Property Detail Sheet */}
+        <Sheet open={!!selectedPropertyId} onOpenChange={(open) => { if (!open) setSelectedPropertyId(null); }}>
+          <SheetContent className="sm:max-w-lg overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>{detailProp?.title ?? "Property Details"}</SheetTitle>
+              <SheetDescription>
+                {detailProp?.address ?? "Loading property details…"}
+              </SheetDescription>
+            </SheetHeader>
+
+            {isLoadingDetail && (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+              </div>
+            )}
+
+            {detailProp && !isLoadingDetail && (
+              <div className="space-y-6 py-6">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Type</p>
+                  <Badge variant="outline" className="capitalize">{detailProp.propertyType?.replace("_", " ")}</Badge>
+                </div>
+
+                {detailProp.askingPrice && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Asking Price</p>
+                    <p className="text-2xl font-bold">
+                      ${Number(detailProp.askingPrice) >= 1_000_000
+                        ? `${(Number(detailProp.askingPrice) / 1_000_000).toFixed(1)}M`
+                        : Number(detailProp.askingPrice).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  {Number(detailProp.totalSqFt) > 0 && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Ruler className="h-3.5 w-3.5" />
+                        <span className="text-xs">Total SF</span>
+                      </div>
+                      <p className="font-semibold">{Number(detailProp.totalSqFt).toLocaleString()}</p>
+                    </div>
+                  )}
+                  {detailProp.bedrooms && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Bed className="h-3.5 w-3.5" />
+                        <span className="text-xs">Bedrooms</span>
+                      </div>
+                      <p className="font-semibold">{detailProp.bedrooms}</p>
+                    </div>
+                  )}
+                  {detailProp.bathrooms && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Bath className="h-3.5 w-3.5" />
+                        <span className="text-xs">Bathrooms</span>
+                      </div>
+                      <p className="font-semibold">{detailProp.bathrooms}</p>
+                    </div>
+                  )}
+                  {detailProp.floors && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Layers className="h-3.5 w-3.5" />
+                        <span className="text-xs">Floors</span>
+                      </div>
+                      <p className="font-semibold">{detailProp.floors}</p>
+                    </div>
+                  )}
+                  {detailProp.yearBuilt && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span className="text-xs">Year Built</span>
+                      </div>
+                      <p className="font-semibold">{detailProp.yearBuilt}</p>
+                    </div>
+                  )}
+                  {detailProp.capRate && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Percent className="h-3.5 w-3.5" />
+                        <span className="text-xs">Cap Rate</span>
+                      </div>
+                      <p className="font-semibold">{detailProp.capRate}%</p>
+                    </div>
+                  )}
+                  {detailProp.occupancyRate && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Users className="h-3.5 w-3.5" />
+                        <span className="text-xs">Occupancy</span>
+                      </div>
+                      <p className="font-semibold">{detailProp.occupancyRate}%</p>
+                    </div>
+                  )}
+                  {detailProp.netOperatingIncome && (
+                    <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        <span className="text-xs">NOI</span>
+                      </div>
+                      <p className="font-semibold">${(Number(detailProp.netOperatingIncome) / 1_000_000).toFixed(1)}M</p>
+                    </div>
+                  )}
+                </div>
+
+                {detailProp.description && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Description</p>
+                    <p className="text-sm leading-relaxed">{detailProp.description}</p>
+                  </div>
+                )}
+
+                {detailProp.zoning && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Zoning</p>
+                    <p className="text-sm font-medium">{detailProp.zoning}</p>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 pt-2">
+                  <Badge variant={detailProp.status === "active" ? "default" : "secondary"} className="capitalize">
+                    {detailProp.status?.replace("_", " ")}
+                  </Badge>
+                  {detailProp.isVerified && (
+                    <Badge className="bg-green-500/90 text-white">
+                      <Verified className="h-3 w-3 mr-1" />
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
-    </DashboardLayout>
   );
 }

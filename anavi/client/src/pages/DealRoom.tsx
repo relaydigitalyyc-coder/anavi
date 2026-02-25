@@ -4,7 +4,8 @@ import { useParams, Link } from "wouter";
 import {
   FileText, Shield, Scale, Wallet, Clock,
   Upload, Download, Eye, Check, AlertTriangle,
-  ChevronRight, ChevronLeft, Lock, User, Search, Filter, X, Image as ImageIcon
+  ChevronRight, ChevronLeft, Lock, User, Search, Filter, X, Image as ImageIcon,
+  Brain, Sparkles, Users, Loader2,
 } from "lucide-react";
 import { SlideIn, FadeInView } from "@/components/PageTransition";
 import { toast } from "sonner";
@@ -93,6 +94,12 @@ function OverviewTab({ room, payouts, auditEntries }: { room: any; payouts: any[
           ))}
         </div>
       </section>
+
+      {/* AI: Recommend Introduction */}
+      <RecommendIntroductionSection room={room} />
+
+      {/* AI: Find Similar Deals */}
+      <FindSimilarDealsSection />
 
       {/* Payout Structure Preview */}
       <section className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
@@ -335,6 +342,255 @@ function DocumentsTab({ documents, dealRoomId }: { documents: any[]; dealRoomId?
   );
 }
 
+// ─── AI Features ──────────────────────────────────────────────────────────────
+
+function AIDiligenceSection({ room }: { room: any }) {
+  const [result, setResult] = useState<{
+    confidenceScore: number;
+    riskFactors: string[];
+    opportunities: string[];
+    recommendedActions: string[];
+    marketContext: string;
+  } | null>(null);
+
+  const analyzeDeal = trpc.ai.claudeAnalyzeDeal.useMutation({
+    onSuccess: (data) => {
+      setResult(data);
+      toast.success("AI analysis complete");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  return (
+    <section className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Brain className="w-4 h-4" style={{ color: "#2563EB" }} />
+          <h3 className="text-subheading" style={{ color: "#0A1628" }}>AI Diligence Summary</h3>
+        </div>
+        <button
+          onClick={() =>
+            analyzeDeal.mutate({
+              name: room.name || "Untitled Deal",
+              type: "private_transaction",
+              description: room.description || "No description",
+              stage: room.status || undefined,
+            })
+          }
+          disabled={analyzeDeal.isPending}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors disabled:opacity-50"
+          style={{ background: "#2563EB" }}
+        >
+          {analyzeDeal.isPending ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyzing...</>
+          ) : (
+            <><Sparkles className="w-3.5 h-3.5" /> Run AI Analysis</>
+          )}
+        </button>
+      </div>
+      {result ? (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium" style={{ color: "#0A1628" }}>Confidence</span>
+            <div className="flex-1 h-2 rounded-full bg-gray-100">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${result.confidenceScore}%`,
+                  background: result.confidenceScore >= 70 ? "#059669" : result.confidenceScore >= 40 ? "#C4972A" : "#DC2626",
+                }}
+              />
+            </div>
+            <span className="text-sm font-bold" style={{ color: "#0A1628" }}>{result.confidenceScore}%</span>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#DC2626" }}>Risk Factors</p>
+            <ul className="space-y-1">
+              {result.riskFactors.map((r, i) => (
+                <li key={i} className="text-sm flex items-start gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#DC2626" }} />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#059669" }}>Opportunities</p>
+            <ul className="space-y-1">
+              {result.opportunities.map((o, i) => (
+                <li key={i} className="text-sm flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#059669" }} />
+                  <span>{o}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#2563EB" }}>Recommended Actions</p>
+            <ul className="space-y-1">
+              {result.recommendedActions.map((a, i) => (
+                <li key={i} className="text-sm flex items-start gap-2">
+                  <ChevronRight className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#2563EB" }} />
+                  <span>{a}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="text-sm text-muted-foreground italic">{result.marketContext}</div>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Click "Run AI Analysis" to generate a comprehensive due diligence summary powered by AI.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function RecommendIntroductionSection({ room }: { room: any }) {
+  const [result, setResult] = useState<{
+    recommendationScore: number;
+    rationale: string;
+    suggestedApproach: string;
+    draftIntroduction: string;
+  } | null>(null);
+
+  const recommend = trpc.ai.recommendIntroduction.useMutation({
+    onSuccess: (data) => {
+      setResult(data);
+      toast.success("Recommendation generated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  return (
+    <section className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4" style={{ color: "#059669" }} />
+          <h3 className="text-subheading" style={{ color: "#0A1628" }}>Recommended Introductions</h3>
+        </div>
+        <button
+          onClick={() =>
+            recommend.mutate({
+              sourceName: "Party A",
+              sourceCompany: "Originator",
+              targetName: "Party B",
+              targetCompany: "Counterparty",
+              context: `Deal room: ${room.name}. ${room.description || ""}`,
+            })
+          }
+          disabled={recommend.isPending}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors disabled:opacity-50"
+          style={{ background: "#059669" }}
+        >
+          {recommend.isPending ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating...</>
+          ) : (
+            <><Sparkles className="w-3.5 h-3.5" /> Recommend Introduction</>
+          )}
+        </button>
+      </div>
+      {result ? (
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium" style={{ color: "#0A1628" }}>Score</span>
+            <div className="flex-1 h-2 rounded-full bg-gray-100">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${result.recommendationScore}%`, background: "#059669" }}
+              />
+            </div>
+            <span className="text-sm font-bold" style={{ color: "#0A1628" }}>{result.recommendationScore}%</span>
+          </div>
+          <div className="p-3 rounded-lg bg-[#F3F7FC]">
+            <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#059669" }}>Rationale</p>
+            <p className="text-sm" style={{ color: "#0A1628" }}>{result.rationale}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-[#F3F7FC]">
+            <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#2563EB" }}>Suggested Approach</p>
+            <p className="text-sm" style={{ color: "#0A1628" }}>{result.suggestedApproach}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-[#F3F7FC]">
+            <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#C4972A" }}>Draft Introduction</p>
+            <p className="text-sm whitespace-pre-wrap" style={{ color: "#0A1628" }}>{result.draftIntroduction}</p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Get AI-powered introduction recommendations for deal participants.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function FindSimilarDealsSection() {
+  const [results, setResults] = useState<any[] | null>(null);
+  const semanticMatch = trpc.ai.semanticMatch.useMutation({
+    onSuccess: (data) => {
+      setResults(data.matches);
+      toast.success(`Found ${data.matches.length} similar deals`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  return (
+    <section className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Search className="w-4 h-4" style={{ color: "#C4972A" }} />
+          <h3 className="text-subheading" style={{ color: "#0A1628" }}>Similar Deals</h3>
+        </div>
+        <button
+          onClick={() => semanticMatch.mutate({ intentId: 1, maxResults: 5 })}
+          disabled={semanticMatch.isPending}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors disabled:opacity-50"
+          style={{ background: "#C4972A" }}
+        >
+          {semanticMatch.isPending ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching...</>
+          ) : (
+            <><Sparkles className="w-3.5 h-3.5" /> Find Similar Deals</>
+          )}
+        </button>
+      </div>
+      {results && results.length > 0 ? (
+        <div className="space-y-2">
+          {results.map((match: any, i: number) => (
+            <div key={i} className="p-3 rounded-lg border bg-[#F3F7FC]" style={{ borderColor: "#D1DCF0" }}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold" style={{ color: "#0A1628" }}>
+                  Match #{match.intentId || i + 1}
+                </span>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{
+                    background: match.score >= 0.8 ? "#ECFDF5" : match.score >= 0.5 ? "#FFFBEB" : "#FEF2F2",
+                    color: match.score >= 0.8 ? "#059669" : match.score >= 0.5 ? "#C4972A" : "#DC2626",
+                  }}
+                >
+                  {Math.round((match.score || 0) * 100)}% match
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">{match.reason}</p>
+              {match.synergies && (
+                <p className="text-xs mt-1" style={{ color: "#059669" }}>Synergies: {match.synergies}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : results ? (
+        <p className="text-sm text-muted-foreground">No similar deals found.</p>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Use AI to find deals with similar characteristics and synergy potential.
+        </p>
+      )}
+    </section>
+  );
+}
+
 // ─── Diligence Tab ────────────────────────────────────────────────────────────
 
 const DILIGENCE_ITEMS = [
@@ -346,7 +602,7 @@ const DILIGENCE_ITEMS = [
   "Compliance Check",
 ];
 
-function DiligenceTab({ roomId }: { roomId: number }) {
+function DiligenceTab({ roomId, room }: { roomId: number; room: any }) {
   const storageKey = `dealroom_diligence_${roomId}`;
   const notesKey = `dealroom_diligence_notes_${roomId}`;
 
@@ -440,13 +696,7 @@ function DiligenceTab({ roomId }: { roomId: number }) {
         />
       </section>
 
-      <section className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
-        <div className="flex items-center gap-2 mb-2">
-          <AlertTriangle className="w-4 h-4" style={{ color: "#C4972A" }} />
-          <h3 className="text-subheading" style={{ color: "#0A1628" }}>AI Diligence Summary</h3>
-        </div>
-        <p className="text-sm text-muted-foreground">Coming in Phase 2</p>
-      </section>
+      <AIDiligenceSection room={room} />
     </div>
   );
 }
@@ -966,7 +1216,7 @@ export default function DealRoom() {
           <OverviewTab room={room} payouts={payouts ?? []} auditEntries={auditEntries ?? []} />
         )}
         {activeTab === "documents" && <DocumentsTab documents={documents ?? []} dealRoomId={roomId} />}
-        {activeTab === "diligence" && <DiligenceTab roomId={roomId} />}
+        {activeTab === "diligence" && <DiligenceTab roomId={roomId} room={room} />}
         {activeTab === "compliance" && <ComplianceTab />}
         {activeTab === "escrow" && <EscrowTab dealId={room?.dealId ?? undefined} />}
         {activeTab === "payouts" && <PayoutsTab payouts={payouts ?? []} />}

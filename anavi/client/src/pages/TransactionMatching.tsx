@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
-import DashboardLayout from "@/components/DashboardLayout";
 
 // Demo data for transaction matches
 const transactionMatches = [
@@ -317,7 +316,6 @@ export default function TransactionMatching() {
   const [showCriteriaDialog, setShowCriteriaDialog] = useState(false);
 
   return (
-    <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -646,6 +644,5 @@ export default function TransactionMatching() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 }

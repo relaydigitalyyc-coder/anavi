@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Building2, Search, Filter, MapPin, DollarSign, Users, 
   TrendingUp, Globe, Briefcase, ChevronRight, ExternalLink,
-  Building, Target, Landmark, UserPlus, Linkedin, Instagram, Plus
+  Building, Target, Landmark, UserPlus, Linkedin, Instagram, Plus,
+  Newspaper, Share2
 } from "lucide-react";
 
 function formatAum(aum: number | null): string {
@@ -39,6 +40,7 @@ function formatAumRange(range: string | null): string {
 
 export default function FamilyOffices() {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [aumFilter, setAumFilter] = useState<string>("");
   const [stateFilter, setStateFilter] = useState<string>("");
@@ -46,6 +48,11 @@ export default function FamilyOffices() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importData, setImportData] = useState({ name: "", title: "", email: "", linkedin: "", phone: "" });
   const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
   
   const addToTargets = trpc.familyOffice.addToTargets.useMutation({
     onSuccess: () => {
@@ -67,13 +74,18 @@ export default function FamilyOffices() {
     },
   });
 
-  const { data: officesData, isLoading } = trpc.familyOffice.list.useQuery({
-    search: search || undefined,
+  const { data: officesData, isLoading: isListLoading } = trpc.familyOffice.list.useQuery({
+    search: undefined,
     type: typeFilter || undefined,
     aumRange: aumFilter || undefined,
     state: stateFilter || undefined,
     limit: 100,
   });
+
+  const { data: searchData, isLoading: isSearchLoading } = trpc.familyOffice.search.useQuery(
+    { query: debouncedSearch, limit: 20 },
+    { enabled: debouncedSearch.length > 0 }
+  );
 
   const { data: stats } = trpc.familyOffice.stats.useQuery();
   
@@ -82,8 +94,20 @@ export default function FamilyOffices() {
     { enabled: !!selectedOffice }
   );
 
-  const offices = officesData?.data || [];
-  const totalCount = officesData?.total || 0;
+  const { data: socialProfiles } = trpc.familyOffice.getSocialProfiles.useQuery(
+    { id: selectedOffice! },
+    { enabled: !!selectedOffice }
+  );
+
+  const { data: officeNews } = trpc.familyOffice.getNews.useQuery(
+    { id: selectedOffice! },
+    { enabled: !!selectedOffice }
+  );
+
+  const isSearchActive = debouncedSearch.length > 0;
+  const offices = isSearchActive ? (searchData || []) : (officesData?.data || []);
+  const totalCount = isSearchActive ? offices.length : (officesData?.total || 0);
+  const isLoading = isSearchActive ? isSearchLoading : isListLoading;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7]">
@@ -550,6 +574,77 @@ export default function FamilyOffices() {
                       </Button>
                     )}
                   </div>
+
+                  {/* Social Profiles */}
+                  {socialProfiles && socialProfiles.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-[#8B7355] mb-3 flex items-center gap-2">
+                        <Share2 className="w-4 h-4" />
+                        Social Profiles
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {socialProfiles.map((profile: any) => (
+                          <Button
+                            key={profile.id}
+                            variant="outline"
+                            size="sm"
+                            className="border-[#E8E4DC] capitalize"
+                            asChild
+                          >
+                            <a href={profile.profileUrl} target="_blank" rel="noopener noreferrer">
+                              {profile.platform === "linkedin" && <Linkedin className="w-3 h-3 mr-1.5" />}
+                              {profile.platform === "instagram" && <Instagram className="w-3 h-3 mr-1.5" />}
+                              {profile.platform !== "linkedin" && profile.platform !== "instagram" && <Globe className="w-3 h-3 mr-1.5" />}
+                              {profile.username || profile.platform}
+                            </a>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* News */}
+                  {officeNews && officeNews.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-[#8B7355] mb-3 flex items-center gap-2">
+                        <Newspaper className="w-4 h-4" />
+                        Recent News
+                      </h4>
+                      <div className="space-y-3">
+                        {officeNews.map((item: any) => (
+                          <div key={item.id} className="p-3 bg-[#F5F3EF] rounded-xl">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-[#2C2C2C] line-clamp-2">{item.title}</p>
+                                {item.summary && (
+                                  <p className="text-xs text-[#8B7355] mt-1 line-clamp-2">{item.summary}</p>
+                                )}
+                                <div className="flex items-center gap-2 mt-2">
+                                  {item.source && (
+                                    <Badge variant="outline" className="text-xs border-[#E8E4DC]">
+                                      {item.source}
+                                    </Badge>
+                                  )}
+                                  {item.publishedAt && (
+                                    <span className="text-xs text-[#8B7355]">
+                                      {new Date(item.publishedAt).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {item.url && (
+                                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" asChild>
+                                  <a href={item.url} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </>

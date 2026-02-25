@@ -1,3 +1,6 @@
+/**
+ * Demo/GuidedTour only. Main app tour: @/tour/definitions.ts (TourOverlay, useTour)
+ */
 export interface TourStep {
   targetSelector: string;
   title: string;

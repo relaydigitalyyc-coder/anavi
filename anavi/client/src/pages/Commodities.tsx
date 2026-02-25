@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import DashboardLayout from "@/components/DashboardLayout";
 
 // Demo data for commodity listings
 const commodityListings = [
@@ -282,8 +281,7 @@ export default function Commodities() {
   });
 
   return (
-    <DashboardLayout>
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -540,6 +538,5 @@ export default function Commodities() {
           </div>
         )}
       </div>
-    </DashboardLayout>
   );
 }

@@ -17,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import DashboardLayout from "@/components/DashboardLayout";
 
 // Demo member data
 const members = [
@@ -237,8 +236,7 @@ export default function MemberOnboarding() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -577,6 +575,5 @@ export default function MemberOnboarding() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 }

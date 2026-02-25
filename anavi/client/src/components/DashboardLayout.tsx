@@ -2,22 +2,35 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import {
   BarChart3,
   Bell,
+  Brain,
+  Building2,
+  Calendar as CalendarIcon,
+  CheckCircle,
+  Crosshair,
   FolderOpen,
   Home,
+  Lightbulb,
   LogOut,
   Menu,
+  Network,
+  PieChart,
   Search,
   Settings,
   Shield,
+  FileSearch,
+  Briefcase,
   Target,
+  TrendingUp,
   User,
   Users,
   Wallet,
   X,
   CheckCircle2,
   AlertTriangle,
+  ChevronDown,
   Info,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { GlobalSearchModal } from "./GlobalSearchModal";
 import { RestartTourBanner } from "./RestartTourBanner";
 import { TourOverlay } from "./TourOverlay";
@@ -27,19 +40,49 @@ import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 
-const navItems = [
-  { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Users, label: "Relationships", path: "/relationships" },
-  { icon: Target, label: "Deal Matching", path: "/deal-matching" },
-  { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms" },
-  { icon: Shield, label: "Verification", path: "/verification" },
-  { icon: BarChart3, label: "Intelligence", path: "/intelligence" },
-  { icon: Wallet, label: "Payouts", path: "/payouts" },
-  { icon: Settings, label: "Settings", path: "/settings" },
-] as const;
+interface NavItem { icon: LucideIcon; label: string; path: string; tourId?: string }
+interface NavSection { label: string; items: NavItem[] }
+
+const navSections: NavSection[] = [
+  { label: "Overview", items: [
+    { icon: Home, label: "Dashboard", path: "/dashboard" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+  ]},
+  { label: "Deals", items: [
+    { icon: Target, label: "Deal Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
+    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
+    { icon: Briefcase, label: "Deals", path: "/deals" },
+    { icon: Lightbulb, label: "Deal Intelligence", path: "/deal-intelligence" },
+  ]},
+  { label: "Network", items: [
+    { icon: Users, label: "Relationships", path: "/relationships", tourId: "nav-relationships" },
+    { icon: Building2, label: "Family Offices", path: "/family-offices" },
+    { icon: Crosshair, label: "Targeting", path: "/targeting" },
+    { icon: Network, label: "Network Graph", path: "/network" },
+  ]},
+  { label: "Compliance", items: [
+    { icon: Shield, label: "Verification", path: "/verification" },
+    { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
+    { icon: CheckCircle, label: "Compliance", path: "/compliance" },
+  ]},
+  { label: "Finance", items: [
+    { icon: Wallet, label: "Payouts", path: "/payouts", tourId: "nav-payouts" },
+    { icon: PieChart, label: "LP Portal", path: "/lp-portal" },
+  ]},
+  { label: "AI & Intel", items: [
+    { icon: Brain, label: "AI Brain", path: "/ai-brain" },
+    { icon: TrendingUp, label: "Intelligence", path: "/intelligence" },
+  ]},
+  { label: "Settings", items: [
+    { icon: CalendarIcon, label: "Calendar", path: "/calendar" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+  ]},
+];
+
+const allNavItems = navSections.flatMap(s => s.items);
 
 const pageTitles: Record<string, string> = Object.fromEntries(
-  navItems.map((item) => [item.path, item.label])
+  allNavItems.map((item) => [item.path, item.label])
 );
 
 function getInitials(name: string | null | undefined): string {
@@ -122,6 +165,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     { enabled: !!user }
   );
   const markAllReadMutation = trpc.notification.markAllRead.useMutation({ onSuccess: () => refetchNotifications() });
+  const markReadMutation = trpc.notification.markRead.useMutation({ onSuccess: () => refetchNotifications() });
 
   const notifications = (notificationsData ?? []).map((n) => {
     const { Icon, color } = NOTIFICATION_ICONS[n.type] ?? NOTIFICATION_ICONS.system;
@@ -186,28 +230,49 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const markAllRead = () => markAllReadMutation.mutate();
 
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = useCallback((label: string) => {
+    setCollapsedSections(prev => ({ ...prev, [label]: !prev[label] }));
+  }, []);
+
   const SidebarNav = () => (
     <>
-      <nav aria-label="Main navigation" className="flex-1 px-3 py-2">
-        {navItems.map((item) => {
-          const isActive = location === item.path;
+      <nav aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {navSections.map((section) => {
+          const isCollapsed = collapsedSections[section.label];
+          const hasActive = section.items.some(item => location === item.path);
           return (
-            <Link key={item.path} href={item.path}>
-              <a
-                data-tour-id={item.path === "/relationships" ? "nav-relationships" : item.path === "/deal-matching" ? "nav-deal-matching" : item.path === "/deal-rooms" ? "nav-deal-rooms" : item.path === "/payouts" ? "nav-payouts" : undefined}
-                className={`group flex min-h-[44px] cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
-                  isActive
-                    ? "bg-white/8 text-white"
-                    : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
-                }`}
-                style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
-                aria-current={isActive ? "page" : undefined}
-                onClick={() => setSidebarOpen(false)}
+            <div key={section.label} className="mb-1">
+              <button
+                onClick={() => toggleSection(section.label)}
+                className="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/30 hover:text-white/50 transition-colors"
               >
-                <item.icon className="h-[18px] w-[18px] shrink-0" />
-                <span className="flex-1">{item.label}</span>
-              </a>
-            </Link>
+                <span>{section.label}</span>
+                <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+              </button>
+              {!isCollapsed && section.items.map((item) => {
+                const isActive = location === item.path;
+                return (
+                  <Link key={item.path} href={item.path}>
+                    <a
+                      data-tour-id={item.tourId}
+                      className={`group flex min-h-[40px] cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
+                        isActive
+                          ? "bg-white/8 text-white"
+                          : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
+                      }`}
+                      style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
+                      aria-current={isActive ? "page" : undefined}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <item.icon className="h-[18px] w-[18px] shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                    </a>
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </nav>
@@ -399,7 +464,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               notifications.map((n) => (
                 <div
                   key={n.id}
-                  className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
+                  className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors cursor-pointer hover:bg-white/5 ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
+                  onClick={() => {
+                    if (!n.read) markReadMutation.mutate({ id: n.id });
+                    if (n.actionUrl) { setNotifOpen(false); setLocation(n.actionUrl); }
+                  }}
                 >
                   <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${n.iconColor}15` }}>
                     <n.icon className="h-4 w-4" style={{ color: n.iconColor }} />
@@ -445,14 +514,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
     </div>
-  );
-}
-
-export function ShellRoute({ component: Component }: { component: React.ComponentType }) {
-  return (
-    <DashboardLayout>
-      <Component />
-    </DashboardLayout>
   );
 }
 

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { trpc } from '@/lib/trpc';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Streamdown } from 'streamdown';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Brain, 
   Sparkles, 
@@ -29,7 +29,9 @@ import {
   ChevronRight,
   Shield,
   Globe,
-  BarChart3
+  BarChart3,
+  Copy,
+  Mail,
 } from 'lucide-react';
 
 // AI-generated market insights
@@ -93,6 +95,24 @@ interface ChatMessage {
   content: string;
 }
 
+const quickActions = [
+  { label: "Analyze Deal", icon: Target, proc: "analyzeDeal" as const },
+  { label: "Suggest Connections", icon: Users, proc: "suggestConnections" as const },
+  { label: "Due Diligence", icon: Shield, proc: "dueDiligence" as const },
+  { label: "Risk Assessment", icon: AlertTriangle, proc: "assessRisk" as const },
+  { label: "Market Query", icon: Globe, proc: "marketQuery" as const },
+  { label: "Sector Intel", icon: BarChart3, proc: "sectorIntelligence" as const },
+];
+
+const quickActionLabels: Record<string, string> = {
+  analyzeDeal: "Analyzing deal pipeline...",
+  suggestConnections: "Finding high-value connections in your network...",
+  dueDiligence: "Running due diligence review...",
+  assessRisk: "Running risk assessment on current pipeline...",
+  marketQuery: "Querying current market overview...",
+  sectorIntelligence: "Gathering cross-sector intelligence...",
+};
+
 export default function AIBrain() {
   const [query, setQuery] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
@@ -113,6 +133,9 @@ What would you like to explore?`
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [outreachTarget, setOutreachTarget] = useState('');
+  const [outreachResult, setOutreachResult] = useState('');
+
   const chatMutation = trpc.ai.chat.useMutation({
     onSuccess: (data) => {
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
@@ -124,6 +147,102 @@ What would you like to explore?`
       }]);
     },
   });
+
+  const analyzeDealMutation = trpc.ai.analyzeDeal.useMutation({
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.analysis }]);
+    },
+    onError: (error) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+    },
+  });
+
+  const suggestConnectionsMutation = trpc.ai.suggestConnections.useMutation({
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.suggestions }]);
+    },
+    onError: (error) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+    },
+  });
+
+  const dueDiligenceMutation = trpc.ai.dueDiligence.useMutation({
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.result }]);
+    },
+    onError: (error) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+    },
+  });
+
+  const assessRiskMutation = trpc.ai.assessRisk.useMutation({
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: typeof data === 'string' ? data : JSON.stringify(data, null, 2) }]);
+    },
+    onError: (error) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+    },
+  });
+
+  const marketQueryMutation = trpc.ai.marketQuery.useMutation({
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+    },
+    onError: (error) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+    },
+  });
+
+  const sectorIntelligenceMutation = trpc.ai.sectorIntelligence.useMutation({
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: typeof data === 'string' ? data : JSON.stringify(data, null, 2) }]);
+    },
+    onError: (error) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+    },
+  });
+
+  const generateOutreachMutation = trpc.ai.generateOutreach.useMutation({
+    onSuccess: (data) => {
+      setOutreachResult(data.message);
+    },
+    onError: (error) => {
+      setOutreachResult(`Error: ${error.message}`);
+    },
+  });
+
+  const anyQuickActionPending =
+    analyzeDealMutation.isPending ||
+    suggestConnectionsMutation.isPending ||
+    dueDiligenceMutation.isPending ||
+    assessRiskMutation.isPending ||
+    marketQueryMutation.isPending ||
+    sectorIntelligenceMutation.isPending;
+
+  const handleQuickAction = (proc: (typeof quickActions)[number]['proc']) => {
+    setChatHistory(prev => [...prev, { role: 'user', content: quickActionLabels[proc] }]);
+
+    switch (proc) {
+      case 'analyzeDeal':
+        analyzeDealMutation.mutate({ dealId: 0 });
+        break;
+      case 'suggestConnections':
+        suggestConnectionsMutation.mutate();
+        break;
+      case 'dueDiligence':
+        dueDiligenceMutation.mutate({ query: 'General due diligence review of current pipeline' });
+        break;
+      case 'assessRisk':
+        assessRiskMutation.mutate({ type: 'portfolio', description: 'Overall risk assessment of current deal pipeline' });
+        break;
+      case 'marketQuery':
+        marketQueryMutation.mutate({ query: 'Current market overview' });
+        break;
+      case 'sectorIntelligence':
+        sectorIntelligenceMutation.mutate({ sector: 'fintech' });
+        break;
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!query.trim() || chatMutation.isPending) return;
@@ -149,8 +268,7 @@ What would you like to explore?`
   ];
 
   return (
-    <DashboardLayout>
-      <div className="p-4 md:p-6 space-y-6 bg-gradient-to-br from-background via-background to-sky-500/5 min-h-screen">
+    <div className="p-4 md:p-6 space-y-6 bg-gradient-to-br from-background via-background to-sky-500/5 min-h-screen">
         {/* Luxury Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -224,6 +342,28 @@ What would you like to explore?`
           ))}
         </motion.div>
 
+        {/* Quick Actions */}
+        <motion.div
+          className="flex flex-wrap gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+        >
+          {quickActions.map((action) => (
+            <Button
+              key={action.proc}
+              variant="outline"
+              size="sm"
+              className="border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-500"
+              onClick={() => handleQuickAction(action.proc)}
+              disabled={anyQuickActionPending || chatMutation.isPending}
+            >
+              <action.icon className="h-4 w-4 mr-2" />
+              {action.label}
+            </Button>
+          ))}
+        </motion.div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* AI Chat - Main Feature */}
@@ -294,7 +434,7 @@ What would you like to explore?`
                     ))}
                   </AnimatePresence>
                   
-                  {chatMutation.isPending && (
+                  {(chatMutation.isPending || anyQuickActionPending) && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -405,6 +545,61 @@ What would you like to explore?`
               </CardContent>
             </Card>
 
+            {/* Outreach Generator */}
+            <Card className="border-sky-500/20 bg-gradient-to-br from-card to-sky-500/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Mail className="h-4 w-4 text-sky-500" />
+                  Outreach Generator
+                </CardTitle>
+                <CardDescription className="text-xs">Craft a personalized message</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Input
+                  placeholder="Target name (e.g. John Smith)"
+                  value={outreachTarget}
+                  onChange={(e) => setOutreachTarget(e.target.value)}
+                  className="bg-muted/50 border-border/50 focus:border-sky-500/50 text-sm"
+                />
+                <Button
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 text-white border-0"
+                  disabled={!outreachTarget.trim() || generateOutreachMutation.isPending}
+                  onClick={() => {
+                    setOutreachResult('');
+                    generateOutreachMutation.mutate({
+                      targetName: outreachTarget.trim(),
+                      context: 'Introductory outreach for potential deal collaboration',
+                    });
+                  }}
+                >
+                  {generateOutreachMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  Generate
+                </Button>
+                {outreachResult && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative p-3 rounded-xl bg-muted/30 border border-border/50"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2 h-7 w-7 p-0 text-muted-foreground hover:text-sky-500"
+                      onClick={() => navigator.clipboard.writeText(outreachResult)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                    <p className="text-xs text-muted-foreground whitespace-pre-wrap pr-8">{outreachResult}</p>
+                  </motion.div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Market Insights */}
             <Card className="border-sky-500/20 bg-gradient-to-br from-card to-emerald-500/5">
               <CardHeader className="pb-3">
@@ -472,6 +667,5 @@ What would you like to explore?`
           </motion.div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }

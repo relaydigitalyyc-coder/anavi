@@ -7,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { 
   TrendingUp, Plus, Search, DollarSign, Users, 
-  Clock, CheckCircle2, Circle, FileText, Filter, ArrowUpRight, ChevronRight
+  Clock, CheckCircle2, Circle, FileText, Filter, ArrowUpRight, ChevronRight, UserPlus, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,9 +25,15 @@ const DEAL_STAGES = [
   { id: "cancelled", label: "Cancelled", color: "bg-destructive" },
 ];
 
+const PARTICIPANT_ROLES = [
+  "originator", "buyer", "seller", "introducer", "advisor", "legal", "escrow", "observer",
+] as const;
+
 export default function Deals() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
+  const [newParticipant, setNewParticipant] = useState({ userId: "", role: "observer" as string });
   const [newDeal, setNewDeal] = useState({
     title: "",
     description: "",
@@ -35,8 +42,31 @@ export default function Deals() {
     currency: "USD",
   });
 
+  const utils = trpc.useUtils();
   const { data: deals, isLoading, refetch } = trpc.deal.list.useQuery();
-  
+
+  const { data: dealDetail, isLoading: isDetailLoading } = trpc.deal.get.useQuery(
+    { id: selectedDealId! },
+    { enabled: selectedDealId !== null },
+  );
+
+  const { data: participants, isLoading: isParticipantsLoading } = trpc.deal.getParticipants.useQuery(
+    { dealId: selectedDealId! },
+    { enabled: selectedDealId !== null },
+  );
+
+  const addParticipantMutation = trpc.deal.addParticipant.useMutation({
+    onSuccess: () => {
+      toast.success("Participant added");
+      setNewParticipant({ userId: "", role: "observer" });
+      utils.deal.getParticipants.invalidate();
+      utils.deal.get.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const createMutation = trpc.deal.create.useMutation({
     onSuccess: () => {
       toast.success("Deal created successfully!");
@@ -312,6 +342,7 @@ export default function Deals() {
                 <div 
                   key={deal.id} 
                   className={`rounded-lg border border-border/60 bg-card p-6 shadow-sm hover-lift cursor-pointer group animate-fade-in stagger-${Math.min(index + 1, 8)}`}
+                  onClick={() => setSelectedDealId(deal.id)}
                 >
                   {/* Progress bar */}
                   <div className="h-1 bg-muted rounded-full mb-5 overflow-hidden">
@@ -347,7 +378,7 @@ export default function Deals() {
                         {deal.currency} {(parseFloat(deal.dealValue || "0") / 1000000).toFixed(2)}M
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <Select
                         value={deal.stage || 'lead'}
                         onValueChange={(value) => {
@@ -376,6 +407,132 @@ export default function Deals() {
           </div>
         )}
       </div>
+
+      {/* Deal Detail Slide-out */}
+      <Sheet open={selectedDealId !== null} onOpenChange={(open) => !open && setSelectedDealId(null)}>
+        <SheetContent side="right" className="sm:max-w-lg w-full overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-2xl tracking-tight">
+              {isDetailLoading ? "Loading…" : dealDetail?.deal.title}
+            </SheetTitle>
+          </SheetHeader>
+
+          {isDetailLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : dealDetail ? (
+            <div className="flex flex-col gap-6 px-4 pb-6">
+              {/* Deal Info */}
+              <div className="space-y-3">
+                {dealDetail.deal.description && (
+                  <p className="text-sm text-muted-foreground">{dealDetail.deal.description}</p>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Value</div>
+                    <div className="font-semibold text-foreground">
+                      {dealDetail.deal.currency} {(parseFloat(dealDetail.deal.dealValue || "0") / 1_000_000).toFixed(2)}M
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Stage</div>
+                    <Badge>{DEAL_STAGES.find(s => s.id === dealDetail.deal.stage)?.label ?? dealDetail.deal.stage}</Badge>
+                  </div>
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Type</div>
+                    <div className="text-sm font-medium capitalize">
+                      {dealDetail.deal.dealType.replace(/_/g, " ")}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Created</div>
+                    <div className="text-sm font-medium">
+                      {new Date(dealDetail.deal.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Participants Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-accent" />
+                  <h4 className="font-semibold text-foreground">Participants</h4>
+                </div>
+
+                {isParticipantsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : participants && participants.length > 0 ? (
+                  <div className="space-y-2">
+                    {participants.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2">
+                        <span className="text-sm font-medium text-foreground">User #{p.userId}</span>
+                        <Badge variant="outline" className="capitalize text-xs">{p.role}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No participants yet.</p>
+                )}
+
+                {/* Add Participant Form */}
+                <div className="rounded-lg border border-border/60 p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <UserPlus className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">Add Participant</span>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">User ID</Label>
+                    <Input
+                      type="number"
+                      placeholder="Enter user ID"
+                      className="h-9"
+                      value={newParticipant.userId}
+                      onChange={(e) => setNewParticipant({ ...newParticipant, userId: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Role</Label>
+                    <Select
+                      value={newParticipant.role}
+                      onValueChange={(value) => setNewParticipant({ ...newParticipant, role: value })}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PARTICIPANT_ROLES.map((role) => (
+                          <SelectItem key={role} value={role} className="capitalize">
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    disabled={!newParticipant.userId || addParticipantMutation.isPending}
+                    onClick={() => {
+                      if (!selectedDealId) return;
+                      addParticipantMutation.mutate({
+                        dealId: selectedDealId,
+                        userId: parseInt(newParticipant.userId, 10),
+                        role: newParticipant.role as any,
+                      });
+                    }}
+                  >
+                    {addParticipantMutation.isPending ? "Adding…" : "Add Participant"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

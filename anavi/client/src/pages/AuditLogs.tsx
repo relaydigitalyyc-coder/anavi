@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,8 +68,7 @@ export default function AuditLogs() {
   const canExport = user?.role === "admin";
 
   return (
-    <DashboardLayout>
-      <div className="p-8">
+    <div className="p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold tracking-tight mb-2">Audit Logs</h1>
@@ -270,6 +268,5 @@ export default function AuditLogs() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 }

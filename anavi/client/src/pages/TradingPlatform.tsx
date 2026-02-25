@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DashboardLayout from "@/components/DashboardLayout";
 
 // Demo trading data
 const portfolioStats = {
@@ -71,8 +70,7 @@ export default function TradingPlatform() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -464,6 +462,5 @@ export default function TradingPlatform() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }
