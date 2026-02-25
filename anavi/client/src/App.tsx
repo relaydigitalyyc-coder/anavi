@@ -47,15 +47,27 @@ import Intelligence from "./pages/Intelligence";
 import Demo from "./pages/Demo";
 import DashboardLayout from "./components/DashboardLayout";
 import { PageTransition } from "./components/PageTransition";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CursorGlow } from "./components/CursorGlow";
+import { TourProvider } from "./contexts/TourContext";
 
 function ShellRoute({ component: Component }: { component: React.ComponentType }) {
   return (
-    <DashboardLayout>
-      <PageTransition>
-        <Component />
-      </PageTransition>
-    </DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <PageTransition>
+          <Component />
+        </PageTransition>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function ProtectedPage({ component: Component }: { component: React.ComponentType }) {
+  return (
+    <ProtectedRoute>
+      <Component />
+    </ProtectedRoute>
   );
 }
 
@@ -70,8 +82,12 @@ function Router() {
         <ShellRoute component={Intelligence} />
       </Route>
       <Route path="/demo" component={Demo} />
-      <Route path="/welcome" component={Onboarding} />
-      <Route path="/onboarding" component={OnboardingFlow} />
+      <Route path="/welcome">
+        <ProtectedPage component={Onboarding} />
+      </Route>
+      <Route path="/onboarding">
+        <ProtectedPage component={OnboardingFlow} />
+      </Route>
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/relationships">
         <ShellRoute component={Relationships} />
@@ -112,21 +128,45 @@ function Router() {
       <Route path="/analytics">
         <ShellRoute component={Analytics} />
       </Route>
-      <Route path="/spv-generator" component={SPVGenerator} />
-      <Route path="/lp-portal" component={LPPortal} />
-      <Route path="/capital-management" component={CapitalManagement} />
-      <Route path="/audit-logs" component={AuditLogs} />
-      <Route path="/commodities" component={Commodities} />
-      <Route path="/real-estate" component={RealEstate} />
-      <Route path="/transaction-matching" component={TransactionMatching} />
-      <Route path="/trading" component={TradingPlatform} />
-      <Route path="/member-onboarding" component={MemberOnboarding} />
-      <Route path="/fee-management" component={FeeManagement} />
+      <Route path="/spv-generator">
+        <ProtectedPage component={SPVGenerator} />
+      </Route>
+      <Route path="/lp-portal">
+        <ProtectedPage component={LPPortal} />
+      </Route>
+      <Route path="/capital-management">
+        <ProtectedPage component={CapitalManagement} />
+      </Route>
+      <Route path="/audit-logs">
+        <ProtectedPage component={AuditLogs} />
+      </Route>
+      <Route path="/commodities">
+        <ProtectedPage component={Commodities} />
+      </Route>
+      <Route path="/real-estate">
+        <ProtectedPage component={RealEstate} />
+      </Route>
+      <Route path="/transaction-matching">
+        <ProtectedPage component={TransactionMatching} />
+      </Route>
+      <Route path="/trading">
+        <ProtectedPage component={TradingPlatform} />
+      </Route>
+      <Route path="/member-onboarding">
+        <ProtectedPage component={MemberOnboarding} />
+      </Route>
+      <Route path="/fee-management">
+        <ProtectedPage component={FeeManagement} />
+      </Route>
       <Route path="/deal-rooms/:id">
         <ShellRoute component={DealRoom} />
       </Route>
-      <Route path="/manifesto" component={Manifesto} />
-      <Route path="/operator-intake" component={OperatorIntake} />
+      <Route path="/manifesto">
+        <ProtectedPage component={Manifesto} />
+      </Route>
+      <Route path="/operator-intake">
+        <ProtectedPage component={OperatorIntake} />
+      </Route>
       <Route path="/knowledge-graph">
         <ShellRoute component={KnowledgeGraphPage} />
       </Route>
@@ -139,8 +179,12 @@ function Router() {
       <Route path="/verification">
         <ShellRoute component={Verification} />
       </Route>
-      <Route path="/crypto-assets" component={CryptoAssets} />
-      <Route path="/ai-brain" component={AIBrain} />
+      <Route path="/crypto-assets">
+        <ProtectedPage component={CryptoAssets} />
+      </Route>
+      <Route path="/ai-brain">
+        <ProtectedPage component={AIBrain} />
+      </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -153,8 +197,10 @@ function App() {
       <CursorGlow />
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <TourProvider>
+            <Toaster />
+            <Router />
+          </TourProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

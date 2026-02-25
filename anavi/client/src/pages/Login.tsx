@@ -3,6 +3,14 @@ import { Link } from "wouter";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 
+/** Safe redirect: only allow relative paths, no protocol/domain to prevent open redirect. */
+function getRedirectTarget(): string | null {
+  const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const r = params.get("redirect");
+  if (!r || !r.startsWith("/") || r.startsWith("//")) return null;
+  return r;
+}
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +32,8 @@ export default function Login() {
         return;
       }
       const data = await res.json().catch(() => ({}));
-      const next = data?.user?.onboardingCompleted ? "/dashboard" : "/onboarding";
+      const defaultNext = data?.user?.onboardingCompleted ? "/dashboard" : "/onboarding";
+      const next = getRedirectTarget() ?? defaultNext;
       window.location.href = next;
     } catch {
       setError("Something went wrong. Please try again.");
@@ -53,7 +62,8 @@ export default function Login() {
       }
 
       const data = await res.json().catch(() => ({}));
-      const next = data?.user?.onboardingCompleted ? "/dashboard" : "/onboarding";
+      const defaultNext = data?.user?.onboardingCompleted ? "/dashboard" : "/onboarding";
+      const next = getRedirectTarget() ?? defaultNext;
       window.location.href = next;
     } catch {
       setError("Something went wrong. Please try again.");

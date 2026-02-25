@@ -64,6 +64,209 @@ const AML_QUESTIONS = [
 
 const SCORE_HISTORY = [65, 68, 72, 74, 78, 84];
 
+const DOC_TYPES = [
+  "government_id",
+  "passport",
+  "business_license",
+  "incorporation_docs",
+  "proof_of_address",
+  "bank_statement",
+  "tax_document",
+  "accreditation_letter",
+] as const;
+
+function VerificationDocumentsSection() {
+  const utils = trpc.useUtils();
+  const { data: docs = [] } = trpc.user.getVerificationDocuments.useQuery();
+  const requestUpload = trpc.verification.requestUpload.useMutation();
+  const confirmUpload = trpc.verification.confirmUpload.useMutation({
+    onSuccess: () => {
+      utils.user.getVerificationDocuments.invalidate();
+      toast.success("Document submitted for review");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const [docType, setDocType] = useState<typeof DOC_TYPES[number]>("government_id");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = useCallback(async () => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { key } = await requestUpload.mutateAsync({
+        documentType: docType,
+        mimeType: file.type || "application/octet-stream",
+      });
+      await confirmUpload.mutateAsync({ fileKey: key, documentType: docType });
+      setFile(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }, [file, docType, requestUpload, confirmUpload]);
+
+  const statusBadge = (status: string) => {
+    const cls =
+      status === "approved"
+        ? "bg-[#059669]/15 text-[#059669]"
+        : status === "rejected"
+          ? "bg-red-500/15 text-red-600"
+          : "bg-[#F59E0B]/15 text-[#F59E0B]";
+    return (
+      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cls}`}>
+        {status}
+      </span>
+    );
+  };
+
+  return (
+    <div className="card-elevated p-6">
+      <h3 className="mb-4 data-label">Verification Documents</h3>
+      <p className="text-sm mb-6" style={{ color: `${C.navy}70` }}>
+        Upload your first verification document. Accepted: gov ID, business license, proof of address.
+      </p>
+
+      {docs.length > 0 && (
+        <div className="mb-6 space-y-3">
+          {docs.map((d: any) => (
+            <div
+              key={d.id}
+              className="flex items-center justify-between p-3 rounded-lg"
+              style={{ backgroundColor: `${C.navy}06`, borderColor: C.border, borderWidth: 1 }}
+            >
+              <div className="flex items-center gap-3">
+                <FileCheck className="w-5 h-5" style={{ color: C.blue }} />
+                <div>
+                  <p className="text-sm font-medium" style={{ color: C.navy }}>
+                    {String(d.documentType).replace(/_/g, " ")}
+                  </p>
+                  <p className="text-xs" style={{ color: `${C.navy}60` }}>
+                    {new Date(d.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              {statusBadge(d.status ?? "pending")}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        className="rounded-xl border-2 border-dashed p-6 transition-colors flex flex-col items-center justify-center gap-3 cursor-pointer"
+        style={{
+          borderColor: file ? C.green : C.border,
+          backgroundColor: file ? `${C.green}08` : "white",
+        }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const f = e.dataTransfer.files[0];
+          if (f && /\.(pdf|jpg|jpeg|png)$/i.test(f.name)) setFile(f);
+        }}
+        onClick={() => {
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = ".pdf,.jpg,.jpeg,.png";
+          input.onchange = (ev) => {
+            const f = (ev.target as HTMLInputElement).files?.[0];
+            if (f) setFile(f);
+          };
+          input.click();
+        }}
+      >
+        <select
+          value={docType}
+          onChange={(e) => setDocType(e.target.value as typeof DOC_TYPES[number])}
+          className="rounded-lg px-3 py-2 text-sm border mb-2"
+          style={{ borderColor: C.border }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {DOC_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t.replace(/_/g, " ")}
+            </option>
+          ))}
+        </select>
+        {file ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2 text-sm" style={{ color: C.green }}>
+              <Check className="w-4 h-4" />
+              {file.name}
+            </div>
+            <Button
+              size="sm"
+              className="cursor-pointer"
+              style={{ backgroundColor: C.gold, color: "white" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUpload();
+              }}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading…" : "Submit for Review"}
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Upload className="w-8 h-8" style={{ color: C.steel }} />
+            <span className="text-sm font-medium" style={{ color: C.steel }}>
+              Drag & drop or click to upload
+            </span>
+            <span className="text-xs" style={{ color: `${C.navy}80` }}>
+              PDF, JPG, or PNG — max 10MB
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TrustScoreHistorySection() {
+  const [expanded, setExpanded] = useState(false);
+  const { data: history, isLoading } = trpc.user.getTrustScoreHistory.useQuery({ limit: 10 }, { enabled: expanded });
+  const hasHistory = (history?.length ?? 0) > 0;
+  return (
+    <div className="mt-6 pt-6 border-t" style={{ borderColor: C.border }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-sm font-medium w-full cursor-pointer hover:opacity-80"
+        style={{ color: C.steel }}
+      >
+        <ChevronRight className={`w-4 h-4 transition-transform ${expanded ? "rotate-90" : ""}`} />
+        Trust Score History
+      </button>
+      {expanded && (
+        <div className="mt-3 space-y-2">
+          {isLoading && <p className="text-sm" style={{ color: `${C.navy}60` }}>Loading…</p>}
+          {!isLoading && !hasHistory && (
+            <p className="text-sm" style={{ color: `${C.navy}60` }}>
+              Your Trust Score will update as you complete deals and receive reviews.
+            </p>
+          )}
+          {!isLoading && hasHistory &&
+            history!.map((h) => {
+              const prev = Number(h.previousScore ?? 0);
+              const next = Number(h.newScore ?? 0);
+              const delta = next - prev;
+              return (
+                <div key={h.id} className="flex items-center justify-between text-sm py-2 px-3 rounded-lg" style={{ backgroundColor: `${C.navy}06` }}>
+                  <span style={{ color: C.navy }}>{h.changeReason}</span>
+                  <span className={delta >= 0 ? "font-semibold" : ""} style={{ color: delta >= 0 ? C.green : C.red }}>
+                    {delta >= 0 ? `+${delta}` : delta}
+                  </span>
+                </div>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── SVG Helpers ─────────────────────────────────────────────
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -552,6 +755,9 @@ export default function Verification() {
             </div>
           </div>
         </div>
+
+        {/* F3: Trust Score History */}
+        <TrustScoreHistorySection />
       </div>
 
       {/* Component Score Cards */}
@@ -692,6 +898,12 @@ export default function Verification() {
             </table>
           </div>
       </div>
+
+      {/* ══════════════════════════════════════════════════════
+          F1: Verification Documents (Upload + List)
+         ══════════════════════════════════════════════════════ */}
+
+      <VerificationDocumentsSection />
 
       {/* ══════════════════════════════════════════════════════
           Compliance Passport

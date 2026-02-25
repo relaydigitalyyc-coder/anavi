@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -58,6 +58,12 @@ const userRouter = router({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     return db.getDashboardStats(ctx.user.id);
   }),
+
+  getTrustScoreHistory: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(100).optional() }))
+    .query(async ({ ctx, input }) => {
+      return db.getTrustScoreHistory(ctx.user.id, input.limit ?? 20);
+    }),
   
   getVerificationDocuments: protectedProcedure.query(async ({ ctx }) => {
     return db.getVerificationDocuments(ctx.user.id);
@@ -66,6 +72,37 @@ const userRouter = router({
   getPeerReviews: protectedProcedure.query(async ({ ctx }) => {
     return db.getPeerReviews(ctx.user.id);
   }),
+});
+
+// ============================================================================
+// VERIFICATION ROUTER (F1 - KYB/KYC)
+// ============================================================================
+
+const verificationRouter = router({
+  requestUpload: protectedProcedure
+    .input(z.object({
+      documentType: z.enum(["government_id", "passport", "business_license", "incorporation_docs", "proof_of_address", "bank_statement", "tax_document", "accreditation_letter"]),
+      mimeType: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const key = `verification/${ctx.user.id}/${Date.now()}-${input.documentType}`;
+      return { uploadUrl: `/api/upload/${key}`, key };
+    }),
+  confirmUpload: protectedProcedure
+    .input(z.object({
+      fileKey: z.string(),
+      documentType: z.enum(["government_id", "passport", "business_license", "incorporation_docs", "proof_of_address", "bank_statement", "tax_document", "accreditation_letter"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const id = await db.createVerificationDocument({
+        userId: ctx.user.id,
+        documentType: input.documentType,
+        fileUrl: `/api/files/${input.fileKey}`,
+        fileKey: input.fileKey,
+        status: "pending",
+      });
+      return { id };
+    }),
 });
 
 // ============================================================================
@@ -85,6 +122,16 @@ const relationshipRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
       return rel;
+    }),
+
+  getProof: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const rel = await db.getRelationshipById(input.id);
+      if (!rel || rel.ownerId !== ctx.user.id) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+      return { relationshipId: rel.id, timestampHash: rel.timestampHash, establishedAt: rel.establishedAt };
     }),
   
   create: protectedProcedure
@@ -281,6 +328,12 @@ const intentRouter = router({
       await db.updateIntent(id, data);
       return { success: true };
     }),
+
+  recomputeEmbeddings: protectedProcedure
+    .input(z.object({ intentIds: z.array(z.number()).optional() }))
+    .mutation(async () => {
+      return { success: true, embedded: 0 };
+    }),
   
   findMatches: protectedProcedure
     .input(z.object({ intentId: z.number() }))
@@ -334,11 +387,11 @@ const intentRouter = router({
         }
       }
       
-      // Create match records for high-scoring matches
+      // Create match records for high-scoring matches; notify both users (F9)
       for (const match of matchResults.filter(m => m.score > 70)) {
         const other = otherIntents.find(i => i.id === match.intentId);
         if (other) {
-          await db.createMatch({
+          const matchId = await db.createMatch({
             intent1Id: myIntent.id,
             intent2Id: other.id,
             user1Id: ctx.user.id,
@@ -346,6 +399,7 @@ const intentRouter = router({
             compatibilityScore: match.score.toString(),
             matchReason: match.reason,
           });
+          await db.notifyNewMatch(matchId, ctx.user.id, other.userId, match.reason);
         }
       }
       
@@ -515,9 +569,9 @@ const dealRouter = router({
     .mutation(async ({ ctx, input }) => {
       const deal = await db.getDealById(input.id);
       if (!deal) throw new TRPCError({ code: 'NOT_FOUND' });
-      
+
       await db.updateDeal(input.id, { stage: input.stage });
-      
+
       await db.logAuditEvent({
         userId: ctx.user.id,
         action: 'deal_stage_updated',
@@ -526,8 +580,17 @@ const dealRouter = router({
         previousState: { stage: deal.stage },
         newState: { stage: input.stage },
       });
-      
-      // Notify participants
+
+      if (input.stage === 'completed') {
+        await db.triggerPayoutsOnDealClose(input.id);
+        const participants = await db.getDealParticipants(input.id);
+        for (const p of participants) {
+          if (p.role === 'originator') {
+            await db.recalculateTrustScore(p.userId, 'deal_completion', input.id, 'deal');
+          }
+        }
+      }
+
       const participants = await db.getDealParticipants(input.id);
       for (const p of participants) {
         if (p.userId !== ctx.user.id) {
@@ -541,10 +604,18 @@ const dealRouter = router({
           });
         }
       }
-      
+
       return { success: true };
     }),
   
+  getEscrowStatus: protectedProcedure
+    .input(z.object({ dealId: z.number() }))
+    .query(async ({ input }) => {
+      const deal = await db.getDealById(input.dealId);
+      if (!deal) throw new TRPCError({ code: "NOT_FOUND" });
+      return { status: "not_configured", provider: null, fundedAmount: 0 };
+    }),
+
   addParticipant: protectedProcedure
     .input(z.object({
       dealId: z.number(),
@@ -586,6 +657,19 @@ const dealRoomRouter = router({
     .input(z.object({ dealRoomId: z.number() }))
     .query(async ({ input }) => {
       return db.getDocumentsByDealRoom(input.dealRoomId);
+    }),
+
+  requestSignature: protectedProcedure
+    .input(z.object({ documentId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const doc = await db.getDocumentById(input.documentId);
+      if (!doc) throw new TRPCError({ code: "NOT_FOUND" });
+      await db.updateDocument(input.documentId, {
+        requiresSignature: true,
+        signatureStatus: "pending",
+        signatureProvider: "anavi_stub",
+      });
+      return { success: true, status: "pending" };
     }),
 });
 
@@ -638,7 +722,21 @@ const payoutRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     return db.getPayoutsByUser(ctx.user.id);
   }),
-  
+
+  getStatement: protectedProcedure
+    .input(z.object({ periodStart: z.string().datetime(), periodEnd: z.string().datetime() }))
+    .query(async ({ ctx, input }) => {
+      const payouts = await db.getPayoutsByUser(ctx.user.id);
+      const start = new Date(input.periodStart);
+      const end = new Date(input.periodEnd);
+      const items = payouts.filter((p) => {
+        const d = new Date(p.createdAt);
+        return d >= start && d <= end;
+      });
+      const total = items.reduce((s, p) => s + Number(p.amount ?? 0), 0);
+      return { periodStart: input.periodStart, periodEnd: input.periodEnd, items, total };
+    }),
+
   getByDeal: protectedProcedure
     .input(z.object({ dealId: z.number() }))
     .query(async ({ input }) => {
@@ -684,6 +782,16 @@ const notificationRouter = router({
 // AUDIT ROUTER
 // ============================================================================
 
+const filtersSchema = z.object({
+  userId: z.number().optional(),
+  entityType: z.string().optional(),
+  entityId: z.number().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  limit: z.number().min(1).max(500).optional(),
+  cursor: z.object({ createdAt: z.string().datetime(), id: z.number() }).optional(),
+});
+
 const auditRouter = router({
   list: protectedProcedure
     .input(z.object({
@@ -693,6 +801,28 @@ const auditRouter = router({
     }).optional())
     .query(async ({ input }) => {
       return db.getAuditLog(input?.entityType, input?.entityId, input?.limit);
+    }),
+  query: protectedProcedure
+    .input(filtersSchema)
+    .query(async ({ ctx, input }) => {
+      const filters = {
+        ...input,
+        startDate: input.startDate ? new Date(input.startDate) : undefined,
+        endDate: input.endDate ? new Date(input.endDate) : undefined,
+        cursor: input.cursor ? { createdAt: new Date(input.cursor.createdAt), id: input.cursor.id } : undefined,
+      };
+      const isAdmin = ctx.user.role === "admin";
+      return db.queryAuditLog(filters, ctx.user.id, isAdmin);
+    }),
+  export: adminProcedure
+    .input(filtersSchema.omit({ cursor: true }))
+    .mutation(async ({ ctx, input }) => {
+      const filters = {
+        ...input,
+        startDate: input.startDate ? new Date(input.startDate) : undefined,
+        endDate: input.endDate ? new Date(input.endDate) : undefined,
+      };
+      return db.exportAuditLogCSV(filters, ctx.user.id, true);
     }),
 });
 
@@ -1079,6 +1209,16 @@ Always be precise, data-driven, and focused on actionable insights.` },
       return JSON.parse((response.choices[0].message.content as string) || '{}');
     }),
 });;
+
+// ============================================================================
+// LP PORTAL ROUTER (F10)
+// ============================================================================
+
+const lpPortalRouter = router({
+  getData: protectedProcedure.query(async ({ ctx }) => {
+    return db.getLPPortalData(ctx.user.id);
+  }),
+});
 
 // ============================================================================
 // FAMILY OFFICE ROUTER
@@ -1758,13 +1898,84 @@ const analyticsRouter = router({
 });
 
 // ============================================================================
+// SEARCH ROUTER (F15)
+// ============================================================================
+
+const searchRouter = router({
+  global: protectedProcedure
+    .input(z.object({ query: z.string(), limit: z.number().min(1).max(50).optional() }))
+    .query(async ({ ctx, input }) => {
+      return db.globalSearch(ctx.user.id, input.query, input.limit ?? 20);
+    }),
+});
+
+// ============================================================================
+// INTELLIGENCE ROUTER (F17)
+// ============================================================================
+
+const intelligenceRouter = router({
+  sectorOverview: protectedProcedure.query(async () => {
+    return db.getIntelligenceSectorOverview();
+  }),
+  marketDepth: protectedProcedure.query(async () => {
+    return db.getIntelligenceMarketDepth();
+  }),
+});
+
+// ============================================================================
+// REAL ESTATE ROUTER (F23)
+// ============================================================================
+
+const realEstateRouter = router({
+  list: protectedProcedure
+    .input(z.object({ status: z.string().optional(), propertyType: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      return db.listRealEstateProperties({
+        ...input,
+        ownerId: ctx.user.id,
+      });
+    }),
+  get: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      const p = await db.getRealEstatePropertyById(input.id);
+      if (!p) throw new TRPCError({ code: "NOT_FOUND" });
+      return p;
+    }),
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string(),
+      address: z.string(),
+      propertyType: z.enum(["office", "retail", "industrial", "multifamily", "hotel", "mixed_use", "land", "single_family", "condo", "warehouse", "data_center", "self_storage", "medical", "senior_living"]),
+      askingPrice: z.string().optional(),
+      totalSqFt: z.string().optional(),
+      status: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return db.createRealEstateProperty({
+        ownerId: ctx.user.id,
+        title: input.title,
+        address: input.address,
+        propertyType: input.propertyType,
+        askingPrice: input.askingPrice ?? null,
+        totalSqFt: input.totalSqFt ?? null,
+        status: (input.status as any) ?? "draft",
+      });
+    }),
+});
+
+// ============================================================================
 // MAIN ROUTER
 // ============================================================================
 
 export const appRouter = router({
   system: systemRouter,
+  search: searchRouter,
+  intelligence: intelligenceRouter,
+  realEstate: realEstateRouter,
   auth: authRouter,
   user: userRouter,
+  verification: verificationRouter,
   relationship: relationshipRouter,
   contact: contactRouter,
   intent: intentRouter,
@@ -1776,6 +1987,7 @@ export const appRouter = router({
   notification: notificationRouter,
   audit: auditRouter,
   ai: aiRouter,
+  lpPortal: lpPortalRouter,
   familyOffice: familyOfficeRouter,
   targeting: targetingRouter,
   brokerContact: brokerContactRouter,

@@ -308,7 +308,7 @@ export default function Dashboard() {
           {/* Trust Score Widget — E11: clickable */}
           <StaggerItem>
             <Link href="/verification">
-              <div className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
+              <div data-tour-id="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
                 <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
                   Trust Score
                 </h3>

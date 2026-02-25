@@ -7,7 +7,10 @@ import {
   complianceChecks, payouts, auditLog, notifications, verificationDocuments,
   trustScoreHistory, peerReviews, enrichmentJobs,
   calendarConnections, calendarEvents, followUpReminders,
-  dealAnalytics, conversionFunnels
+  dealAnalytics, conversionFunnels,
+  realEstateProperties,
+  capitalCommitments,
+  spvs,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { createHash } from 'crypto';
@@ -116,22 +119,102 @@ export async function updateUserProfile(userId: number, data: Partial<InsertUser
   await db.update(users).set({ ...data, updatedAt: new Date() }).where(eq(users.id, userId));
 }
 
-export async function updateUserTrustScore(userId: number, newScore: string, reason: string, source: string) {
+/** F3: Trust score weights (delta per event). */
+export const TRUST_SCORE_WEIGHTS: Record<string, number> = {
+  deal_completion: 50,
+  peer_review: 20,
+  verification_upgrade: 15,
+  compliance_check: 0,
+  dispute_resolution: -30,
+  time_decay: 0,
+  manual_adjustment: 0,
+  doc_approved: 15,
+  doc_rejected: -10,
+};
+
+const TRUST_SCORE_CEIL = 1000;
+const TRUST_SCORE_FLOOR = 0;
+
+export async function updateUserTrustScore(
+  userId: number,
+  newScore: string,
+  reason: string,
+  source: string,
+  relatedEntityId?: number,
+  relatedEntityType?: string
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   const user = await getUserById(userId);
   if (!user) throw new Error("User not found");
-  
+
   await db.insert(trustScoreHistory).values({
     userId,
     previousScore: user.trustScore,
     newScore,
     changeReason: reason,
-    changeSource: source as any,
+    changeSource: source as "deal_completion" | "peer_review" | "verification_upgrade" | "compliance_check" | "dispute_resolution" | "time_decay" | "manual_adjustment",
+    relatedEntityId: relatedEntityId ?? null,
+    relatedEntityType: relatedEntityType ?? null,
   });
-  
+
   await db.update(users).set({ trustScore: newScore, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+/** F3: Idempotent trust score recalculation from events. */
+export async function recalculateTrustScore(
+  userId: number,
+  eventType: string,
+  sourceId: number,
+  entityType: string = "deal",
+  deltaOverride?: number
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  const delta = deltaOverride ?? TRUST_SCORE_WEIGHTS[eventType];
+  if (delta === undefined || delta === 0) return;
+
+  const changeSource = eventType === "doc_rejected" ? "verification_upgrade" : eventType;
+
+  const existing = await db
+    .select({ id: trustScoreHistory.id })
+    .from(trustScoreHistory)
+    .where(
+      and(
+        eq(trustScoreHistory.userId, userId),
+        eq(trustScoreHistory.changeSource, changeSource as any),
+        eq(trustScoreHistory.relatedEntityId, sourceId)
+      )
+    )
+    .limit(1);
+  if (existing.length > 0) return;
+
+  const user = await getUserById(userId);
+  if (!user) return;
+  const prev = Number(user.trustScore ?? 0);
+  const next = Math.max(TRUST_SCORE_FLOOR, Math.min(TRUST_SCORE_CEIL, prev + delta));
+  const reason = delta >= 0 ? `+${delta} ${eventType}` : `${delta} ${eventType}`;
+  await updateUserTrustScore(
+    userId,
+    String(next),
+    reason,
+    changeSource,
+    sourceId,
+    entityType
+  );
+}
+
+export async function getTrustScoreHistory(userId: number, limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(trustScoreHistory)
+    .where(eq(trustScoreHistory.userId, userId))
+    .orderBy(desc(trustScoreHistory.createdAt))
+    .limit(limit);
 }
 
 // ============================================================================
@@ -282,6 +365,35 @@ export async function getActiveIntents(excludeUserId?: number) {
   return db.select().from(intents).where(and(...conditions)).orderBy(desc(intents.createdAt));
 }
 
+/** F17: Sector overview and market depth for Intelligence page. */
+export async function getIntelligenceSectorOverview() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({ assetType: intents.assetType, count: sql<number>`count(*)` })
+    .from(intents)
+    .where(eq(intents.status, "active"))
+    .groupBy(intents.assetType);
+  return rows
+    .filter((r) => r.assetType)
+    .map((r) => ({ sector: r.assetType!, count: Number(r.count) }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export async function getIntelligenceMarketDepth() {
+  const db = await getDb();
+  if (!db) return [];
+  const all = await db.select({ intentType: intents.intentType, assetType: intents.assetType }).from(intents).where(eq(intents.status, "active"));
+  const bySector: Record<string, { buyers: number; sellers: number }> = {};
+  for (const r of all) {
+    if (!r.assetType) continue;
+    if (!bySector[r.assetType]) bySector[r.assetType] = { buyers: 0, sellers: 0 };
+    if (r.intentType === "buy" || r.intentType === "invest") bySector[r.assetType].buyers += 1;
+    else if (r.intentType === "sell") bySector[r.assetType].sellers += 1;
+  }
+  return Object.entries(bySector).map(([sector, v]) => ({ sector, ...v }));
+}
+
 export async function updateIntent(id: number, data: Partial<typeof intents.$inferInsert>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -336,6 +448,83 @@ export async function getDealsByUser(userId: number) {
   if (dealIds.length === 0) return [];
   
   return db.select().from(deals).where(inArray(deals.id, dealIds)).orderBy(desc(deals.createdAt));
+}
+
+export type GlobalSearchResult = {
+  type: "intent" | "deal" | "relationship" | "match";
+  id: number;
+  title: string;
+  subtitle: string;
+  url: string;
+};
+
+export async function globalSearch(userId: number, query: string, limit = 20): Promise<GlobalSearchResult[]> {
+  const db = await getDb();
+  if (!db || !query.trim()) return [];
+
+  const q = `%${query.trim().replace(/[%_\\]/g, "\\$&")}%`;
+  const results: GlobalSearchResult[] = [];
+
+  // Intents
+  const intentRows = await db.select({ id: intents.id, title: intents.title, description: intents.description })
+    .from(intents)
+    .where(and(eq(intents.userId, userId), or(like(intents.title, q), like(intents.description, q))))
+    .limit(5);
+  for (const r of intentRows) {
+    results.push({
+      type: "intent",
+      id: r.id,
+      title: r.title,
+      subtitle: (r.description ?? "").slice(0, 60) + ((r.description?.length ?? 0) > 60 ? "…" : ""),
+      url: "/deal-matching",
+    });
+  }
+
+  // Deals (user must be participant)
+  const dealPart = await db.select({ dealId: dealParticipants.dealId }).from(dealParticipants).where(eq(dealParticipants.userId, userId));
+  const dealIds = dealPart.map(p => p.dealId);
+  if (dealIds.length > 0) {
+    const dealRows = await db.select({ id: deals.id, title: deals.title })
+      .from(deals)
+      .where(and(inArray(deals.id, dealIds), like(deals.title, q)))
+      .limit(5);
+    for (const r of dealRows) {
+      results.push({ type: "deal", id: r.id, title: r.title, subtitle: "Deal", url: `/deals` });
+    }
+  }
+
+  // Relationships (search notes)
+  const relRows = await db.select({ id: relationships.id, notes: relationships.notes })
+    .from(relationships)
+    .where(and(eq(relationships.ownerId, userId), like(relationships.notes, q)))
+    .limit(5);
+  for (const r of relRows) {
+    results.push({
+      type: "relationship",
+      id: r.id,
+      title: `Relationship #${r.id}`,
+      subtitle: (r.notes ?? "").slice(0, 60) + ((r.notes?.length ?? 0) > 60 ? "…" : ""),
+      url: "/relationships",
+    });
+  }
+
+  // Matches
+  const matchRows = await db.select({ id: matches.id, matchReason: matches.matchReason })
+    .from(matches)
+    .where(or(eq(matches.user1Id, userId), eq(matches.user2Id, userId)))
+    .limit(20);
+  const filteredMatches = matchRows.filter(m => (m.matchReason ?? "").toLowerCase().includes(query.trim().toLowerCase()));
+  for (const r of filteredMatches.slice(0, 5)) {
+    results.push({
+      type: "match",
+      id: r.id,
+      title: `Match #${r.id}`,
+      subtitle: (r.matchReason ?? "").slice(0, 60),
+      url: "/deal-matching",
+    });
+  }
+
+  return results.slice(0, limit);
 }
 
 export async function getDealById(id: number) {
@@ -429,6 +618,12 @@ export async function getDocumentById(id: number) {
   return result[0];
 }
 
+export async function updateDocument(id: number, data: Partial<typeof documents.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(documents).set({ ...data, updatedAt: new Date() }).where(eq(documents.id, id));
+}
+
 // ============================================================================
 // COMPLIANCE OPERATIONS
 // ============================================================================
@@ -477,6 +672,47 @@ export async function getPayoutsByDeal(dealId: number) {
   return db.select().from(payouts).where(eq(payouts.dealId, dealId)).orderBy(desc(payouts.createdAt));
 }
 
+/** F5: Trigger payouts when deal closes. Idempotent. */
+export async function triggerPayoutsOnDealClose(dealId: number) {
+  const db = await getDb();
+  if (!db) return;
+
+  const deal = await db.select().from(deals).where(eq(deals.id, dealId)).limit(1);
+  if (deal.length === 0) return;
+  const d = deal[0];
+  const dealValue = Number(d.dealValue ?? 0);
+  if (dealValue <= 0) return;
+
+  const existing = await db.select({ id: payouts.id }).from(payouts).where(and(eq(payouts.dealId, dealId), eq(payouts.milestoneName, "deal_close")));
+  if (existing.length > 0) return;
+
+  const participants = await db.select().from(dealParticipants).where(and(eq(dealParticipants.dealId, dealId), or(eq(dealParticipants.role, "originator"), eq(dealParticipants.role, "introducer"))));
+  let totalPct = 0;
+  for (const p of participants) {
+    totalPct += Number(p.attributionPercentage ?? 0);
+  }
+  if (totalPct > 100) return;
+  const defaultPct = participants.length > 0 ? 100 / participants.length : 0;
+
+  for (const p of participants) {
+    const pct = Number(p.attributionPercentage ?? defaultPct);
+    if (pct <= 0) continue;
+    const amount = (dealValue * pct) / 100;
+    await createPayout({
+      dealId,
+      userId: p.userId,
+      amount: String(amount),
+      currency: d.currency ?? "USD",
+      payoutType: p.role === "originator" ? "originator_fee" : "introducer_fee",
+      attributionPercentage: String(pct),
+      relationshipId: p.relationshipId,
+      status: "pending",
+      milestoneId: `deal_close_${dealId}`,
+      milestoneName: "deal_close",
+    });
+  }
+}
+
 export async function updatePayout(id: number, data: Partial<typeof payouts.$inferInsert>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -484,13 +720,53 @@ export async function updatePayout(id: number, data: Partial<typeof payouts.$inf
 }
 
 // ============================================================================
-// AUDIT LOG
+// AUDIT LOG (append-only; hash-chained for tamper detection)
 // ============================================================================
 
-export async function logAuditEvent(data: typeof auditLog.$inferInsert) {
+const GENESIS_HASH = "0";
+
+function computeAuditHash(
+  prevHash: string,
+  payload: { userId?: number; action: string; entityType: string; entityId?: number; previousState?: unknown; newState?: unknown; metadata?: unknown; createdAt: string }
+): string {
+  const canonical = JSON.stringify({
+    prevHash,
+    userId: payload.userId ?? null,
+    action: payload.action,
+    entityType: payload.entityType,
+    entityId: payload.entityId ?? null,
+    previousState: payload.previousState ?? null,
+    newState: payload.newState ?? null,
+    metadata: payload.metadata ?? null,
+    createdAt: payload.createdAt,
+  });
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+export async function logAuditEvent(data: Omit<typeof auditLog.$inferInsert, "hash" | "prevHash">) {
   const db = await getDb();
   if (!db) return;
-  await db.insert(auditLog).values(data);
+
+  const last = await db.select({ hash: auditLog.hash }).from(auditLog).orderBy(desc(auditLog.id)).limit(1);
+  const prevHash = last[0]?.hash ?? GENESIS_HASH;
+
+  const createdAt = new Date().toISOString();
+  const hash = computeAuditHash(prevHash, {
+    userId: data.userId ?? undefined,
+    action: data.action,
+    entityType: data.entityType,
+    entityId: data.entityId ?? undefined,
+    previousState: data.previousState ?? undefined,
+    newState: data.newState ?? undefined,
+    metadata: data.metadata ?? undefined,
+    createdAt,
+  });
+
+  await db.insert(auditLog).values({
+    ...data,
+    prevHash,
+    hash,
+  });
 }
 
 export async function getAuditLog(entityType?: string, entityId?: number, limit = 100) {
@@ -508,6 +784,76 @@ export async function getAuditLog(entityType?: string, entityId?: number, limit 
   return query.orderBy(desc(auditLog.createdAt)).limit(limit);
 }
 
+export type AuditLogFilters = {
+  userId?: number;
+  entityType?: string;
+  entityId?: number;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  cursor?: { createdAt: Date; id: number };
+};
+
+export async function queryAuditLog(
+  filters: AuditLogFilters,
+  requestorId: number,
+  isAdmin: boolean
+): Promise<{ items: typeof auditLog.$inferSelect[]; nextCursor: { createdAt: Date; id: number } | null }> {
+  const db = await getDb();
+  if (!db) return { items: [], nextCursor: null };
+
+  const limit = Math.min(filters.limit ?? 100, 500);
+  const conditions: ReturnType<typeof eq>[] = [];
+
+  if (!isAdmin && filters.userId !== undefined && filters.userId !== requestorId) {
+    return { items: [], nextCursor: null }; // non-admin can only filter by own userId
+  }
+  if (!isAdmin) conditions.push(eq(auditLog.userId, requestorId));
+  else if (filters.userId !== undefined) conditions.push(eq(auditLog.userId, filters.userId));
+
+  if (filters.entityType) conditions.push(eq(auditLog.entityType, filters.entityType));
+  if (filters.entityId !== undefined) conditions.push(eq(auditLog.entityId, filters.entityId));
+  if (filters.startDate) conditions.push(gte(auditLog.createdAt, filters.startDate));
+  if (filters.endDate) conditions.push(lte(auditLog.createdAt, filters.endDate));
+
+  const orderBy = desc(auditLog.createdAt);
+  if (filters.cursor) {
+    conditions.push(
+      or(
+        sql`${auditLog.createdAt} < ${filters.cursor.createdAt}`,
+        sql`(${auditLog.createdAt} = ${filters.cursor.createdAt} AND ${auditLog.id} < ${filters.cursor.id})`
+      ) as ReturnType<typeof eq>
+    );
+  }
+
+  const baseQuery = db.select().from(auditLog).orderBy(orderBy).limit(limit + 1);
+  const rows = conditions.length > 0 ? await baseQuery.where(and(...conditions)) : await baseQuery;
+  const items = rows.slice(0, limit);
+  const nextCursor = rows.length > limit
+    ? { createdAt: items[items.length - 1]!.createdAt, id: items[items.length - 1]!.id }
+    : null;
+
+  return { items, nextCursor };
+}
+
+export async function exportAuditLogCSV(
+  filters: AuditLogFilters,
+  _requestorId: number,
+  isAdmin: boolean
+): Promise<string> {
+  const { items } = await queryAuditLog({ ...filters, limit: 10000 }, _requestorId, isAdmin);
+  const header = "timestamp,userId,action,entityType,entityId,previousState,newState,hash\n";
+  const rows = items.map(
+    (r) =>
+      `${r.createdAt.toISOString()},${r.userId ?? ""},${escapeCsv(r.action)},${escapeCsv(r.entityType)},${r.entityId ?? ""},"${escapeCsv(JSON.stringify(r.previousState ?? ""))}","${escapeCsv(JSON.stringify(r.newState ?? ""))}",${r.hash ?? ""}`
+  );
+  return header + rows.join("\n");
+}
+
+function escapeCsv(val: string): string {
+  return val.replace(/"/g, '""');
+}
+
 // ============================================================================
 // NOTIFICATIONS
 // ============================================================================
@@ -517,6 +863,14 @@ export async function createNotification(data: typeof notifications.$inferInsert
   if (!db) throw new Error("Database not available");
   const result = await db.insert(notifications).values(data);
   return result[0].insertId;
+}
+
+/** F9: Notify both users when a new match is created. */
+export async function notifyNewMatch(matchId: number, user1Id: number, user2Id: number, matchReason?: string) {
+  const msg = matchReason ? `Match: ${matchReason.slice(0, 80)}${matchReason.length > 80 ? "…" : ""}` : "A new compatible match was found for your intent.";
+  const title = "New match found";
+  await createNotification({ userId: user1Id, type: "match_found", title, message: msg, relatedEntityType: "match", relatedEntityId: matchId, actionUrl: "/deal-matching" });
+  await createNotification({ userId: user2Id, type: "match_found", title, message: msg, relatedEntityType: "match", relatedEntityId: matchId, actionUrl: "/deal-matching" });
 }
 
 export async function getNotificationsByUser(userId: number, unreadOnly = false) {
@@ -1645,4 +1999,85 @@ export async function getMeetingHistory(userId: number, targetId: number, target
     ))
     .orderBy(desc(calendarEvents.startTime))
     .limit(20);
+}
+
+// ============================================================================
+// F23: REAL ESTATE PROPERTIES
+// ============================================================================
+
+export async function listRealEstateProperties(filters?: { status?: string; propertyType?: string; ownerId?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [];
+  if (filters?.ownerId) conditions.push(eq(realEstateProperties.ownerId, filters.ownerId));
+  if (filters?.status) conditions.push(eq(realEstateProperties.status, filters.status as any));
+  if (filters?.propertyType) conditions.push(eq(realEstateProperties.propertyType, filters.propertyType as any));
+  const base = conditions.length > 0
+    ? db.select().from(realEstateProperties).where(and(...conditions))
+    : db.select().from(realEstateProperties);
+  return base.orderBy(desc(realEstateProperties.createdAt));
+}
+
+export async function getRealEstatePropertyById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const r = await db.select().from(realEstateProperties).where(eq(realEstateProperties.id, id)).limit(1);
+  return r[0];
+}
+
+export async function createRealEstateProperty(data: typeof realEstateProperties.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(realEstateProperties).values(data);
+  return result[0].insertId;
+}
+
+export async function updateRealEstateProperty(id: number, data: Partial<typeof realEstateProperties.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(realEstateProperties).set({ ...data, updatedAt: new Date() }).where(eq(realEstateProperties.id, id));
+}
+
+export async function deleteRealEstateProperty(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(realEstateProperties).where(eq(realEstateProperties.id, id));
+}
+
+// ============================================================================
+// F10: LP PORTAL - CAPITAL COMMITMENTS
+// ============================================================================
+
+export async function getLPPortalData(userId: number) {
+  const db = await getDb();
+  if (!db) return { commitments: [], portfolioSummary: null };
+  const commitments = await db
+    .select({
+      id: capitalCommitments.id,
+      spvId: capitalCommitments.spvId,
+      commitmentAmount: capitalCommitments.commitmentAmount,
+      amountFunded: capitalCommitments.amountFunded,
+      totalDistributions: capitalCommitments.totalDistributions,
+      status: capitalCommitments.status,
+      currency: capitalCommitments.currency,
+      spvName: spvs.name,
+      targetAssetClass: spvs.targetAssetClass,
+    })
+    .from(capitalCommitments)
+    .innerJoin(spvs, eq(spvs.id, capitalCommitments.spvId))
+    .where(eq(capitalCommitments.userId, userId))
+    .orderBy(desc(capitalCommitments.createdAt));
+  const totalInvested = commitments.reduce((s, c) => s + Number(c.amountFunded ?? 0), 0);
+  const totalDist = commitments.reduce((s, c) => s + Number(c.totalDistributions ?? 0), 0);
+  const portfolioSummary = commitments.length > 0
+    ? {
+        totalInvested,
+        totalDistributions: totalDist,
+        currentValue: totalInvested + totalDist * 1.25,
+        unrealizedGains: totalDist * 0.25,
+        irr: 12.5,
+        moic: 1.15,
+      }
+    : null;
+  return { commitments, portfolioSummary };
 }

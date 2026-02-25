@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +15,8 @@ import {
   Building2, Users, Calendar, AlertCircle, Download, Eye
 } from "lucide-react";
 
-// Mock data for LP Portal
-const portfolioSummary = {
+// Fallback mock when no DB data
+const MOCK_PORTFOLIO = {
   totalInvested: 2500000,
   currentValue: 3125000,
   totalDistributions: 450000,
@@ -24,7 +25,7 @@ const portfolioSummary = {
   moic: 1.43,
 };
 
-const investments = [
+const MOCK_INVESTMENTS = [
   {
     id: 1,
     spvName: "Acme Ventures SPV I",
@@ -95,6 +96,21 @@ const accreditationStatus = {
 
 export default function LPPortal() {
   const [activeTab, setActiveTab] = useState("overview");
+  const { data: lpData } = trpc.lpPortal.getData.useQuery();
+  const portfolioSummary = lpData?.portfolioSummary ?? MOCK_PORTFOLIO;
+  const investments = lpData?.commitments?.length
+    ? lpData.commitments.map((c: any) => ({
+        id: c.id,
+        spvName: c.spvName ?? "SPV",
+        assetClass: c.targetAssetClass ?? "Private Equity",
+        committed: Number(c.commitmentAmount ?? 0),
+        called: Number(c.amountFunded ?? 0),
+        currentValue: Number(c.amountFunded ?? 0) + Number(c.totalDistributions ?? 0),
+        status: c.status,
+        vintage: new Date().getFullYear().toString(),
+        irr: 0,
+      }))
+    : MOCK_INVESTMENTS;
 
   return (
     <DashboardLayout>

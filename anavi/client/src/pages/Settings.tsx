@@ -9,11 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { 
   User, Shield, Bell, Key, 
-  Upload, CheckCircle2, Clock, Save
+  Upload, CheckCircle2, Clock, Save,
+  Compass
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTourContext } from "@/contexts/TourContext";
 
 export default function Settings() {
+  const tour = useTourContext();
   const { data: user, refetch } = trpc.user.getProfile.useQuery();
   const [profile, setProfile] = useState({
     name: user?.name || "",
@@ -65,6 +68,10 @@ export default function Settings() {
           <TabsTrigger value="security" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
             <Key className="w-4 h-4 mr-2" />
             Security
+          </TabsTrigger>
+          <TabsTrigger value="help" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
+            <Compass className="w-4 h-4 mr-2" />
+            Help
           </TabsTrigger>
         </TabsList>
 
@@ -394,6 +401,26 @@ export default function Settings() {
                 <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400">Delete</Button>
               </div>
             </div>
+          </div>
+        </TabsContent>
+
+        {/* Help Tab */}
+        <TabsContent value="help" className="space-y-6">
+          <div className="card-elevated p-6">
+            <h3 className="dash-heading text-lg mb-2">Guided Tour</h3>
+            <p className="text-sm text-[#1E3A5F]/60 mb-5">
+              Take a 2-minute tour of the platform to see where everything lives.
+            </p>
+            <Button
+              onClick={() => {
+                tour.restart();
+                toast.success("Tour started");
+              }}
+              className="btn-gold"
+            >
+              <Compass className="w-4 h-4 mr-2" />
+              Restart Tour
+            </Button>
           </div>
         </TabsContent>
       </Tabs>

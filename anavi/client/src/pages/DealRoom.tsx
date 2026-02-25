@@ -164,7 +164,11 @@ interface UploadedFile {
   preview?: string;
 }
 
-function DocumentsTab({ documents }: { documents: any[] }) {
+function DocumentsTab({ documents, dealRoomId }: { documents: any[]; dealRoomId?: number }) {
+  const requestSignature = trpc.dealRoom.requestSignature.useMutation({
+    onSuccess: () => toast.success("Signature requested"),
+    onError: (e) => toast.error(e.message),
+  });
   const [uploads, setUploads] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -303,9 +307,18 @@ function DocumentsTab({ documents }: { documents: any[] }) {
                 </div>
                 <div className="flex items-center gap-2">
                   {doc.signatureStatus && (
-                    <span className={`status-pill text-[10px] ${doc.signatureStatus === "signed" ? "status-completed" : "status-nda-pending"}`}>
-                      {doc.signatureStatus === "signed" ? "Signed" : "Pending"}
+                    <span className={`status-pill text-[10px] ${doc.signatureStatus === "completed" ? "status-completed" : doc.signatureStatus === "pending" ? "status-nda-pending" : "status-active"}`}>
+                      {doc.signatureStatus === "completed" ? "Signed" : doc.signatureStatus === "pending" ? "Pending" : doc.signatureStatus ?? "—"}
                     </span>
+                  )}
+                  {doc.signatureStatus !== "completed" && doc.requiresSignature !== true && (
+                    <button
+                      onClick={() => requestSignature.mutate({ documentId: doc.id })}
+                      className="text-xs font-medium px-2 py-1 rounded hover:bg-blue-50"
+                      style={{ color: "#2563EB" }}
+                    >
+                      Request Signature
+                    </button>
                   )}
                   <button className="p-1.5 rounded hover:bg-gray-100">
                     <Download className="w-4 h-4 text-muted-foreground" />
@@ -505,7 +518,12 @@ function ComplianceTab() {
 
 // ─── Escrow Tab ───────────────────────────────────────────────────────────────
 
-function EscrowTab() {
+function EscrowTab({ dealId }: { dealId?: number }) {
+  const { data: escrow } = trpc.deal.getEscrowStatus.useQuery(
+    { dealId: dealId ?? 0 },
+    { enabled: !!dealId }
+  );
+
   const milestones = [
     { name: "NDA Execution", trigger: "All parties sign NDA", amount: "$0", date: "Jan 15, 2026", status: "completed" as const },
     { name: "Due Diligence Deposit", trigger: "DD period begins", amount: "$50,000", date: "Feb 1, 2026", status: "active" as const },
@@ -518,9 +536,22 @@ function EscrowTab() {
   return (
     <div className="space-y-6">
       <section className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
-        <h3 className="text-subheading mb-4" style={{ color: "#0A1628" }}>Escrow Balance</h3>
-        <div className="text-3xl font-bold number-display" style={{ color: "#059669" }}>$0.00</div>
-        <p className="text-xs text-muted-foreground mt-1">Total held in escrow · $1,000,000 total deal value</p>
+        <h3 className="text-subheading mb-4" style={{ color: "#0A1628" }}>Escrow Status</h3>
+        {(!escrow || escrow?.status === "not_configured") ? (
+          <>
+            <div className="text-3xl font-bold number-display" style={{ color: "#059669" }}>$0.00</div>
+            <p className="text-xs text-muted-foreground mt-1">Escrow not configured · Configure escrow in deal settings</p>
+          </>
+        ) : (
+          <>
+            <div className="text-3xl font-bold number-display" style={{ color: "#059669" }}>
+              ${(escrow?.fundedAmount ?? 0).toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {escrow?.provider ?? "—"} · Funded amount
+            </p>
+          </>
+        )}
       </section>
 
       {/* E17: Visual Milestone Tracker */}
@@ -934,10 +965,10 @@ export default function DealRoom() {
         {activeTab === "overview" && (
           <OverviewTab room={room} payouts={payouts ?? []} auditEntries={auditEntries ?? []} />
         )}
-        {activeTab === "documents" && <DocumentsTab documents={documents ?? []} />}
+        {activeTab === "documents" && <DocumentsTab documents={documents ?? []} dealRoomId={roomId} />}
         {activeTab === "diligence" && <DiligenceTab roomId={roomId} />}
         {activeTab === "compliance" && <ComplianceTab />}
-        {activeTab === "escrow" && <EscrowTab />}
+        {activeTab === "escrow" && <EscrowTab dealId={room?.dealId ?? undefined} />}
         {activeTab === "payouts" && <PayoutsTab payouts={payouts ?? []} />}
         {activeTab === "audit" && <AuditTab entries={auditEntries ?? []} />}
       </SlideIn>

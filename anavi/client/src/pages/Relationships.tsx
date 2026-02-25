@@ -67,6 +67,7 @@ export default function Relationships() {
   const [formAutoMatch, setFormAutoMatch] = useState(true);
 
   const { data: relationships, isLoading, refetch } = trpc.relationship.list.useQuery();
+  const [proofModal, setProofModal] = useState<number | null>(null);
   const { data: stats } = trpc.user.getStats.useQuery();
   const createMutation = trpc.relationship.create.useMutation({
     onSuccess: () => {
@@ -355,14 +356,19 @@ export default function Relationships() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
             {filteredRelationships.map((rel, idx) => (
               <ScaleHover key={rel.id}>
-                <RelationshipCard rel={rel} onCopyHash={copyHash} isFirst={idx === 0} />
+                <RelationshipCard rel={rel} onCopyHash={copyHash} onExportProof={() => setProofModal(rel.id)} isFirst={idx === 0} />
               </ScaleHover>
             ))}
           </div>
         ) : (
-          <RelationshipTable relationships={filteredRelationships} onCopyHash={copyHash} />
+          <RelationshipTable relationships={filteredRelationships} onCopyHash={copyHash} onExportProof={setProofModal} />
         )}
       </div>
+
+      {/* F6: Export Proof Modal */}
+      {proofModal !== null && (
+        <ProofModal relationshipId={proofModal} onClose={() => setProofModal(null)} />
+      )}
 
       {/* Upload Modal */}
       {modalOpen && (
@@ -557,7 +563,86 @@ function FilterDropdown({
   );
 }
 
-function RelationshipCard({ rel, onCopyHash, isFirst = false }: { rel: any; onCopyHash: (h: string) => void; isFirst?: boolean }) {
+function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClose: () => void }) {
+  const { data: proof, isLoading } = trpc.relationship.getProof.useQuery(
+    { id: relationshipId },
+    { enabled: !!relationshipId }
+  );
+
+  const copyProof = () => {
+    if (!proof) return;
+    const json = JSON.stringify(proof, null, 2);
+    navigator.clipboard.writeText(json);
+    toast.success("Proof copied to clipboard");
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(10, 22, 40, 0.6)",
+        backdropFilter: "blur(4px)",
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="card-elevated" style={{ width: 420, maxHeight: "80vh", overflow: "auto" }}>
+        <div style={{ padding: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: COLORS.navy }}>Custody Proof</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}>
+            <X size={20} />
+          </button>
+        </div>
+        <div style={{ padding: "0 24px 24px" }}>
+          {isLoading ? (
+            <p style={{ color: "#6B7A90", fontSize: 14 }}>Loading…</p>
+          ) : proof ? (
+            <>
+              <pre
+                style={{
+                  background: "#F8FAFC",
+                  padding: 16,
+                  borderRadius: 8,
+                  fontSize: 12,
+                  overflow: "auto",
+                  maxHeight: 280,
+                  fontFamily: "monospace",
+                  color: COLORS.navy,
+                }}
+              >
+                {JSON.stringify(proof, null, 2)}
+              </pre>
+              <button
+                onClick={copyProof}
+                style={{
+                  marginTop: 12,
+                  width: "100%",
+                  height: 40,
+                  borderRadius: 8,
+                  border: "none",
+                  background: COLORS.gold,
+                  color: "white",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Copy to Clipboard
+              </button>
+            </>
+          ) : (
+            <p style={{ color: "#6B7A90", fontSize: 14 }}>Proof not found</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RelationshipCard({ rel, onCopyHash, onExportProof, isFirst = false }: { rel: any; onCopyHash: (h: string) => void; onExportProof?: () => void; isFirst?: boolean }) {
   const sectorTag = rel.tags?.[0];
   const isActive = (rel.dealCount || 0) > 0;
   const [flipped, setFlipped] = useState(false);
@@ -603,28 +688,48 @@ function RelationshipCard({ rel, onCopyHash, isFirst = false }: { rel: any; onCo
           <ReceiptRow label="Verification" value={rel.isBlind ? "Protected" : "Visible"} />
           <ReceiptRow label="Attribution" value={formatCurrency(parseFloat(rel.totalEarnings || "0"))} last />
         </div>
-        {/* E29: Verify button with animation */}
-        <button
-          onClick={handleVerify}
-          disabled={verifying > 0}
-          style={{
-            marginTop: 12,
-            height: 36,
-            borderRadius: 8,
-            border: `1px solid ${verifying === 3 ? COLORS.green : COLORS.border}`,
-            background: verifying === 3 ? `${COLORS.green}10` : "#fff",
-            color: verifying === 3 ? COLORS.green : COLORS.blue,
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: verifying > 0 ? "default" : "pointer",
-            transition: "all 0.3s",
-          }}
-        >
-          {verifying === 0 && "Verify Hash"}
-          {verifying === 1 && "Checking ledger..."}
-          {verifying === 2 && "Timestamp confirmed ✓"}
-          {verifying === 3 && "✓ Verified"}
-        </button>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button
+            onClick={handleVerify}
+            disabled={verifying > 0}
+            style={{
+              flex: 1,
+              height: 36,
+              borderRadius: 8,
+              border: `1px solid ${verifying === 3 ? COLORS.green : COLORS.border}`,
+              background: verifying === 3 ? `${COLORS.green}10` : "#fff",
+              color: verifying === 3 ? COLORS.green : COLORS.blue,
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: verifying > 0 ? "default" : "pointer",
+              transition: "all 0.3s",
+            }}
+          >
+            {verifying === 0 && "Verify Hash"}
+            {verifying === 1 && "Checking ledger..."}
+            {verifying === 2 && "Timestamp confirmed ✓"}
+            {verifying === 3 && "✓ Verified"}
+          </button>
+          {onExportProof && (
+            <button
+              onClick={onExportProof}
+              style={{
+                height: 36,
+                paddingLeft: 12,
+                paddingRight: 12,
+                borderRadius: 8,
+                border: `1px solid ${COLORS.border}`,
+                background: "#fff",
+                color: COLORS.blue,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              Export Proof
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -820,7 +925,7 @@ function StatusItem({ label, value, color }: { label: string; value: string; col
   );
 }
 
-function RelationshipTable({ relationships, onCopyHash }: { relationships: any[]; onCopyHash: (h: string) => void }) {
+function RelationshipTable({ relationships, onCopyHash, onExportProof }: { relationships: any[]; onCopyHash: (h: string) => void; onExportProof?: (id: number) => void }) {
   return (
     <div className="card-elevated" style={{ overflow: "hidden" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
@@ -869,22 +974,42 @@ function RelationshipTable({ relationships, onCopyHash }: { relationships: any[]
                   {formatCurrency(parseFloat(rel.totalEarnings || "0"))}
                 </td>
                 <td style={{ padding: "14px 16px" }}>
-                  <button
-                    onClick={() => onCopyHash(rel.timestampHash)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: COLORS.blue,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      fontSize: 13,
-                      fontWeight: 500,
-                    }}
-                  >
-                    <Copy size={14} /> Copy Hash
-                  </button>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <button
+                      onClick={() => onCopyHash(rel.timestampHash)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: COLORS.blue,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontSize: 13,
+                        fontWeight: 500,
+                      }}
+                    >
+                      <Copy size={14} /> Copy Hash
+                    </button>
+                    {onExportProof && (
+                      <button
+                        onClick={() => onExportProof(rel.id)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: COLORS.blue,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          fontSize: 13,
+                          fontWeight: 500,
+                        }}
+                      >
+                        Export Proof
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             );

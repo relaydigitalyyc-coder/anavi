@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { trpc } from "@/lib/trpc";
 import { 
   Building2, MapPin, Search, Filter, Plus, DollarSign,
   TrendingUp, Users, Calendar, Eye, MessageSquare, Star,
@@ -19,8 +20,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/DashboardLayout";
 
-// Demo data for real estate properties
-const realEstateProperties = [
+// Fallback demo data when no DB records (for demo mode)
+const DEMO_PROPERTIES = [
   {
     id: 1,
     title: "131 West 57th Street - Billionaires' Row",
@@ -165,7 +166,7 @@ const propertyCategories = [
   { id: "hotel", label: "Hotel", count: 4 },
 ];
 
-const PropertyCard = ({ property }: { property: typeof realEstateProperties[0] }) => {
+const PropertyCard = ({ property }: { property: any }) => {
   const PropertyIcon = propertyTypeIcons[property.propertyType] || Building2;
 
   const getStatusBadge = () => {
@@ -316,7 +317,20 @@ export default function RealEstate() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  const filteredProperties = realEstateProperties.filter(property => {
+  const { data: dbProperties = [] } = trpc.realEstate.list.useQuery({});
+  const realEstateProperties = dbProperties.length > 0
+    ? (dbProperties as any[]).map((p) => ({
+        ...p,
+        askingPrice: Number(p.askingPrice ?? 0),
+        pricePerSqFt: Number(p.pricePerSqFt ?? 0) || (p.totalSqFt ? Math.round(Number(p.askingPrice ?? 0) / Number(p.totalSqFt ?? 1)) : 0),
+        totalSqFt: Number(p.totalSqFt ?? 0),
+        owner: p.owner ?? { name: "You", verified: true },
+        photos: p.photos ?? ["/api/placeholder/400/300"],
+        aiUnderwritingScore: Number(p.aiUnderwritingScore ?? 0) || 75,
+      }))
+    : DEMO_PROPERTIES;
+
+  const filteredProperties = realEstateProperties.filter((property: any) => {
     if (selectedCategory !== "all" && property.propertyType !== selectedCategory) return false;
     if (searchQuery) {
       return property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

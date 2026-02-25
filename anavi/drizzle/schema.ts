@@ -567,6 +567,10 @@ export const auditLog = mysqlTable("audit_log", {
   previousState: json("previousState"),
   newState: json("newState"),
   
+  /** Hash chain: SHA-256(prevHash + canonical payload) for tamper detection. Null = pre-chain legacy row. */
+  prevHash: varchar("prevHash", { length: 64 }),
+  hash: varchar("hash", { length: 64 }),
+  
   metadata: json("metadata").$type<Record<string, unknown>>(),
   
   ipAddress: varchar("ipAddress", { length: 64 }),

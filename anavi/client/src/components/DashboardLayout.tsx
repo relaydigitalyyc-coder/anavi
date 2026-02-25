@@ -6,6 +6,7 @@ import {
   Home,
   LogOut,
   Menu,
+  Search,
   Settings,
   Shield,
   Target,
@@ -17,8 +18,14 @@ import {
   AlertTriangle,
   Info,
 } from "lucide-react";
+import { GlobalSearchModal } from "./GlobalSearchModal";
+import { RestartTourBanner } from "./RestartTourBanner";
+import { TourOverlay } from "./TourOverlay";
+import { useTourContext } from "@/contexts/TourContext";
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { formatDistanceToNow } from "date-fns";
 
 const navItems = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
@@ -26,7 +33,7 @@ const navItems = [
   { icon: Target, label: "Deal Matching", path: "/deal-matching" },
   { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms" },
   { icon: Shield, label: "Verification", path: "/verification" },
-  { icon: BarChart3, label: "Intelligence", path: "/intelligence", comingSoon: true },
+  { icon: BarChart3, label: "Intelligence", path: "/intelligence" },
   { icon: Wallet, label: "Payouts", path: "/payouts" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ] as const;
@@ -72,22 +79,66 @@ const mobileNavItems = [
   { icon: User, label: "Profile", path: "/settings" },
 ] as const;
 
-const SAMPLE_NOTIFICATIONS = [
-  { id: 1, icon: CheckCircle2, iconColor: "#059669", title: "Match accepted", message: "Solar deal match #A4F2 accepted by counterparty", time: "2 min ago", read: false },
-  { id: 2, icon: AlertTriangle, iconColor: "#C4972A", title: "NDA expiring", message: "Deal Room #12 NDA expires in 48 hours", time: "1 hour ago", read: false },
-  { id: 3, icon: Info, iconColor: "#2563EB", title: "New match found", message: "85% compatibility match for Real Estate intent", time: "3 hours ago", read: false },
-  { id: 4, icon: CheckCircle2, iconColor: "#059669", title: "Payout completed", message: "Originator fee of $12,500 deposited", time: "Yesterday", read: true },
-  { id: 5, icon: Info, iconColor: "#2563EB", title: "Verification updated", message: "Your Trust Score increased to 86", time: "Yesterday", read: true },
-];
+const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: string }> = {
+  match_found: { Icon: Target, color: "#22D4F5" },
+  deal_update: { Icon: FolderOpen, color: "#2563EB" },
+  document_shared: { Icon: Info, color: "#059669" },
+  signature_requested: { Icon: AlertTriangle, color: "#C4972A" },
+  payout_received: { Icon: CheckCircle2, color: "#059669" },
+  compliance_alert: { Icon: Shield, color: "#DC2626" },
+  relationship_request: { Icon: Users, color: "#2563EB" },
+  system: { Icon: Info, color: "#6B7280" },
+};
+
+const TOUR_BANNER_DISMISSED_KEY = "anavi_tour_banner_dismissed";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(SAMPLE_NOTIFICATIONS);
+  const tour = useTourContext();
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(TOUR_BANNER_DISMISSED_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const handleRestartTour = useCallback(() => {
+    tour.restart();
+  }, [tour]);
+
+  const handleDismissBanner = useCallback(() => {
+    try {
+      localStorage.setItem(TOUR_BANNER_DISMISSED_KEY, "true");
+    } catch {
+      /* ignore */
+    }
+    setBannerDismissed(true);
+  }, []);
+  const { data: notificationsData, refetch: refetchNotifications } = trpc.notification.list.useQuery(
+    { limit: 20 },
+    { enabled: !!user }
+  );
+  const markAllReadMutation = trpc.notification.markAllRead.useMutation({ onSuccess: () => refetchNotifications() });
+
+  const notifications = (notificationsData ?? []).map((n) => {
+    const { Icon, color } = NOTIFICATION_ICONS[n.type] ?? NOTIFICATION_ICONS.system;
+    return {
+      id: n.id,
+      icon: Icon,
+      iconColor: color,
+      title: n.title,
+      message: n.message ?? "",
+      time: formatDistanceToNow(new Date(n.createdAt), { addSuffix: true }),
+      read: n.isRead,
+      actionUrl: n.actionUrl,
+    };
+  });
 
   const pageTitle = pageTitles[location] ?? "ANAVI";
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
     const title = pageTitles[location];
@@ -114,13 +165,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return () => mainEl.removeEventListener("scroll", handleScroll);
   }, [location]);
 
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       e.preventDefault();
-      import("sonner").then(({ toast }) => toast.info("Search coming soon"));
+      setSearchOpen((o) => !o);
     }
     if (e.key === "Escape") {
       setNotifOpen(false);
+      setSearchOpen(false);
+      setSidebarOpen(false);
     }
   }, []);
 
@@ -129,66 +184,93 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const markAllRead = () => setNotifications(ns => ns.map(n => ({ ...n, read: true })));
+  const markAllRead = () => markAllReadMutation.mutate();
+
+  const SidebarNav = () => (
+    <>
+      <nav aria-label="Main navigation" className="flex-1 px-3 py-2">
+        {navItems.map((item) => {
+          const isActive = location === item.path;
+          return (
+            <Link key={item.path} href={item.path}>
+              <a
+                data-tour-id={item.path === "/relationships" ? "nav-relationships" : item.path === "/deal-matching" ? "nav-deal-matching" : item.path === "/deal-rooms" ? "nav-deal-rooms" : item.path === "/payouts" ? "nav-payouts" : undefined}
+                className={`group flex min-h-[44px] cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
+                  isActive
+                    ? "bg-white/8 text-white"
+                    : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
+                }`}
+                style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
+                aria-current={isActive ? "page" : undefined}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <item.icon className="h-[18px] w-[18px] shrink-0" />
+                <span className="flex-1">{item.label}</span>
+              </a>
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="border-t border-white/10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A] text-xs font-semibold text-white">
+            {getInitials(user?.name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-white">{user?.name ?? "User"}</p>
+          </div>
+          <button
+            onClick={() => logout()}
+            aria-label="Log out"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded p-2 text-[11px] text-white/50 hover:bg-white/10 hover:text-white/70"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </>
+  );
 
   return (
-    <div className="flex min-h-screen" style={{ fontFamily: "Arial, sans-serif" }}>
-      {/* Sidebar — hidden on mobile */}
+    <div className="flex min-h-screen overflow-x-hidden" style={{ fontFamily: "Arial, sans-serif" }}>
+      {/* Sidebar — hidden on mobile, visible lg+ */}
       <aside
-        className="hidden w-[240px] shrink-0 flex-col md:flex"
+        className="hidden w-[240px] shrink-0 flex-col lg:flex"
         style={{ backgroundColor: "#060A12" }}
       >
         <div className="flex h-14 items-center px-5">
           <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
         </div>
-
-        <nav aria-label="Main navigation" className="flex-1 px-3 py-2">
-          {navItems.map((item) => {
-            const isActive = location === item.path;
-            return (
-              <Link key={item.path} href={item.path}>
-                <a
-                  className={`group flex h-10 cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
-                    isActive
-                      ? "bg-white/8 text-white"
-                      : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
-                  }`}
-                  style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  <item.icon className="h-[18px] w-[18px] shrink-0" />
-                  <span className="flex-1">{item.label}</span>
-                  {"comingSoon" in item && item.comingSoon && (
-                    <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/50">
-                      Soon
-                    </span>
-                  )}
-                </a>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="border-t border-white/10 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A] text-xs font-semibold text-white">
-              {getInitials(user?.name)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-white">
-                {user?.name ?? "User"}
-              </p>
-            </div>
-            <button
-              onClick={() => logout()}
-              aria-label="Log out"
-              className="rounded p-2 text-[11px] text-white/50 hover:bg-white/10 hover:text-white/70"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
+        <SidebarNav />
       </aside>
+
+      {/* Mobile sidebar drawer */}
+      {sidebarOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+          <aside
+            className="fixed left-0 top-0 z-50 flex h-full w-[280px] max-w-[85vw] flex-col bg-[#060A12] shadow-2xl lg:hidden animate-in slide-in-from-left duration-200"
+            role="dialog"
+            aria-label="Navigation menu"
+          >
+            <div className="flex h-14 shrink-0 items-center justify-between px-5">
+              <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-white/60 hover:bg-white/10 hover:text-white"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <SidebarNav />
+          </aside>
+        </>
+      )}
 
       {/* Right side */}
       <div className="flex flex-1 flex-col">
@@ -199,7 +281,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         >
           <div className="flex items-center gap-3">
             <button
-              className="flex h-10 w-10 items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC] md:hidden"
+              onClick={() => setSidebarOpen(true)}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC] lg:hidden"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -211,6 +294,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              data-tour-id="tour-search"
+              onClick={() => setSearchOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC]"
+              aria-label="Search (Cmd+K)"
+              title="Search (Cmd+K)"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             <div className="hidden md:block">
               <TrustScoreChip score={84} />
             </div>
@@ -242,7 +334,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         {/* Content */}
         <main
           role="main"
-          className="flex-1 overflow-y-auto pb-16 scrollbar-premium md:pb-0 relative"
+          data-tour-id="welcome"
+          className="flex-1 overflow-y-auto pb-20 scrollbar-premium lg:pb-0 relative"
           style={{ backgroundColor: "#F3F7FC" }}
         >
           {/* Subtle ambient depth — very faint, non-animated for performance */}
@@ -253,10 +346,28 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             }}
             aria-hidden="true"
           />
-          <div className="mx-auto w-full max-w-[1280px] px-4 py-6 md:px-8">
-            {children}
+          <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
+            {!tour.hasCompletedTour() && !bannerDismissed && (
+              <RestartTourBanner
+                onRestart={handleRestartTour}
+                onDismiss={handleDismissBanner}
+              />
+            )}
+            <div className={!tour.hasCompletedTour() && !bannerDismissed ? "mt-4" : ""}>
+              {children}
+            </div>
           </div>
         </main>
+
+        {tour.isActive && tour.step && (
+          <TourOverlay
+            step={tour.step}
+            currentStep={tour.currentStep}
+            totalSteps={tour.totalSteps}
+            onNext={tour.next}
+            onSkip={tour.skip}
+          />
+        )}
       </div>
 
       {/* E43: Notification Drawer */}
@@ -272,13 +383,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     Mark All Read
                   </button>
                 )}
-                <button onClick={() => setNotifOpen(false)} className="rounded p-1 hover:bg-white/10">
+                <button
+                  onClick={() => setNotifOpen(false)}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-white/10"
+                  aria-label="Close notifications"
+                >
                   <X className="h-5 w-5 text-white/40" />
                 </button>
               </div>
             </div>
             <div className="overflow-y-auto scrollbar-premium" style={{ height: "calc(100% - 65px)" }}>
-              {notifications.map(n => (
+              {notifications.length === 0 ? (
+                <div className="px-5 py-12 text-center text-white/50 text-sm">No new notifications.</div>
+              ) : (
+              notifications.map((n) => (
                 <div
                   key={n.id}
                   className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
@@ -293,16 +411,19 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   </div>
                   {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2563EB]" />}
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </div>
         </>
       )}
 
-      {/* Mobile bottom navigation */}
+      <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+
+      {/* Mobile bottom navigation — 44px tap targets */}
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-around border-t border-white/10 bg-[#060A12] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 flex h-16 min-h-[56px] items-center justify-around border-t border-white/10 bg-[#060A12] lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {mobileNavItems.map((item) => {
@@ -310,13 +431,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           return (
             <Link key={item.path} href={item.path}>
               <a
-                className={`flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-lg text-[10px] font-medium transition-colors ${
+                className={`flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-2 text-[10px] font-medium transition-colors ${
                   isActive ? "text-[#22D4F5]" : "text-white/40"
                 }`}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={item.label}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-5 w-5 shrink-0" />
                 <span>{item.label}</span>
               </a>
             </Link>

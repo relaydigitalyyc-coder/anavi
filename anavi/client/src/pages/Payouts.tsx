@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
 import { FadeInView } from "@/components/PageTransition";
 import { SmoothCounter } from "@/components/PremiumAnimations";
@@ -17,8 +19,11 @@ import {
   ChevronDown,
   ChevronRight,
   Link2,
+  Download,
+  FileText,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 const NAVY = "#0A1628";
 const GOLD = "#C4972A";
@@ -81,6 +86,125 @@ function getTypeBadgeStyle(type: string): React.CSSProperties {
     default:
       return {};
   }
+}
+
+function PayoutStatementSection() {
+  const [periodStart, setPeriodStart] = useState(() =>
+    format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd")
+  );
+  const [periodEnd, setPeriodEnd] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [showModal, setShowModal] = useState(false);
+
+  const { data: statement, isLoading } = trpc.payout.getStatement.useQuery(
+    {
+      periodStart: `${periodStart}T00:00:00.000Z`,
+      periodEnd: `${periodEnd}T23:59:59.999Z`,
+    },
+    { enabled: showModal && !!periodStart && !!periodEnd }
+  );
+
+  const downloadCSV = () => {
+    if (!statement) return;
+    const header = "Deal ID,Amount,Currency,Type,Status,Date\n";
+    const rows = statement.items.map(
+      (p: any) =>
+        `${p.dealId ?? ""},${p.amount ?? 0},${p.currency ?? "USD"},${p.payoutType ?? ""},${p.status ?? ""},"${new Date(p.createdAt).toLocaleDateString()}"`
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ANAVI-Payout-Statement-${periodStart}-${periodEnd}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Statement downloaded");
+  };
+
+  return (
+    <div className="card-elevated p-6">
+      <h3 className="data-label mb-2" style={{ color: NAVY }}>
+        Payout Statement
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Official ANAVI payout statement. Select a period and view or download.
+      </p>
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase text-muted-foreground">Start</label>
+          <Input
+            type="date"
+            value={periodStart}
+            onChange={(e) => setPeriodStart(e.target.value)}
+            className="w-[160px]"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase text-muted-foreground">End</label>
+          <Input
+            type="date"
+            value={periodEnd}
+            onChange={(e) => setPeriodEnd(e.target.value)}
+            className="w-[160px]"
+          />
+        </div>
+        <Button
+          className="btn-gold gap-2"
+          onClick={() => setShowModal(true)}
+        >
+          <FileText className="w-4 h-4" />
+          View Statement
+        </Button>
+      </div>
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
+          <div className="relative z-10 bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b" style={{ borderColor: BORDER }}>
+              <h4 className="text-lg font-semibold" style={{ color: NAVY }}>
+                Official ANAVI Payout Statement
+              </h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                {periodStart} — {periodEnd} · Generated {format(new Date(), "PP")}
+              </p>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[50vh]">
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Loading…</p>
+              ) : !statement || statement.items.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No payouts in this period. Select a different range.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {statement.items.map((p: any, i: number) => (
+                    <div key={i} className="flex justify-between py-2 border-b" style={{ borderColor: BORDER }}>
+                      <span className="text-sm">Deal #{p.dealId}</span>
+                      <span className="font-data-hud font-semibold">
+                        {fmtCurrency(Number(p.amount ?? 0))}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between pt-3 font-bold text-base" style={{ color: NAVY }}>
+                    <span>Total</span>
+                    <span>{fmtCurrency(statement.total ?? 0)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-6 border-t flex justify-between" style={{ borderColor: BORDER }}>
+              <Button variant="outline" onClick={() => setShowModal(false)}>
+                Close
+              </Button>
+              <Button className="btn-gold gap-2" onClick={downloadCSV} disabled={!statement || statement.items.length === 0}>
+                <Download className="w-4 h-4" />
+                Download CSV
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function getStatusPillClasses(status: string) {
@@ -261,6 +385,9 @@ export default function Payouts() {
           </div>
         </div>
       </div>
+
+      {/* F7: Payout Statement */}
+      <PayoutStatementSection />
 
       {/* ── Economics Overview ──────────────────────────────────────── */}
       <div className="card-elevated p-6 space-y-5">
