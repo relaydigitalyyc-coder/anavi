@@ -82,6 +82,7 @@ function VerificationDocumentsSection() {
   const confirmUpload = trpc.verification.confirmUpload.useMutation({
     onSuccess: () => {
       utils.user.getVerificationDocuments.invalidate();
+      utils.user.getTrustScore.invalidate();
       toast.success("Document submitted for review");
     },
     onError: (e) => toast.error(e.message),
@@ -486,7 +487,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-[#0A1628]/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative z-10 mx-4 w-full max-w-lg rounded-2xl bg-white shadow-2xl animate-fade-in overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: C.navy }}>
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-900">
           <h3 className="text-white font-bold text-lg">Upgrade to Tier 2</h3>
           <button onClick={onClose} className="text-white/60 hover:text-white transition-colors cursor-pointer">
             <X className="w-5 h-5" />
@@ -497,8 +498,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
           {[0, 1, 2, 3].map((s) => (
             <div
               key={s}
-              className="h-1 flex-1 rounded-full transition-colors"
-              style={{ backgroundColor: step >= s ? C.blue : C.border }}
+              className={`h-1 flex-1 rounded-full transition-colors ${step >= s ? "bg-blue-600" : "bg-slate-200"}`}
             />
           ))}
         </div>
@@ -506,7 +506,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         <div className="p-6">
           {step === 0 && (
             <div className="space-y-4">
-              <h4 className="font-bold text-lg" style={{ color: C.navy }}>
+              <h4 className="font-bold text-lg text-slate-900">
                 What Tier 2 Unlocks
               </h4>
               <ul className="space-y-3">
@@ -534,7 +534,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
 
           {step === 1 && (
             <div className="space-y-4">
-              <h4 className="font-bold text-lg" style={{ color: C.navy }}>
+              <h4 className="font-bold text-lg text-slate-900">
                 Document Upload
               </h4>
               <DropZone label="Business Registration" file={bizDoc} onFile={setBizDoc} />
@@ -552,7 +552,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
 
           {step === 2 && (
             <div className="space-y-4">
-              <h4 className="font-bold text-lg" style={{ color: C.navy }}>
+              <h4 className="font-bold text-lg text-slate-900">
                 AML Questionnaire
               </h4>
               {AML_QUESTIONS.map((q, i) => (
@@ -608,7 +608,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
                   }}
                 />
               </div>
-              <h4 className="font-bold text-lg" style={{ color: C.navy }}>
+              <h4 className="font-bold text-lg text-slate-900">
                 Under Review
               </h4>
               <p className="text-sm" style={{ color: C.steel }}>
@@ -674,11 +674,13 @@ export default function Verification() {
   const { user } = useAuth();
   const { data: docs } = trpc.user.getVerificationDocuments.useQuery();
   const { data: reviews } = trpc.user.getPeerReviews.useQuery();
+  const { data: trustData } = trpc.user.getTrustScore.useQuery();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
 
-  const tier = (user as any)?.verificationTier ?? 1;
-  const trustScore = (user as any)?.trustScore ?? 84;
+  const tierRaw = (user as any)?.verificationTier ?? "none";
+  const tier = tierRaw === "institutional" ? 3 : tierRaw === "enhanced" ? 2 : tierRaw === "basic" ? 1 : 1;
+  const trustScore = (trustData?.total ?? Number((user as any)?.trustScore ?? 0)) || 0;
 
   const overallColor = scoreColor(trustScore);
 
@@ -687,14 +689,14 @@ export default function Verification() {
   useEffect(() => { document.title = "Verification | ANAVI"; }, []);
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in" style={{ backgroundColor: C.surface, minHeight: "100vh" }}>
+    <div className="p-8 space-y-8 animate-fade-in bg-slate-50 min-h-screen">
       {upgradeOpen && <UpgradeModal onClose={() => setUpgradeOpen(false)} />}
 
       {/* ── Page Header ── */}
       <FadeInView>
       <div className="flex items-center gap-4">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${C.navy}10` }}>
-          <ShieldCheck className="w-6 h-6" style={{ color: C.navy }} />
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-slate-900/10">
+          <ShieldCheck className="w-6 h-6 text-slate-900" />
         </div>
         <div>
           <div className="flex items-center gap-3">
@@ -708,7 +710,7 @@ export default function Verification() {
               Tier {tier}
             </Badge>
           </div>
-          <p className="text-sm mt-1" style={{ color: `${C.navy}80` }}>
+          <p className="text-sm mt-1 text-slate-900/80">
             Your trust profile across all verification dimensions
           </p>
         </div>
@@ -724,25 +726,39 @@ export default function Verification() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
           {/* Left — big number */}
           <div className="flex flex-col items-center lg:items-start">
-            <span className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: `${C.navy}60` }}>
+            <span className="text-xs font-semibold uppercase tracking-widest mb-2 text-slate-900/60">
               Trust Score
             </span>
             <span className="font-data-hud text-4xl font-bold" style={{ color: overallColor }}>
               <SmoothCounter value={trustScore} />
             </span>
-            <span className="text-sm mt-2" style={{ color: `${C.navy}60` }}>
+            <span className="text-sm mt-2 text-slate-900/60">
               out of 100
             </span>
           </div>
 
-          {/* Center — radar */}
+          {/* Center — radar (live component scores when available) */}
           <SmoothReveal className="flex justify-center">
-            <RadarChart scores={DIMENSIONS.map((d) => d.score)} size={240} />
+            <RadarChart
+              scores={
+                trustData?.components
+                  ? [
+                      trustData.components.verification * (100 / 30),
+                      trustData.components.deals * (100 / 25),
+                      trustData.components.peerReviews * (100 / 20),
+                      trustData.components.compliance * (100 / 15),
+                      trustData.components.tenure * (100 / 10),
+                      trustData.components.verification * (100 / 30),
+                    ]
+                  : DIMENSIONS.map((d) => d.score)
+              }
+              size={240}
+            />
           </SmoothReveal>
 
           {/* Right — mini line chart */}
           <div className="flex flex-col items-center lg:items-end gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: `${C.navy}60` }}>
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-900/60">
               6-Month Trend
             </span>
             <MiniLineChart data={SCORE_HISTORY} width={200} height={80} />
@@ -760,11 +776,22 @@ export default function Verification() {
         <TrustScoreHistorySection />
       </div>
 
-      {/* Component Score Cards */}
+      {/* Component Score Cards (live from getTrustScore when available) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {DIMENSIONS.map((dim, dimIndex) => {
+        {(trustData?.components
+          ? [
+              { key: "verification", label: "Verification Tier", score: trustData.components.verification * (100 / 30), icon: ShieldCheck, status: "Auto" as const },
+              { key: "deals", label: "Deal Activity", score: trustData.components.deals * (100 / 25), icon: Award, status: "Auto" as const },
+              { key: "peers", label: "Peer Reviews", score: trustData.components.peerReviews * (100 / 20), icon: Users, status: "Auto" as const },
+              { key: "compliance", label: "Compliance", score: trustData.components.compliance * (100 / 15), icon: FileCheck, status: "Auto" as const },
+              { key: "tenure", label: "Platform Tenure", score: trustData.components.tenure * (100 / 10), icon: Clock, status: "Auto" as const },
+              { key: "identity", label: "Identity Verification", score: trustData.components.verification * (100 / 30), icon: ShieldCheck, status: "Verified" as const },
+            ]
+          : DIMENSIONS
+        ).map((dim, dimIndex) => {
           const Icon = dim.icon;
-          const borderColor = dimBorderColor(dim.score);
+          const scoreVal = Math.min(100, Math.round(dim.score));
+          const borderColor = dimBorderColor(scoreVal);
           return (
             <div
               key={dim.key}
@@ -776,20 +803,27 @@ export default function Verification() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Icon className="w-4 h-4" style={{ color: borderColor }} />
-                      <span className="text-sm font-semibold" style={{ color: C.navy }}>
+                      <span className="text-sm font-semibold text-slate-900">
                         {dim.label}
                       </span>
                     </div>
                     {statusPill(dim.status)}
                   </div>
                   <div className="flex items-end justify-between mb-3">
-                    <span className="font-mono text-2xl font-bold" style={{ color: C.navy }}>
-                      {dim.score}
+                    <span className="font-mono text-2xl font-bold text-slate-900">
+                      <motion.span
+                        key={scoreVal}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {scoreVal}
+                      </motion.span>
                       <span className="text-sm font-normal" style={{ color: `${C.navy}50` }}>
                         /100
                       </span>
                     </span>
-                    {dim.status !== "Auto" && dim.score < 100 && (
+                    {dim.status !== "Auto" && scoreVal < 100 && (
                       <button
                         className="text-xs font-semibold flex items-center gap-1 cursor-pointer hover:underline"
                         style={{ color: C.blue }}
@@ -799,11 +833,13 @@ export default function Verification() {
                     )}
                   </div>
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#0A1628]/6">
-                    <div
-                      className="h-full rounded-full transition-all duration-1000"
+                    <motion.div
+                      className="h-full rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${scoreVal}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
                       style={{
-                        width: `${dim.score}%`,
-                        background: dim.score > 80 ? "#059669" : dim.score > 60 ? "#C4972A" : "#2563EB",
+                        background: scoreVal > 80 ? "#059669" : scoreVal > 60 ? "#C4972A" : "#2563EB",
                       }}
                     />
                   </div>
@@ -823,10 +859,10 @@ export default function Verification() {
         <div className="flex items-center gap-6">
           <TierShieldBadge tier={tier} size={72} />
           <div className="flex-1">
-            <h3 className="text-lg font-bold" style={{ color: C.navy }}>
+            <h3 className="text-lg font-bold text-slate-900">
               Current Tier: Tier {tier}
             </h3>
-            <p className="text-sm mt-1" style={{ color: `${C.navy}70` }}>
+            <p className="text-sm mt-1 text-slate-900/70">
               {tier === 1 && "Basic access — deals up to $1M, standard matching, basic counterparty visibility."}
               {tier === 2 && "Enhanced access — deals up to $50M, priority matching, enhanced counterparty data."}
               {tier === 3 && "Full institutional access — unlimited deal size, premium matching, all counterparties."}
@@ -834,8 +870,7 @@ export default function Verification() {
           </div>
           {tier < 2 && (
             <Button
-              className="cursor-pointer font-semibold"
-              style={{ backgroundColor: C.gold, color: "white", height: 48, paddingInline: 24 }}
+              className="cursor-pointer font-semibold bg-[#C4972A] text-white h-12 px-6 hover:bg-[#B3882A]"
               onClick={() => setUpgradeOpen(true)}
             >
               Upgrade to Tier 2
@@ -850,8 +885,8 @@ export default function Verification() {
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ backgroundColor: `${C.navy}06` }}>
-                  <th className="text-left px-6 py-3 font-semibold" style={{ color: C.navy }}>
+                <tr className="bg-slate-900/[0.04]">
+                  <th className="text-left px-6 py-3 font-semibold text-slate-900">
                     Feature
                   </th>
                   {[1, 2, 3].map((t) => (
@@ -865,7 +900,7 @@ export default function Verification() {
                     >
                       Tier {t}
                       {tier === t && (
-                        <span className="ml-1.5 text-[10px] font-bold uppercase" style={{ color: C.blue }}>
+                        <span className="ml-1.5 text-[10px] font-bold uppercase text-blue-600">
                           Current
                         </span>
                       )}
@@ -917,7 +952,7 @@ export default function Verification() {
           style={{ border: `1px solid ${C.border}` }}
         >
           {/* Navy header */}
-          <div className="px-6 py-4 flex items-center justify-between" style={{ backgroundColor: C.navy }}>
+          <div className="px-6 py-4 flex items-center justify-between bg-slate-900">
             <span className="text-white font-bold text-sm tracking-widest uppercase">ANAVI</span>
             <span className="text-white/50 text-xs">Compliance Passport</span>
           </div>
@@ -928,7 +963,7 @@ export default function Verification() {
                 <div className="text-xs uppercase tracking-wide mb-1" style={{ color: `${C.navy}60` }}>
                   Participant
                 </div>
-                <div className="font-bold text-lg" style={{ color: C.navy }}>
+                <div className="font-bold text-lg text-slate-900">
                   {user?.name ?? "—"}
                 </div>
                 <div className="text-xs mt-0.5" style={{ color: `${C.navy}50` }}>

@@ -17,82 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-
-// Demo member data
-const members = [
-  {
-    id: 1,
-    name: "Marcus Chen",
-    email: "marcus.chen@example.com",
-    status: "active",
-    tier: "partner",
-    allocatedCapital: 300000,
-    deployedCapital: 285000,
-    totalReturns: 68400,
-    returnPercent: 24.0,
-    joinDate: "2025-11-15",
-    industry: "Distribution",
-    expertise: ["Beverage Distribution", "Logistics", "Supply Chain"],
-    connections: ["Pepsi Cola", "Coca-Cola Bottlers", "Regional Distributors"],
-    contributionScore: 92,
-    referrals: 8,
-    verified: true,
-  },
-  {
-    id: 2,
-    name: "Sarah Williams",
-    email: "sarah.w@example.com",
-    status: "active",
-    tier: "premium",
-    allocatedCapital: 300000,
-    deployedCapital: 250000,
-    totalReturns: 52500,
-    returnPercent: 21.0,
-    joinDate: "2025-12-01",
-    industry: "Real Estate",
-    expertise: ["Commercial RE", "Development", "Property Management"],
-    connections: ["CBRE", "JLL", "Local Developers"],
-    contributionScore: 85,
-    referrals: 5,
-    verified: true,
-  },
-  {
-    id: 3,
-    name: "David Park",
-    email: "david.park@example.com",
-    status: "pending",
-    tier: "basic",
-    allocatedCapital: 0,
-    deployedCapital: 0,
-    totalReturns: 0,
-    returnPercent: 0,
-    joinDate: "2026-01-10",
-    industry: "Technology",
-    expertise: ["SaaS", "AI/ML", "Enterprise Software"],
-    connections: ["Tech Startups", "VCs"],
-    contributionScore: 0,
-    referrals: 0,
-    verified: false,
-  },
-  {
-    id: 4,
-    name: "Elena Rodriguez",
-    email: "elena.r@example.com",
-    status: "active",
-    tier: "partner",
-    allocatedCapital: 300000,
-    deployedCapital: 300000,
-    totalReturns: 78000,
-    returnPercent: 26.0,
-    joinDate: "2025-10-20",
-    industry: "Finance",
-    expertise: ["Investment Banking", "M&A", "Private Equity"],
-    connections: ["Goldman Sachs Alumni", "Family Offices"],
-    contributionScore: 98,
-    referrals: 12,
-    verified: true,
-  },
-];
+import { trpc } from "@/lib/trpc";
 
 const onboardingStats = {
   totalMembers: 1247,
@@ -105,7 +30,26 @@ const onboardingStats = {
   platformFees: 7482000,
 };
 
-const MemberCard = ({ member }: { member: typeof members[0] }) => {
+type Member = {
+  id: number;
+  name: string;
+  email: string;
+  status: string;
+  tier: string;
+  allocatedCapital: number;
+  deployedCapital: number;
+  totalReturns: number;
+  returnPercent: number;
+  joinDate: string;
+  industry: string;
+  expertise: string[];
+  connections: string[];
+  contributionScore: number;
+  referrals: number;
+  verified: boolean;
+};
+
+const MemberCard = ({ member }: { member: Member }) => {
   const getTierBadge = () => {
     switch (member.tier) {
       case "partner":
@@ -172,9 +116,9 @@ const MemberCard = ({ member }: { member: typeof members[0] }) => {
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Capital Deployed</span>
-                  <span>{((member.deployedCapital / member.allocatedCapital) * 100).toFixed(0)}%</span>
+                  <span>{member.allocatedCapital ? ((member.deployedCapital / member.allocatedCapital) * 100).toFixed(0) : 0}%</span>
                 </div>
-                <Progress value={(member.deployedCapital / member.allocatedCapital) * 100} className="h-2" />
+                <Progress value={member.allocatedCapital ? (member.deployedCapital / member.allocatedCapital) * 100 : 0} className="h-2" />
               </div>
 
               <div className="flex flex-wrap gap-1 mb-4">
@@ -225,6 +169,7 @@ const MemberCard = ({ member }: { member: typeof members[0] }) => {
 };
 
 export default function MemberOnboarding() {
+  const { data: members = [] } = trpc.members.list.useQuery();
   const [showOnboardDialog, setShowOnboardDialog] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
 

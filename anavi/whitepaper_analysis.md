@@ -1,5 +1,7 @@
 # ANAVI Whitepaper Analysis - Key Requirements for Platform Build
 
+> **Agent-facing mapping:** See `docs/white-paper-alignment.md` for concept → code location mapping.
+
 ## Product Identity
 **ANAVI: The Private Market Operating System**
 - Tagline: "If Bloomberg runs public markets, ANAVI will run private ones."

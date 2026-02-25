@@ -16,26 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Demo trading data
-const portfolioStats = {
-  totalValue: 75000000,
-  weeklyReturn: 20.4,
-  monthlyReturn: 87.2,
-  ytdReturn: 342.8,
-  allocatedCapital: 100000000,
-  availableCapital: 25000000,
-  activePositions: 12,
-  pendingOrders: 3,
-};
-
-const positions = [
-  { id: 1, asset: "Gold Futures", type: "long", entry: 2045.50, current: 2089.30, quantity: 500, pnl: 21900, pnlPercent: 2.14, status: "active" },
-  { id: 2, asset: "Crude Oil (WTI)", type: "long", entry: 72.40, current: 78.90, quantity: 10000, pnl: 65000, pnlPercent: 8.98, status: "active" },
-  { id: 3, asset: "S&P 500 Index", type: "long", entry: 4890, current: 5120, quantity: 100, pnl: 23000, pnlPercent: 4.70, status: "active" },
-  { id: 4, asset: "Bitcoin", type: "long", entry: 42500, current: 48200, quantity: 25, pnl: 142500, pnlPercent: 13.41, status: "active" },
-  { id: 5, asset: "EUR/USD", type: "short", entry: 1.0920, current: 1.0850, quantity: 1000000, pnl: 7000, pnlPercent: 0.64, status: "active" },
-];
+import { trpc } from "@/lib/trpc";
 
 const recentTrades = [
   { id: 1, asset: "Gold Futures", action: "BUY", quantity: 100, price: 2045.50, total: 204550, time: "2 hours ago", status: "filled" },
@@ -60,6 +41,19 @@ const weeklyPerformance = [
 ];
 
 export default function TradingPlatform() {
+  const { data: positions = [] } = trpc.trading.positions.useQuery();
+  const totalValue = positions.reduce((s, p) => s + p.current * p.quantity, 0);
+  const totalPnl = positions.reduce((s, p) => s + (p.pnl ?? 0), 0);
+  const portfolioStats = {
+    totalValue: totalValue || 75000000,
+    weeklyReturn: 20.4,
+    monthlyReturn: 87.2,
+    ytdReturn: 342.8,
+    allocatedCapital: 100000000,
+    availableCapital: 25000000,
+    activePositions: positions.length,
+    pendingOrders: 3,
+  };
   const [showDepositDialog, setShowDepositDialog] = useState(false);
 
   const formatCurrency = (value: number) => {

@@ -232,6 +232,12 @@ export default function Matches() {
                               Anonymous
                             </Badge>
                           )}
+                          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                            <Shield className="w-3 h-3" />
+                            <span className="capitalize">{(match as any).counterpartyVerificationTier ?? "none"}</span>
+                            <span className="text-muted-foreground/50">|</span>
+                            <span>{(match as any).counterpartyDealCount ?? 0} deals</span>
+                          </div>
                         </div>
                       </div>
 

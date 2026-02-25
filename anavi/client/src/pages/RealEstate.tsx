@@ -605,7 +605,7 @@ export default function RealEstate() {
 
         {/* Property Detail Sheet */}
         <Sheet open={!!selectedPropertyId} onOpenChange={(open) => { if (!open) setSelectedPropertyId(null); }}>
-          <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
             <SheetHeader>
               <SheetTitle>{detailProp?.title ?? "Property Details"}</SheetTitle>
               <SheetDescription>

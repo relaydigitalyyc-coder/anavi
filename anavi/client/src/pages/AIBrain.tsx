@@ -27,12 +27,15 @@ import {
   User,
   Loader2,
   ChevronRight,
+  ChevronDown,
   Shield,
   Globe,
   BarChart3,
   Copy,
   Mail,
+  X,
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // AI-generated market insights
 const marketInsights = [
@@ -135,6 +138,12 @@ What would you like to explore?`
 
   const [outreachTarget, setOutreachTarget] = useState('');
   const [outreachResult, setOutreachResult] = useState('');
+  const [quickActionResults, setQuickActionResults] = useState<Array<{
+    id: string;
+    label: string;
+    content: string;
+    open: boolean;
+  }>>([]);
 
   const chatMutation = trpc.ai.chat.useMutation({
     onSuccess: (data) => {
@@ -148,58 +157,40 @@ What would you like to explore?`
     },
   });
 
+  const addQuickActionResult = (label: string, content: string) => {
+    const id = `${label}-${Date.now()}`;
+    setQuickActionResults(prev => [{ id, label, content, open: true }, ...prev].slice(0, 5));
+    setChatHistory(prev => [...prev, { role: 'assistant', content }]);
+  };
+
   const analyzeDealMutation = trpc.ai.analyzeDeal.useMutation({
-    onSuccess: (data) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: data.analysis }]);
-    },
-    onError: (error) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
-    },
+    onSuccess: (data) => addQuickActionResult("Analyze Deal", data.analysis),
+    onError: (error) => addQuickActionResult("Analyze Deal", `Error: ${error.message}`),
   });
 
   const suggestConnectionsMutation = trpc.ai.suggestConnections.useMutation({
-    onSuccess: (data) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: data.suggestions }]);
-    },
-    onError: (error) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
-    },
+    onSuccess: (data) => addQuickActionResult("Suggest Connections", data.suggestions),
+    onError: (error) => addQuickActionResult("Suggest Connections", `Error: ${error.message}`),
   });
 
   const dueDiligenceMutation = trpc.ai.dueDiligence.useMutation({
-    onSuccess: (data) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: data.result }]);
-    },
-    onError: (error) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
-    },
+    onSuccess: (data) => addQuickActionResult("Due Diligence", data.result),
+    onError: (error) => addQuickActionResult("Due Diligence", `Error: ${error.message}`),
   });
 
   const assessRiskMutation = trpc.ai.assessRisk.useMutation({
-    onSuccess: (data) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: typeof data === 'string' ? data : JSON.stringify(data, null, 2) }]);
-    },
-    onError: (error) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
-    },
+    onSuccess: (data) => addQuickActionResult("Risk Assessment", typeof data === 'string' ? data : JSON.stringify(data, null, 2)),
+    onError: (error) => addQuickActionResult("Risk Assessment", `Error: ${error.message}`),
   });
 
   const marketQueryMutation = trpc.ai.marketQuery.useMutation({
-    onSuccess: (data) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
-    },
-    onError: (error) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
-    },
+    onSuccess: (data) => addQuickActionResult("Market Query", data.response),
+    onError: (error) => addQuickActionResult("Market Query", `Error: ${error.message}`),
   });
 
   const sectorIntelligenceMutation = trpc.ai.sectorIntelligence.useMutation({
-    onSuccess: (data) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: typeof data === 'string' ? data : JSON.stringify(data, null, 2) }]);
-    },
-    onError: (error) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
-    },
+    onSuccess: (data) => addQuickActionResult("Sector Intel", typeof data === 'string' ? data : JSON.stringify(data, null, 2)),
+    onError: (error) => addQuickActionResult("Sector Intel", `Error: ${error.message}`),
   });
 
   const generateOutreachMutation = trpc.ai.generateOutreach.useMutation({
@@ -363,6 +354,75 @@ What would you like to explore?`
             </Button>
           ))}
         </motion.div>
+
+        {/* Quick Action Results */}
+        <AnimatePresence>
+          {quickActionResults.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-2"
+            >
+              {quickActionResults.map((result) => (
+                <Collapsible
+                  key={result.id}
+                  open={result.open}
+                  onOpenChange={(open) =>
+                    setQuickActionResults((prev) =>
+                      prev.map((r) => (r.id === result.id ? { ...r, open } : r))
+                    )
+                  }
+                >
+                  <Card className="border-sky-500/20 bg-gradient-to-r from-card to-sky-500/5">
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className="py-3 px-4 cursor-pointer hover:bg-sky-500/5 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-sky-500" />
+                            <span className="text-sm font-medium">{result.label}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-sky-500"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(result.content);
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setQuickActionResults((prev) => prev.filter((r) => r.id !== result.id));
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${result.open ? "rotate-180" : ""}`} />
+                          </div>
+                        </div>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <CardContent className="pt-0 pb-4 px-4">
+                        <div className="text-sm prose prose-sm dark:prose-invert max-w-none max-h-60 overflow-y-auto rounded-lg bg-muted/30 p-3 border border-border/30">
+                          <Streamdown>{result.content}</Streamdown>
+                        </div>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

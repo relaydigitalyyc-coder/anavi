@@ -18,9 +18,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
+import { trpc } from "@/lib/trpc";
 
-// Demo data for transaction matches
-const transactionMatches = [
+const fallbackTransactionMatches = [
   {
     id: 1,
     buyer: {
@@ -194,7 +194,7 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-const MatchCard = ({ match }: { match: typeof transactionMatches[0] }) => {
+const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) => {
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-500";
     if (score >= 75) return "text-yellow-500";
@@ -314,6 +314,32 @@ const MatchCard = ({ match }: { match: typeof transactionMatches[0] }) => {
 export default function TransactionMatching() {
   const [activeTab, setActiveTab] = useState("matches");
   const [showCriteriaDialog, setShowCriteriaDialog] = useState(false);
+
+  const { data: dbMatches } = trpc.transactionMatch.list.useQuery(undefined, { retry: false });
+
+  const displayMatches = (dbMatches && dbMatches.length > 0)
+    ? dbMatches.map((m) => ({
+        id: m.id,
+        buyer: {
+          name: `Buyer #${m.buyerId}`,
+          verified: m.buyerVerified ?? false,
+          proofOfFunds: m.proofOfFundsVerified ?? false,
+          criteria: `Criteria #${m.buyerCriteriaId}`,
+        },
+        seller: {
+          name: `Seller #${m.sellerId}`,
+          verified: m.sellerVerified ?? false,
+          proofOfProduct: m.proofOfProductVerified ?? false,
+          listing: `Listing #${m.sellerListingId}`,
+        },
+        assetClass: m.listingType === "commodity" ? "gold" : "real_estate",
+        matchScore: m.matchScore ? Number(m.matchScore) : 0,
+        proposedValue: m.proposedPrice ? Number(m.proposedPrice) : 0,
+        status: m.status || "pending",
+        matchFactors: (m.matchFactors as Array<{ factor: string; weight: number; score: number }> || []).map(f => ({ factor: f.factor, score: f.score })),
+        createdAt: m.createdAt?.toISOString().slice(0, 10) || "",
+      }))
+    : fallbackTransactionMatches;
 
   return (
       <div className="space-y-6">
@@ -553,7 +579,7 @@ export default function TransactionMatching() {
             {/* Matches Grid */}
             <div className="grid md:grid-cols-2 gap-6">
               <AnimatePresence mode="popLayout">
-                {transactionMatches.map((match) => (
+                {displayMatches.map((match) => (
                   <MatchCard key={match.id} match={match} />
                 ))}
               </AnimatePresence>

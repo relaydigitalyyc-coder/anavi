@@ -3,6 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "../db";
 import { invokeLLM } from "../_core/llm";
+import { generateEmbedding, cosineSimilarity } from "../_core/embeddings";
 
 export const intentRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -54,10 +55,19 @@ export const intentRouter = router({
         console.error('Failed to generate keywords:', e);
       }
 
+      let embedding: number[] | null = null;
+      try {
+        const text = `${input.title} ${input.description || ""} ${input.intentType} ${input.assetType || ""}`.trim();
+        embedding = await generateEmbedding(text);
+      } catch (e) {
+        console.error('Failed to generate embedding:', e);
+      }
+
       const id = await db.createIntent({
         userId: ctx.user.id,
         ...input,
         keywords,
+        embedding,
       });
 
       await db.logAuditEvent({
@@ -80,7 +90,20 @@ export const intentRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
-      await db.updateIntent(id, data);
+      let embedding: number[] | null | undefined;
+      if (data.title !== undefined || data.description !== undefined) {
+        const intents = await db.getIntentsByUser(ctx.user.id);
+        const intent = intents.find((i) => i.id === id);
+        if (intent) {
+          try {
+            const text = `${data.title ?? intent.title} ${data.description ?? intent.description ?? ""} ${intent.intentType} ${intent.assetType ?? ""}`.trim();
+            embedding = await generateEmbedding(text);
+          } catch (e) {
+            console.error('Failed to regenerate embedding:', e);
+          }
+        }
+      }
+      await db.updateIntent(id, { ...data, embedding });
       return { success: true };
     }),
 
@@ -100,9 +123,28 @@ export const intentRouter = router({
       }
 
       const otherIntents = await db.getActiveIntents(ctx.user.id);
+      const SIMILARITY_THRESHOLD = 0.3;
+      const TOP_K = 10;
+
+      let candidates = otherIntents;
+      const myEmbedding = myIntent.embedding;
+      if (myEmbedding && Array.isArray(myEmbedding) && myEmbedding.length > 0) {
+        const scored = otherIntents
+          .map((o) => ({
+            intent: o,
+            sim: cosineSimilarity(myEmbedding, (o.embedding as number[]) || []),
+          }))
+          .filter((s) => s.sim > SIMILARITY_THRESHOLD)
+          .sort((a, b) => b.sim - a.sim)
+          .slice(0, TOP_K);
+        candidates = scored.map((s) => s.intent);
+      } else {
+        candidates = otherIntents.slice(0, TOP_K);
+      }
+
       const matchResults: Array<{ intentId: number; score: number; reason: string }> = [];
 
-      for (const other of otherIntents.slice(0, 10)) {
+      for (const other of candidates) {
         try {
           const response = await invokeLLM({
             messages: [

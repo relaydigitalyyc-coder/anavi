@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import {
   Shield, Lock, Copy, LayoutGrid, List, Plus, Search,
   Filter, Check, Upload, Users, Briefcase, TrendingUp,
   DollarSign, Globe, ChevronDown, X, Loader2, UserPlus, ShieldCheck,
-  Mail, Phone, Linkedin, Save,
+  Mail, Phone, Linkedin, Save, QrCode, ExternalLink,
 } from "lucide-react";
+import QRCode from "qrcode";
 import { toast } from "sonner";
 import { FadeInView, ScaleHover, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { GlowingBorder } from "@/components/PremiumAnimations";
@@ -378,7 +379,7 @@ export default function Relationships() {
 
       {/* Detail Sheet */}
       <Sheet open={selectedRelId !== null} onOpenChange={(open) => { if (!open) setSelectedRelId(null); }}>
-        <SheetContent className="w-[480px] sm:max-w-[480px] overflow-y-auto">
+        <SheetContent className="w-full sm:w-[480px] sm:max-w-[480px] overflow-y-auto">
           {selectedRelId !== null && (
             <RelationshipDetailPanel
               relationshipId={selectedRelId}
@@ -581,6 +582,18 @@ function FilterDropdown({
   );
 }
 
+function QRCanvas({ url }: { url: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (canvasRef.current && url) {
+      QRCode.toCanvas(canvasRef.current, url, { width: 200 }, (err) => {
+        if (err) console.error("QR generation error:", err);
+      });
+    }
+  }, [url]);
+  return <canvas ref={canvasRef} />;
+}
+
 function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClose: () => void }) {
   const { data: proof, isLoading } = trpc.relationship.getProof.useQuery(
     { id: relationshipId },
@@ -593,6 +606,11 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
     navigator.clipboard.writeText(json);
     toast.success("Proof copied to clipboard");
   };
+
+  const timestampHash = proof?.timestampHash;
+  const establishedAt = proof?.establishedAt;
+  const truncated = timestampHash ? `${timestampHash.slice(0, 8)}...${timestampHash.slice(-8)}` : "—";
+  const verifyUrl = timestampHash ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/verify/relationship/${timestampHash}` : "";
 
   return (
     <div
@@ -610,24 +628,58 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
     >
       <div className="card-elevated" style={{ width: 420, maxHeight: "80vh", overflow: "auto" }}>
         <div style={{ padding: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: COLORS.navy }}>Custody Proof</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: COLORS.navy }}>Relationship Proof</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}>
             <X size={20} />
           </button>
         </div>
         <div style={{ padding: "0 24px 24px" }}>
           {isLoading ? (
-            <p style={{ color: "#6B7A90", fontSize: 14 }}>Loading…</p>
+            <p style={{ color: "#6B7A90", fontSize: 14 }}>Loading proof…</p>
           ) : proof ? (
-            <>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <p style={{ fontSize: 11, color: "#6B7A90", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>SHA-256 Hash</p>
+                <code style={{ fontSize: 13, color: COLORS.gold, wordBreak: "break-all" }}>{truncated}</code>
+              </div>
+              <div>
+                <p style={{ fontSize: 11, color: "#6B7A90", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Established</p>
+                <p style={{ fontSize: 13, color: COLORS.navy }}>
+                  {establishedAt instanceof Date ? establishedAt.toLocaleString() : establishedAt ? new Date(establishedAt).toLocaleString() : "—"}
+                </p>
+              </div>
+              {verifyUrl && (
+                <>
+                  <div style={{ display: "flex", justifyContent: "center" }}>
+                    <QRCanvas url={verifyUrl} />
+                  </div>
+                  <a
+                    href={verifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      color: COLORS.blue,
+                      fontSize: 12,
+                      textDecoration: "none",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <ExternalLink size={12} />
+                    Open verification URL
+                  </a>
+                </>
+              )}
               <pre
                 style={{
                   background: "#F8FAFC",
                   padding: 16,
                   borderRadius: 8,
-                  fontSize: 12,
+                  fontSize: 11,
                   overflow: "auto",
-                  maxHeight: 280,
+                  maxHeight: 140,
                   fontFamily: "monospace",
                   color: COLORS.navy,
                 }}
@@ -637,7 +689,6 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
               <button
                 onClick={copyProof}
                 style={{
-                  marginTop: 12,
                   width: "100%",
                   height: 40,
                   borderRadius: 8,
@@ -650,7 +701,7 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
               >
                 Copy to Clipboard
               </button>
-            </>
+            </div>
           ) : (
             <p style={{ color: "#6B7A90", fontSize: 14 }}>Proof not found</p>
           )}

@@ -2,7 +2,7 @@
 
 ## Agent Guidance
 
-AI agents: Read `AGENTS.md` (repo root) and `.cursor/rules/` for architecture, conventions, and the end-to-end feature checklist.
+AI agents: Read `AGENTS.md` (repo root) and `.cursor/rules/` for architecture, conventions, and the end-to-end feature checklist. For white paper terminology (Relationship Custody, Trust Score, Attribution, etc.) see `docs/white-paper-alignment.md`.
 
 ## Running Tests
 

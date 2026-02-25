@@ -12,6 +12,7 @@ import {
   Zap, Target, CheckCircle2, AlertCircle, ArrowUpRight
 } from 'lucide-react';
 import { KnowledgeGraph, GraphNode, GraphLink, NodeType } from '@/components/KnowledgeGraph';
+import { trpc } from '@/lib/trpc';
 
 // Sample data extracted from Fireflies meetings
 const sampleNodes: GraphNode[] = [
@@ -300,8 +301,33 @@ const meetingInsights = [
 
 export default function KnowledgeGraphPage() {
   const [activeTab, setActiveTab] = useState('graph');
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<typeof meetingInsights[0] | null>(null);
+
+  const { data: graphData, isLoading, refetch } = trpc.knowledgeGraph.graphData.useQuery(undefined, { retry: false });
+
+  const backendNodes: GraphNode[] = (graphData?.nodes ?? []).map((n) => ({
+    id: n.id,
+    label: n.label,
+    type: n.type as NodeType,
+    data: n.data as Record<string, unknown> | undefined,
+  }));
+  const backendLinks: GraphLink[] = (graphData?.links ?? []).map((l) => ({
+    source: l.source,
+    target: l.target,
+    type: l.type,
+    label: l.label ?? undefined,
+    strength: l.strength ?? undefined,
+  }));
+
+  const existingIds = new Set(backendNodes.map((n) => n.id));
+  const mergedNodes = [
+    ...backendNodes,
+    ...sampleNodes.filter((n) => !existingIds.has(n.id)),
+  ];
+  const mergedLinks = [
+    ...backendLinks,
+    ...sampleLinks,
+  ];
 
   const handleNodeClick = (node: GraphNode) => {
     console.log('Node clicked:', node);
@@ -312,19 +338,18 @@ export default function KnowledgeGraphPage() {
   };
 
   const refreshData = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    refetch();
   };
 
   const stats = {
-    totalNodes: sampleNodes.length,
-    totalConnections: sampleLinks.length,
-    people: sampleNodes.filter(n => n.type === 'person').length,
-    companies: sampleNodes.filter(n => n.type === 'company').length,
-    deals: sampleNodes.filter(n => n.type === 'deal').length,
-    meetings: sampleNodes.filter(n => n.type === 'meeting').length,
-    topics: sampleNodes.filter(n => n.type === 'topic').length,
-    actions: sampleNodes.filter(n => n.type === 'action').length,
+    totalNodes: mergedNodes.length,
+    totalConnections: mergedLinks.length,
+    people: mergedNodes.filter(n => n.type === 'person').length,
+    companies: mergedNodes.filter(n => n.type === 'company').length,
+    deals: mergedNodes.filter(n => n.type === 'deal').length,
+    meetings: mergedNodes.filter(n => n.type === 'meeting').length,
+    topics: mergedNodes.filter(n => n.type === 'topic').length,
+    actions: mergedNodes.filter(n => n.type === 'action').length,
   };
 
   return (
@@ -417,8 +442,8 @@ export default function KnowledgeGraphPage() {
             <Card className="border-0 shadow-lg overflow-hidden">
               <div className="h-[600px]">
                 <KnowledgeGraph
-                  nodes={sampleNodes}
-                  links={sampleLinks}
+                  nodes={mergedNodes}
+                  links={mergedLinks}
                   onNodeClick={handleNodeClick}
                   onNodeDoubleClick={handleNodeDoubleClick}
                   className="w-full h-full"
@@ -651,8 +676,8 @@ export default function KnowledgeGraphPage() {
 
           <TabsContent value="connections" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sampleNodes.filter(n => n.type === 'person').map((person, i) => {
-                const connections = sampleLinks.filter(l => {
+              {mergedNodes.filter(n => n.type === 'person').map((person, i) => {
+                const connections = mergedLinks.filter(l => {
                   const sourceId = typeof l.source === 'string' ? l.source : l.source.id;
                   const targetId = typeof l.target === 'string' ? l.target : l.target.id;
                   return sourceId === person.id || targetId === person.id;

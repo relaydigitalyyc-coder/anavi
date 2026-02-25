@@ -4,7 +4,7 @@ import {
   Gem, Droplets, Factory, Leaf, Search, Filter, Plus, 
   CheckCircle, AlertTriangle, Shield, Globe, Ship,
   FileText, TrendingUp, Wallet, Building2, MapPin,
-  ChevronRight, Eye, MessageSquare, Star, Verified
+  ChevronRight, Eye, MessageSquare, Star, Verified, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
-// Demo data for commodity listings
-const commodityListings = [
+const fallbackListings = [
   {
     id: 1,
     title: "99.99% Pure Gold Bullion - LBMA Certified",
@@ -123,7 +124,26 @@ const commodityCategories = [
   { id: "agricultural", label: "Agricultural", icon: Leaf, count: 21 },
 ];
 
-const CommodityCard = ({ listing }: { listing: typeof commodityListings[0] }) => {
+interface CommodityDisplay {
+  id: number;
+  title: string;
+  commodityType: string;
+  quantity: number;
+  unit: string;
+  pricePerUnit: number;
+  originCountry: string;
+  deliveryLocation: string;
+  isVerified: boolean;
+  skrVerified?: boolean;
+  sanctionsCleared: boolean;
+  discountPercentage?: number;
+  vesselType?: string;
+  seller: { name: string; verified: boolean; rating: number };
+  status: string;
+  [key: string]: unknown;
+}
+
+const CommodityCard = ({ listing }: { listing: CommodityDisplay }) => {
   const getCommodityIcon = () => {
     switch (listing.commodityType) {
       case "gold": return <Gem className="h-5 w-5 text-yellow-500" />;
@@ -267,7 +287,52 @@ export default function Commodities() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  const filteredListings = commodityListings.filter(listing => {
+  const [createForm, setCreateForm] = useState({
+    commodityType: "" as string,
+    title: "",
+    quantity: "",
+    unit: "" as string,
+    pricePerUnit: "",
+    originCountry: "",
+    currentLocation: "",
+    deliveryLocation: "",
+    description: "",
+  });
+
+  const utils = trpc.useUtils();
+  const { data: dbListings } = trpc.commodity.list.useQuery(undefined, {
+    retry: false,
+  });
+  const createMutation = trpc.commodity.create.useMutation({
+    onSuccess: () => {
+      utils.commodity.list.invalidate();
+      setShowCreateDialog(false);
+      toast.success("Commodity listing created");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const displayListings: CommodityDisplay[] = (dbListings && dbListings.length > 0)
+    ? dbListings.map((l) => ({
+        id: l.id,
+        title: l.title || "Untitled",
+        commodityType: l.commodityType as string,
+        quantity: Number(l.quantity),
+        unit: l.unit as string,
+        pricePerUnit: l.pricePerUnit ? Number(l.pricePerUnit) : 0,
+        discountPercentage: l.discountPercentage ? Number(l.discountPercentage) : undefined,
+        originCountry: l.originCountry || "",
+        deliveryLocation: l.deliveryLocation || "",
+        skrVerified: l.skrVerified ?? false,
+        sanctionsCleared: l.sanctionsCleared ?? false,
+        isVerified: l.isVerified ?? false,
+        seller: { name: "Seller", verified: l.isVerified ?? false, rating: 4.5 },
+        status: l.status || "active",
+        vesselType: l.vesselType ?? undefined,
+      }))
+    : fallbackListings as CommodityDisplay[];
+
+  const filteredListings = displayListings.filter(listing => {
     if (selectedCategory !== "all") {
       if (selectedCategory === "gold" && listing.commodityType !== "gold") return false;
       if (selectedCategory === "oil_gas" && !["crude_oil", "lng", "natural_gas"].includes(listing.commodityType)) return false;
@@ -308,7 +373,7 @@ export default function Commodities() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Commodity Type</Label>
-                    <Select>
+                    <Select value={createForm.commodityType} onValueChange={(v) => setCreateForm(p => ({ ...p, commodityType: v }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -339,17 +404,17 @@ export default function Commodities() {
 
                 <div className="space-y-2">
                   <Label>Title</Label>
-                  <Input placeholder="e.g., 99.99% Pure Gold Bullion - LBMA Certified" />
+                  <Input placeholder="e.g., 99.99% Pure Gold Bullion - LBMA Certified" value={createForm.title} onChange={(e) => setCreateForm(p => ({ ...p, title: e.target.value }))} />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Quantity</Label>
-                    <Input type="number" placeholder="500" />
+                    <Input type="number" placeholder="500" value={createForm.quantity} onChange={(e) => setCreateForm(p => ({ ...p, quantity: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label>Unit</Label>
-                    <Select>
+                    <Select value={createForm.unit} onValueChange={(v) => setCreateForm(p => ({ ...p, unit: v }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select unit" />
                       </SelectTrigger>
@@ -370,7 +435,7 @@ export default function Commodities() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Price per Unit (USD)</Label>
-                    <Input type="number" placeholder="65000" />
+                    <Input type="number" placeholder="65000" value={createForm.pricePerUnit} onChange={(e) => setCreateForm(p => ({ ...p, pricePerUnit: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label>Discount from Spot %</Label>
@@ -381,18 +446,18 @@ export default function Commodities() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Origin Country</Label>
-                    <Input placeholder="Switzerland" />
+                    <Input placeholder="Switzerland" value={createForm.originCountry} onChange={(e) => setCreateForm(p => ({ ...p, originCountry: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label>Current Location</Label>
-                    <Input placeholder="Zurich Free Port" />
+                    <Input placeholder="Zurich Free Port" value={createForm.currentLocation} onChange={(e) => setCreateForm(p => ({ ...p, currentLocation: e.target.value }))} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Delivery Location</Label>
-                    <Input placeholder="Dubai, UAE" />
+                    <Input placeholder="Dubai, UAE" value={createForm.deliveryLocation} onChange={(e) => setCreateForm(p => ({ ...p, deliveryLocation: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label>Incoterms</Label>
@@ -420,12 +485,30 @@ export default function Commodities() {
 
                 <div className="space-y-2">
                   <Label>Description</Label>
-                  <Textarea placeholder="Provide detailed information about the commodity..." rows={4} />
+                  <Textarea placeholder="Provide detailed information about the commodity..." rows={4} value={createForm.description} onChange={(e) => setCreateForm(p => ({ ...p, description: e.target.value }))} />
                 </div>
 
                 <div className="flex justify-end gap-3">
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
-                  <Button>Submit for Verification</Button>
+                  <Button
+                    disabled={createMutation.isPending || !createForm.commodityType || !createForm.title || !createForm.quantity || !createForm.unit}
+                    onClick={() => {
+                      createMutation.mutate({
+                        commodityType: createForm.commodityType as "gold",
+                        title: createForm.title,
+                        quantity: createForm.quantity,
+                        unit: createForm.unit as "kilograms",
+                        pricePerUnit: createForm.pricePerUnit || undefined,
+                        originCountry: createForm.originCountry || undefined,
+                        currentLocation: createForm.currentLocation || undefined,
+                        deliveryLocation: createForm.deliveryLocation || undefined,
+                        description: createForm.description || undefined,
+                      });
+                    }}
+                  >
+                    {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Submit for Verification
+                  </Button>
                 </div>
               </div>
             </DialogContent>

@@ -255,14 +255,18 @@ export default function DealIntelligence() {
 
   const { data: sectorData, isLoading: loadingSector } = trpc.intelligence.sectorOverview.useQuery();
   const { data: marketData, isLoading: loadingDepth } = trpc.intelligence.marketDepth.useQuery();
+  const { data: dealIntelData } = trpc.intelligence.dealIntelligence.useQuery();
   const sectorIntelMutation = trpc.ai.sectorIntelligence.useMutation();
 
   const marketInsights = sectorData ?? [];
+  const backendDealCount = dealIntelData?.totalDeals ?? 0;
 
-  const totalDeals = extractedDeals.length;
+  const totalDeals = extractedDeals.length + backendDealCount;
   const readyDeals = extractedDeals.filter(d => d.status === 'ready').length;
   const primedDeals = extractedDeals.filter(d => d.status === 'primed').length;
-  const avgReadiness = Math.round(extractedDeals.reduce((acc, d) => acc + d.readinessScore, 0) / totalDeals);
+  const avgReadiness = extractedDeals.length > 0
+    ? Math.round(extractedDeals.reduce((acc, d) => acc + d.readinessScore, 0) / extractedDeals.length)
+    : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">

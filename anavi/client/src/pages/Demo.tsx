@@ -1037,14 +1037,15 @@ const DEMO_NAV: { icon: React.ComponentType<{ className?: string }>; label: stri
 ];
 
 const TOUR_STEP_TO_PAGE: Record<number, DemoPage> = {
-  0: 'dashboard',
-  1: 'relationships',
-  2: 'matches',
-  3: 'dealrooms',
-  4: 'dashboard',
-  5: 'verification',
-  6: 'payouts',
-  7: 'dashboard',
+  0: 'dashboard',  // nav step - start on dashboard
+  1: 'dashboard',
+  2: 'relationships',
+  3: 'matches',
+  4: 'dealrooms',
+  5: 'dashboard',
+  6: 'verification',
+  7: 'payouts',
+  8: 'dashboard',
 };
 
 function DealRoomInteriorModal({
@@ -1056,7 +1057,7 @@ function DealRoomInteriorModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[60000] flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
@@ -1143,7 +1144,7 @@ function DemoDashboard({
           <div className="flex h-14 items-center px-5">
             <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
           </div>
-          <nav className="flex-1 px-3 py-2">
+          <nav className="flex-1 px-3 py-2" data-tour="demo-nav">
             {DEMO_NAV.map((item) => {
               const isActive = activePage === item.page;
               return (

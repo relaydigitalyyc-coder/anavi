@@ -297,7 +297,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden" style={{ fontFamily: "Arial, sans-serif" }}>
+    <div className="flex min-h-screen overflow-x-hidden">
       {/* Sidebar — hidden on mobile, visible lg+ */}
       <aside
         className="hidden w-[240px] shrink-0 flex-col lg:flex"

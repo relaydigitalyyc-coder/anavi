@@ -31,8 +31,9 @@ const store = {
 // Mock db
 vi.mock("../../db", () => ({
   getDb: vi.fn().mockResolvedValue(null),
+  getUserFlags: vi.fn().mockResolvedValue([]),
   logAuditEvent: vi.fn().mockResolvedValue(undefined),
-  createIntent: vi.fn().mockImplementation(async (data: { userId: number; intentType: string; title: string; description?: string; keywords?: string[] }) => {
+  createIntent: vi.fn().mockImplementation(async (data: { userId: number; intentType: string; title: string; description?: string; keywords?: string[]; embedding?: number[] | null }) => {
     const id = store.nextIntentId++;
     store.intents.push({
       id,
@@ -69,12 +70,28 @@ vi.mock("../../db", () => ({
       store.matches.filter((m) => m.user1Id === userId || m.user2Id === userId)
     );
   }),
+  getMatchesWithCounterpartyByUser: vi.fn().mockImplementation((userId: number) => {
+    const rows = store.matches.filter((m) => m.user1Id === userId || m.user2Id === userId);
+    return Promise.resolve(
+      rows.map((m) => ({
+        ...m,
+        counterpartyName: null,
+        counterpartyCompany: null,
+        counterpartyHandle: null,
+        counterpartyVerificationTier: "none" as const,
+        counterpartyDealCount: 0,
+        mutualConsent: !!(m.user1Consent && m.user2Consent),
+      }))
+    );
+  }),
   updateMatch: vi.fn().mockImplementation(async (matchId: number, data: Record<string, unknown>) => {
     const m = store.matches.find((x) => x.id === matchId);
     if (m) Object.assign(m, data);
     return;
   }),
-  createDealRoom: vi.fn().mockImplementation(async (data: { matchId: number; name: string; createdBy: number }) => {
+  getDefaultNdaTemplate: vi.fn().mockResolvedValue(null),
+  getUserById: vi.fn().mockResolvedValue({ name: "Test User", company: null }),
+  createDealRoom: vi.fn().mockImplementation(async (data: { matchId: number; name: string; createdBy: number; ndaRequired?: boolean }) => {
     const id = store.nextDealRoomId++;
     store.dealRooms.push({
       id,
@@ -87,19 +104,30 @@ vi.mock("../../db", () => ({
   grantDealRoomAccess: vi.fn().mockResolvedValue(undefined),
   createNotification: vi.fn().mockResolvedValue(1),
   notifyNewMatch: vi.fn().mockResolvedValue(undefined),
+  createPayout: vi.fn().mockResolvedValue(1),
+  getPayoutById: vi.fn().mockResolvedValue(null),
+  getEscrowAccountByDeal: vi.fn().mockResolvedValue(null),
+  createEscrowAccount: vi.fn().mockResolvedValue(1),
+  updateEscrowAccount: vi.fn().mockResolvedValue(undefined),
+  getDealMilestones: vi.fn().mockResolvedValue([]),
+  completeMilestone: vi.fn().mockResolvedValue({ milestones: [], milestone: {} }),
 }));
 
-// Mock invokeLLM - return compatible matches and keywords
+// Mock invokeLLM - return compatible matches, keywords, and embeddings
 vi.mock("../../_core/llm", () => {
   const keywordsJson = JSON.stringify({ keywords: ["real_estate", "commercial"] });
   const matchJson = JSON.stringify({ score: 85, reason: "Asset type match", compatible: true });
+  const embeddingArr = new Array(32).fill(0.1);
+  const embeddingJson = JSON.stringify({ embedding: embeddingArr });
   return {
     invokeLLM: vi.fn().mockImplementation(async (opts: { response_format?: { json_schema: { schema: { properties: Record<string, unknown> } } } }) => {
       const schema = opts.response_format?.json_schema?.schema?.properties;
       const hasKeywords = schema && "keywords" in schema;
       const hasCompatible = schema && "compatible" in schema;
+      const hasEmbedding = schema && "embedding" in schema;
       if (hasKeywords) return { choices: [{ message: { content: keywordsJson } }] };
       if (hasCompatible) return { choices: [{ message: { content: matchJson } }] };
+      if (hasEmbedding) return { choices: [{ message: { content: embeddingJson } }] };
       return { choices: [{ message: { content: "{}" } }] };
     }),
   };

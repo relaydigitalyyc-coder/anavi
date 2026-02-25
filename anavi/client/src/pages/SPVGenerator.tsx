@@ -101,9 +101,37 @@ export default function SPVGenerator() {
     }
   };
 
+  const createMutation = trpc.spv.create.useMutation({
+    onSuccess: () => {
+      toast.success("SPV Created Successfully!", {
+        description: `${formData.name} has been created and is ready for LP onboarding.`,
+      });
+    },
+    onError: (err) => {
+      toast.error(`Failed to create SPV: ${err.message}`);
+    },
+  });
+
   const handleSubmit = () => {
-    toast.success("SPV Created Successfully!", {
-      description: `${formData.name} has been created and is ready for LP onboarding.`,
+    createMutation.mutate({
+      name: formData.name,
+      legalName: formData.legalName || undefined,
+      description: formData.description || undefined,
+      entityType: formData.entityType,
+      jurisdiction: formData.jurisdiction,
+      investmentPurpose: formData.investmentPurpose || undefined,
+      targetAssetClass: formData.targetAssetClass || undefined,
+      targetIndustry: formData.targetIndustry || undefined,
+      targetRaise: formData.targetRaise || undefined,
+      minimumInvestment: formData.minimumInvestment || undefined,
+      maximumInvestment: formData.maximumInvestment || undefined,
+      currency: formData.currency,
+      managementFee: formData.managementFee,
+      carriedInterest: formData.carriedInterest,
+      preferredReturn: formData.preferredReturn,
+      fundingDeadline: formData.fundingDeadline || undefined,
+      investmentPeriodEnd: formData.investmentPeriodEnd || undefined,
+      termEndDate: formData.termEndDate || undefined,
     });
   };
 
@@ -680,9 +708,9 @@ export default function SPVGenerator() {
               <ArrowRight className="h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} className="gap-2 bg-green-600 hover:bg-green-700">
+            <Button onClick={handleSubmit} className="gap-2 bg-green-600 hover:bg-green-700" disabled={createMutation.isPending}>
               <Sparkles className="h-4 w-4" />
-              Create SPV
+              {createMutation.isPending ? "Creating..." : "Create SPV"}
             </Button>
           )}
         </div>

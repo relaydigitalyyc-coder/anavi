@@ -553,7 +553,9 @@ function IncomingTab({
                 style={{ backgroundColor: COLORS.surface }}
               >
                 <Shield className="w-3.5 h-3.5 shrink-0" style={{ color: COLORS.green }} />
-                <span>Tier 2 Verified · 8 deals completed · Active since 2024</span>
+                <span className="capitalize">{m.counterpartyVerificationTier ?? "none"}</span>
+                <span className="text-gray-300">|</span>
+                <span>{m.counterpartyDealCount ?? 0} deals completed</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
@@ -1346,23 +1348,17 @@ function MatchReviewPanel({
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
               <span
-                className="px-2.5 py-1 rounded-full"
+                className="px-2.5 py-1 rounded-full capitalize"
                 style={{ backgroundColor: "#ECFDF5", color: COLORS.green }}
               >
                 <Shield className="w-3 h-3 inline mr-1" />
-                Tier 2 Verified
+                {match.counterpartyVerificationTier ?? "none"} verified
               </span>
               <span
                 className="px-2.5 py-1 rounded-full"
                 style={{ backgroundColor: "#EFF6FF", color: COLORS.blue }}
               >
-                8 deals completed
-              </span>
-              <span
-                className="px-2.5 py-1 rounded-full"
-                style={{ backgroundColor: "#F3F4F6", color: "#6B7280" }}
-              >
-                Active since 2024
+                {match.counterpartyDealCount ?? 0} deals completed
               </span>
             </div>
           </div>

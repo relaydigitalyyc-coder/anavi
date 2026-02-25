@@ -2,24 +2,29 @@
 
 For AI agents working on this codebase. See `.cursor/rules/` for detailed conventions.
 
+## White Paper Alignment
+
+ANAVI implements the vision from the Strategic White Paper (Jan 2026). Use consistent terminology: **Relationship Custody**, **Trust Score**, **Originator**, **Attribution**, **Blind Matching**, **Deal Room**, **Intent**. Full concept → code mapping: `docs/white-paper-alignment.md`.
+
 ## Where to Add Things
 
 | To add… | Location |
 |---------|----------|
-| API endpoint | `anavi/server/routers/<domain>.ts` → add to existing or create new + merge in `routers/index.ts` |
-| DB operation | `anavi/server/db.ts` — `export async function ...` |
-| Schema table | `anavi/drizzle/schema.ts` + `pnpm drizzle-kit generate` |
+| API endpoint | `anavi/server/routers/<domain>.ts` + merge in `routers/index.ts` |
+| DB operation | `anavi/server/db/<domain>.ts` (add to matching module) |
+| Schema table | `anavi/drizzle/schema.ts` + relation in `relations.ts` + `pnpm drizzle-kit generate` |
 | Page | `anavi/client/src/pages/*.tsx` + route in `App.tsx` (ShellRoute) |
-| Sidebar link | `navItems` array in `DashboardLayout.tsx` |
+| Sidebar link | `navSections` array in `DashboardLayout.tsx` |
 | Component | `anavi/client/src/components/` |
 | Hook | `anavi/client/src/hooks/` |
 | Shared types | `anavi/shared/types.ts` or schema |
+| Large page decomposition | `anavi/client/src/pages/<page-name>/` (see `deal-room/` as example) |
 
 ## Commands (run from `anavi/`)
 
 ```bash
 pnpm check   # TypeScript type-check
-pnpm test    # Unit + integration (37 tests)
+pnpm test    # 37 tests (unit + integration)
 pnpm build   # Client + server production build
 ```
 
@@ -31,28 +36,30 @@ pnpm build   # Client + server production build
 
 ## End-to-End Feature Checklist
 
-1. Schema change? → `drizzle/schema.ts` + migration
-2. DB function → `server/db.ts`
+1. Schema change? → `drizzle/schema.ts` + relation in `relations.ts` + migration
+2. DB function → `server/db/<domain>.ts`
 3. Router procedure → `server/routers/<domain>.ts` + merge in index
 4. Client page → `client/src/pages/X.tsx`, no DashboardLayout wrapper
 5. Route → `App.tsx` with ShellRoute
-6. Sidebar? → `navItems` in `DashboardLayout.tsx`
+6. Sidebar? → `navSections` in `DashboardLayout.tsx`
 7. Verify → `pnpm check && pnpm test`
 
 ## Conventions
 
-- Routers are thin: call `db.*`, return. No business logic in routers.
+- DB modules are in `server/db/` (16 domain files + barrel). Add functions to matching module.
+- Routers are thin: call `db.*`, return. 25 individual router files.
 - `protectedProcedure` for user-scoped data. Zod for all inputs.
 - Client: `trpc.router.proc.useQuery` / `useMutation`
-- Audit: `db.logAuditEvent(...)` after sensitive writes
-- UI: shadcn/ui primitives from `@/components/ui/*`, lucide-react icons, framer-motion
+- UI: shadcn/ui from `@/components/ui/*`, lucide-react, framer-motion
+- Decompose large pages: extract tab/section components into `pages/<name>/` subdirectory
 
-## Current Router Domains
+## Sidebar Navigation (navSections)
 
-auth, user, verification, relationship, contact, intent, match, deal, dealRoom, compliance, payout, notification, audit, search, intelligence, lpPortal, realEstate — individual files.
-ai, familyOffice, targeting, brokerContact, enrichment, calendar, analytics — in `_legacy.ts`.
-
-## Sidebar Navigation (navItems)
-
-Dashboard, Relationships, Deal Matching, Deal Rooms, Verification, Intelligence, Payouts, Settings.
-Many pages exist but are not in sidebar — access via direct URL or cross-links.
+7 grouped sections with 20 items:
+- Overview: Dashboard, Analytics
+- Deals: Deal Matching, Deal Rooms, Deals, Deal Intelligence
+- Network: Relationships, Family Offices, Targeting, Network Graph
+- Compliance: Verification, Audit Logs, Compliance
+- Finance: Payouts, LP Portal
+- AI & Intel: AI Brain, Intelligence
+- Settings: Calendar, Settings

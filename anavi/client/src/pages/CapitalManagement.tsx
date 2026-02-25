@@ -17,76 +17,33 @@ import {
   Building2, FileText, Download, Eye, Bell, Wallet
 } from "lucide-react";
 import { toast } from "sonner";
-
-// Mock data
-const spvs = [
-  {
-    id: 1,
-    name: "Acme Ventures SPV I",
-    targetRaise: 10000000,
-    totalCommitted: 7500000,
-    totalCalled: 6000000,
-    totalReceived: 5800000,
-    lpCount: 12,
-    status: "fundraising",
-  },
-  {
-    id: 2,
-    name: "Meridian Real Estate Fund",
-    targetRaise: 25000000,
-    totalCommitted: 25000000,
-    totalCalled: 20000000,
-    totalReceived: 20000000,
-    lpCount: 18,
-    status: "active",
-  },
-];
-
-const capitalCalls = [
-  {
-    id: 1,
-    spvId: 1,
-    spvName: "Acme Ventures SPV I",
-    callNumber: 3,
-    callAmount: 1500000,
-    callPercentage: 20,
-    dueDate: "2026-02-01",
-    status: "sent",
-    totalCalled: 1500000,
-    totalReceived: 1200000,
-    responses: [
-      { lpName: "Smith Family Office", amount: 300000, status: "paid" },
-      { lpName: "Johnson Capital", amount: 500000, status: "paid" },
-      { lpName: "Apex Investments", amount: 400000, status: "paid" },
-      { lpName: "Meridian Partners", amount: 300000, status: "pending" },
-    ],
-  },
-  {
-    id: 2,
-    spvId: 2,
-    spvName: "Meridian Real Estate Fund",
-    callNumber: 4,
-    callAmount: 5000000,
-    callPercentage: 20,
-    dueDate: "2026-01-25",
-    status: "complete",
-    totalCalled: 5000000,
-    totalReceived: 5000000,
-    responses: [],
-  },
-];
-
-const commitments = [
-  { id: 1, lpName: "Smith Family Office", spv: "Acme Ventures SPV I", committed: 1500000, called: 1200000, funded: 1200000, unfunded: 300000 },
-  { id: 2, lpName: "Johnson Capital", spv: "Acme Ventures SPV I", committed: 2500000, called: 2000000, funded: 2000000, unfunded: 500000 },
-  { id: 3, lpName: "Apex Investments", spv: "Acme Ventures SPV I", committed: 2000000, called: 1600000, funded: 1600000, unfunded: 400000 },
-  { id: 4, lpName: "Meridian Partners", spv: "Acme Ventures SPV I", committed: 1500000, called: 1200000, funded: 1000000, unfunded: 500000 },
-];
+import { trpc } from "@/lib/trpc";
 
 export default function CapitalManagement() {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedSpv, setSelectedSpv] = useState<number | null>(null);
   const [isNewCallDialogOpen, setIsNewCallDialogOpen] = useState(false);
+  const [newCallSpvId, setNewCallSpvId] = useState<string>("");
+  const [newCallAmount, setNewCallAmount] = useState("");
+  const [newCallPct, setNewCallPct] = useState("");
+  const [newCallDue, setNewCallDue] = useState("");
+
+  const { data: spvs = [] } = trpc.capital.spvs.useQuery();
+  const { data: capitalCalls = [] } = trpc.capital.capitalCalls.useQuery();
+  const { data: commitments = [] } = trpc.capital.commitments.useQuery();
+  const utils = trpc.useUtils();
+  const createCallMutation = trpc.capital.createCapitalCall.useMutation({
+    onSuccess: () => {
+      utils.capital.capitalCalls.invalidate();
+      utils.capital.spvs.invalidate();
+      toast.success("Capital Call Created", { description: "Notices have been sent to all LPs." });
+      setIsNewCallDialogOpen(false);
+      setNewCallAmount("");
+      setNewCallPct("");
+      setNewCallDue("");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const totalCommitted = spvs.reduce((sum, spv) => sum + spv.totalCommitted, 0);
   const totalCalled = spvs.reduce((sum, spv) => sum + spv.totalCalled, 0);
@@ -94,10 +51,19 @@ export default function CapitalManagement() {
   const pendingAmount = totalCalled - totalReceived;
 
   const handleCreateCapitalCall = () => {
-    toast.success("Capital Call Created", {
-      description: "Notices have been sent to all LPs.",
+    const spvId = newCallSpvId ? parseInt(newCallSpvId, 10) : spvs[0]?.id;
+    if (!spvId || !newCallAmount || !newCallDue) {
+      toast.error("Please fill in SPV, amount, and due date.");
+      return;
+    }
+    const callsForSpv = capitalCalls.filter((c) => c.spvId === spvId);
+    createCallMutation.mutate({
+      spvId,
+      callNumber: callsForSpv.length + 1,
+      callAmount: parseFloat(newCallAmount) || 0,
+      callPercentage: parseFloat(newCallPct) || undefined,
+      dueDate: newCallDue,
     });
-    setIsNewCallDialogOpen(false);
   };
 
   return (
@@ -127,7 +93,7 @@ export default function CapitalManagement() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>Select SPV</Label>
-                  <Select>
+                  <Select value={newCallSpvId} onValueChange={setNewCallSpvId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose an SPV" />
                     </SelectTrigger>
@@ -145,17 +111,17 @@ export default function CapitalManagement() {
                     <Label>Call Amount</Label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input type="number" placeholder="1,000,000" className="pl-10" />
+                      <Input type="number" placeholder="1,000,000" className="pl-10" value={newCallAmount} onChange={(e) => setNewCallAmount(e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Call Percentage</Label>
-                    <Input type="number" placeholder="20" />
+                    <Input type="number" placeholder="20" value={newCallPct} onChange={(e) => setNewCallPct(e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Due Date</Label>
-                  <Input type="date" />
+                  <Input type="date" value={newCallDue} onChange={(e) => setNewCallDue(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Purpose</Label>
@@ -166,9 +132,9 @@ export default function CapitalManagement() {
                 <Button variant="outline" onClick={() => setIsNewCallDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateCapitalCall} className="gap-2 bg-sky-500 hover:bg-sky-600">
+                <Button onClick={handleCreateCapitalCall} className="gap-2 bg-sky-500 hover:bg-sky-600" disabled={createCallMutation.isPending}>
                   <Send className="h-4 w-4" />
-                  Send Capital Call
+                  {createCallMutation.isPending ? "Sending..." : "Send Capital Call"}
                 </Button>
               </div>
             </DialogContent>
@@ -527,7 +493,8 @@ export default function CapitalManagement() {
                   {/* Visual Cap Table */}
                   <div className="grid grid-cols-4 gap-4">
                     {commitments.map((c, idx) => {
-                      const percentage = (c.committed / 7500000) * 100;
+                      const totalCommittedForSpv = commitments.reduce((s, x) => s + x.committed, 0) || 1;
+                      const percentage = (c.committed / totalCommittedForSpv) * 100;
                       const colors = ["bg-sky-500", "bg-blue-500", "bg-green-500", "bg-purple-500"];
                       return (
                         <div key={c.id} className="p-4 border">
@@ -559,7 +526,8 @@ export default function CapitalManagement() {
                       </TableHeader>
                       <TableBody>
                         {commitments.map((c) => {
-                          const percentage = (c.committed / 7500000) * 100;
+                          const totalCommittedForSpv = commitments.reduce((s, x) => s + x.committed, 0) || 1;
+                          const percentage = (c.committed / totalCommittedForSpv) * 100;
                           return (
                             <TableRow key={c.id} className="border-b hover:bg-muted/50">
                               <TableCell className="py-4 px-4 font-medium">{c.lpName}</TableCell>
@@ -601,7 +569,7 @@ export default function CapitalManagement() {
                           <TableCell className="py-4 px-4 text-right font-mono">20.00%</TableCell>
                           <TableCell className="py-4 px-4 text-right font-mono">-</TableCell>
                           <TableCell className="py-4 px-4 text-right font-mono text-sky-500">
-                            ${(7500000 * 0.15 * 0.2).toLocaleString()}
+                            ${(commitments.reduce((s, x) => s + x.committed, 0) * 0.15 * 0.2).toLocaleString()}
                           </TableCell>
                           <TableCell className="py-4 px-4 text-center">-</TableCell>
                         </TableRow>

@@ -1,0 +1,2113 @@
+[
+  {
+    "id": "TC001",
+    "title": "Successful login redirects user to dashboard",
+    "description": "Verifies a user can log in with valid credentials and is redirected to the dashboard.",
+    "category": "User Login",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dashboard\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Invalid password shows an invalid-credentials error message",
+    "description": "Verifies the login page displays a clear error when password is incorrect.",
+    "category": "User Login",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"valid.user@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"wrong-password-123\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid credentials\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Non-existent user shows an invalid-credentials error message",
+    "description": "Verifies the login page displays an error when the account does not exist.",
+    "category": "User Login",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"does.not.exist.999999@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"some-password-123\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid credentials\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Submitting with empty email shows validation or required-field message",
+    "description": "Verifies the login form prevents submission (or shows a clear message) when email is missing.",
+    "category": "User Login",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Submitting with empty password shows validation or required-field message",
+    "description": "Verifies the login form prevents submission (or shows a clear message) when password is missing.",
+    "category": "User Login",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Password\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Login via keyboard Enter submits and redirects to dashboard",
+    "description": "Verifies the user can submit the login form using the Enter key and reach the dashboard on success.",
+    "category": "User Login",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dashboard\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Leading/trailing spaces in email are handled correctly during login",
+    "description": "Verifies email input with surrounding spaces still allows successful authentication (or surfaces a clear error if not supported).",
+    "category": "User Login",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"  {{LOGIN_USER}}  \" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button to submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dashboard\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Register a new user successfully and land on Dashboard",
+    "description": "Verifies a user can submit the registration form with valid details and is taken to the dashboard.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Create\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Test User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"test.user.new+e2e@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassw0rd!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Register\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Registration fails when email is already registered",
+    "description": "Verifies the server error is surfaced when attempting to register with an existing email.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Existing User\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"existing.user@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassw0rd!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Register\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"already\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Registration validation: missing name shows an error and blocks submission",
+    "description": "Verifies the UI prevents registration when the name field is empty.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"noname.user+e2e@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassw0rd!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Register\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Name\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Registration validation: missing email shows an error and blocks submission",
+    "description": "Verifies the UI prevents registration when the email field is empty.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"No Email\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassw0rd!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Register\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Registration validation: invalid email format is rejected",
+    "description": "Verifies the registration form rejects an invalid email format and stays on the registration page.",
+    "category": "User Registration",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Invalid Email\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"not-an-email\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"ValidPassw0rd!\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Register\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"valid email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Registration validation: missing password shows an error and blocks submission",
+    "description": "Verifies the UI prevents registration when the password field is empty.",
+    "category": "User Registration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"No Password\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"nopassword.user+e2e@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Register\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Password\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Registration validation: too-short password is rejected",
+    "description": "Verifies a weak/too-short password results in a visible error and does not navigate away.",
+    "category": "User Registration",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Weak Password\" into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"weak.password+e2e@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"123\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Register\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Password\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Registration navigation: login link is available from registration page",
+    "description": "Verifies users can navigate from the registration page to the login page using the on-page link.",
+    "category": "User Registration",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Request password reset with a valid email shows generic success message",
+    "description": "Verifies submitting a well-formed email displays the non-enumerating success message.",
+    "category": "Forgot Password",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forgot Password\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"user@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Send reset link\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"If an account exists, we've sent a link to your email\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Invalid email format shows validation error and does not show success message",
+    "description": "Verifies client-side/server-side validation blocks submission for malformed email input.",
+    "category": "Forgot Password",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "action",
+        "description": "Type \"not-an-email\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Send reset link\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"If an account exists, we've sent a link to your email\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Unknown email still shows generic success message (no account enumeration)",
+    "description": "Verifies the page does not reveal whether an email is registered.",
+    "category": "Forgot Password",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "action",
+        "description": "Type \"nonexistent_user_987654@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Send reset link\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"If an account exists, we've sent a link to your email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No account\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Empty email submission shows required field validation",
+    "description": "Verifies the form prevents submission when the email field is blank.",
+    "category": "Forgot Password",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Send reset link\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Email is required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"If an account exists, we've sent a link to your email\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Email with leading/trailing spaces is accepted and results in generic success message",
+    "description": "Verifies common user input (whitespace around email) still allows request and shows generic success.",
+    "category": "Forgot Password",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /forgot-password"
+      },
+      {
+        "type": "action",
+        "description": "Type \"  user@example.com  \" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Send reset link\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"If an account exists, we've sent a link to your email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid email\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "User can reach Forgot Password from Login page",
+    "description": "Verifies navigation to the Forgot Password page from Login is available and lands on the correct screen.",
+    "category": "Forgot Password",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Forgot password\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/forgot-password\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forgot Password\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Start guided tour from /demo and verify first step is shown",
+    "description": "Verifies the demo banner, value callouts, and that starting the tour displays the first guided step.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Demo\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start Tour\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Tour\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Next\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Restart Tour\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Guided tour progresses to a relationships step and tooltip appears on first relationship card",
+    "description": "Verifies clicking Next advances the tour and a contextual tooltip is visible on the Relationships page.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Tour\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Next\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Relationships\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/relationships\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"tooltip\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Guided tour progresses to Matches and shows blind matching tooltip",
+    "description": "Verifies the tour continues through to the Matches page and displays the blind matching tooltip on the first match card.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Tour\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Next\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Matches\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/matches\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"tooltip\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Guided tour reaches Deal Rooms, opens first deal room, and shows overview highlight",
+    "description": "Verifies the tour can reach Deal Rooms, open a deal room from the list, and display a tour highlight/step in the Deal Room view.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Tour\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Deal Rooms\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/deal-rooms\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the first deal room in the list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Next\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Restart Tour restarts the guided tour from the first step",
+    "description": "Verifies the Restart Tour control is available and returns the user to the first tour step.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Tour\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Next\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Restart Tour\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Next\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start Tour\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Dismiss a sales/value callout in the demo banner",
+    "description": "Verifies sales/value callouts are dismissible and disappear after dismissal.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"value callout\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Dismiss\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"value callout\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "Tour fallback when a target element is missing shows Skip and Restart options",
+    "description": "Verifies that when the guided tour cannot find a DOM target, the UI presents fallback options to skip or restart the tour.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Tour\""
+      },
+      {
+        "type": "action",
+        "description": "Wait for \"Skip Tour\" to appear"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Skip Tour\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Restart Tour\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Restart Tour\""
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Skip Tour ends the guided tour overlay",
+    "description": "Verifies the Skip Tour action dismisses/ends the tour overlay and returns the user to normal page content.",
+    "category": "Demo Experience (Tooltips & Guided Tour)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/demo\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Start Tour\""
+      },
+      {
+        "type": "action",
+        "description": "Wait for \"Skip Tour\" to appear"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Skip Tour\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Start Tour\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Next\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Dashboard renders key metric cards and greeting",
+    "description": "Verifies the dashboard loads and shows key visible dashboard content such as greeting and metric cards/stats.",
+    "category": "Dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dashboard\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Trust Score\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Trust Ring\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Quick actions\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Navigate from Dashboard Trust Score card to Verification page",
+    "description": "Verifies clicking the Trust Score card routes the user to the Verification page.",
+    "category": "Dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Trust Score\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Trust Score\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/verification\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Verification\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Dashboard sidebar navigation to Relationships",
+    "description": "Verifies the user can navigate away from the dashboard using the sidebar navigation.",
+    "category": "Dashboard",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Dashboard\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Relationships\" in the sidebar menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/relationships\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Relationships\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "Open Deal Rooms list and verify list content is visible",
+    "description": "Verifies the Deal Rooms list page loads and shows a visible list of deal rooms.",
+    "category": "Deal Rooms (List & Detail)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-rooms"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Deal Rooms\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Deal Rooms\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify at least one deal room card is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Open a deal room from the list and verify the Overview tab content",
+    "description": "Verifies a user can open a deal room detail page and see Overview content by default.",
+    "category": "Deal Rooms (List & Detail)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-rooms"
+      },
+      {
+        "type": "action",
+        "description": "Click the first visible deal room card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/deal-rooms/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Overview\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Documents\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Diligence\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Overview\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "Switch to Documents tab and verify documents list is shown",
+    "description": "Verifies tab transition from Overview to Documents and that a documents list area is visible.",
+    "category": "Deal Rooms (List & Detail)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-rooms"
+      },
+      {
+        "type": "action",
+        "description": "Click the first visible deal room card"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Documents\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Documents\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Upload\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a documents list or empty-state section is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC036",
+    "title": "Switch to Diligence tab and verify diligence content is visible",
+    "description": "Verifies tab transition to Diligence and that the diligence section renders visible content.",
+    "category": "Deal Rooms (List & Detail)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-rooms"
+      },
+      {
+        "type": "action",
+        "description": "Click the first visible deal room card"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Diligence\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Diligence\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a diligence content section is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC037",
+    "title": "Return from Documents tab to Overview tab and verify Overview content still renders",
+    "description": "Verifies tab transitions are stable when switching back and forth within a deal room.",
+    "category": "Deal Rooms (List & Detail)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-rooms"
+      },
+      {
+        "type": "action",
+        "description": "Click the first visible deal room card"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Documents\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Documents\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Overview\" tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Overview\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC038",
+    "title": "Deal Rooms list: verify search input accepts text and list area remains visible",
+    "description": "Verifies the list page search field is usable and the list container remains visible after input.",
+    "category": "Deal Rooms (List & Detail)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-rooms"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"test\" into the \"Search\" field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the deal rooms list area is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify at least one deal room card is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC039",
+    "title": "Filter relationships list using search input",
+    "description": "Verifies that the relationships list can be filtered using the search field and results update on-screen.",
+    "category": "Relationships",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /relationships"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Relationships\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"alpha\" into the \"Search\" field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Relationships list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzz-not-a-real-relationship\" into the \"Search\" field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No relationships\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC040",
+    "title": "Add a new relationship from the Relationships page",
+    "description": "Verifies a user can add a relationship via the Add Relationship flow and see it appear in the list.",
+    "category": "Relationships",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /relationships"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Add Relationship\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add Relationship\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"New Relationship\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Test Relationship A\" into the \"Name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Test Relationship A\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC041",
+    "title": "Cancel adding a relationship does not create a new list item",
+    "description": "Verifies cancelling out of the Add Relationship dialog does not add a new relationship to the list.",
+    "category": "Relationships",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /relationships"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add Relationship\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"New Relationship\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Should Not Be Saved\" into the \"Name\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Cancel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Should Not Be Saved\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC042",
+    "title": "Required field validation when saving a new relationship",
+    "description": "Verifies required fields are enforced and the relationship is not saved when required inputs are missing.",
+    "category": "Relationships",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /relationships"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Add Relationship\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"New Relationship\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Save\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"New Relationship\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC043",
+    "title": "Relationships list shows loading state before data appears",
+    "description": "Verifies a visible loading skeleton/placeholder appears while the relationships list query is loading.",
+    "category": "Relationships",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /relationships"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Loading\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Relationships list\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Loading\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC044",
+    "title": "Empty state shown when no relationships are returned",
+    "description": "Verifies the EmptyState is shown with next steps when the relationships list has no results.",
+    "category": "Relationships",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /relationships"
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzz-not-a-real-relationship\" into the \"Search\" field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No relationships\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Add Relationship\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"next steps\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC045",
+    "title": "Custody/hash tooltip content is discoverable from relationships list row",
+    "description": "Verifies that custody/hash help text can be surfaced via tooltip from a relationship row.",
+    "category": "Relationships",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /relationships"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Custody\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Custody\" info icon"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"custody\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"hash\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"hash\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC046",
+    "title": "View verification status and Trust Score panel renders successfully",
+    "description": "Verifies the /verification page shows a verification status panel and the Trust Score section on initial view.",
+    "category": "Verification & Trust Score",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /verification"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Verification\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Verification\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Trust Score\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Verification status\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Trust Score\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC047",
+    "title": "Tier badge is visible alongside Trust Score on first view",
+    "description": "Verifies a tier badge is shown near the Trust Score section on initial page load.",
+    "category": "Verification & Trust Score",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /verification"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Trust Score\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Tier badge\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Trust Score value\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Tier badge\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC048",
+    "title": "Verification status panel shows a clear status state (e.g., Verified / Pending / Unverified)",
+    "description": "Verifies the verification status panel includes a clearly readable status indicator for the current entity/user.",
+    "category": "Verification & Trust Score",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /verification"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Verification status\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Status\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Verified\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Verification status\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC049",
+    "title": "Navigate from Dashboard to Matches via sidebar",
+    "description": "Verifies a user can navigate from the Dashboard to the Matches page using the sidebar.",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click sidebar item \"Matches\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/matches\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Matches\""
+      }
+    ]
+  },
+  {
+    "id": "TC050",
+    "title": "Open header user menu from Matches page",
+    "description": "Verifies the header user menu can be opened from a typical internal page.",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /matches"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/matches\""
+      },
+      {
+        "type": "action",
+        "description": "Click the header user menu (profile/avatar button)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"User menu\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Settings\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC051",
+    "title": "Intelligence sidebar item opens Coming Soon page",
+    "description": "Verifies the Intelligence navigation opens a Coming Soon placeholder page.",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click sidebar item \"Intelligence\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/intelligence\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Coming Soon\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC052",
+    "title": "Return to Dashboard from Intelligence Coming Soon page",
+    "description": "Verifies the Coming Soon placeholder provides a working link back to the Dashboard.",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /intelligence"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Coming Soon\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click link \"Back to Dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Dashboard\""
+      }
+    ]
+  },
+  {
+    "id": "TC053",
+    "title": "User menu can be opened and closed from the header",
+    "description": "Verifies the user menu toggles open and closed from the header control.",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click the header user menu (profile/avatar button)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"User menu\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Escape\" key"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"User menu\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC054",
+    "title": "Sidebar navigation to Deal Rooms list",
+    "description": "Verifies a user can navigate to Deal Rooms from the sidebar.",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click sidebar item \"Deal Rooms\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/deal-rooms\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Deal Rooms\""
+      }
+    ]
+  },
+  {
+    "id": "TC055",
+    "title": "Sidebar navigation to Relationships page",
+    "description": "Verifies a user can navigate to Relationships from the sidebar.",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click sidebar item \"Relationships\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/relationships\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Relationships\""
+      }
+    ]
+  },
+  {
+    "id": "TC056",
+    "title": "Sidebar navigation to Settings page",
+    "description": "Verifies a user can navigate to Settings from the sidebar or header navigation entry (where available).",
+    "category": "Navigation (Sidebar & Header)",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click sidebar item \"Settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Settings\""
+      }
+    ]
+  },
+  {
+    "id": "TC057",
+    "title": "Accept a top match from Deal Matching and see success toast",
+    "description": "Verifies a user can open a top match and accept it, receiving a visible success confirmation toast.",
+    "category": "Deal Matching",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Deal Matching\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the top match card in the matching results area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Match\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Accept\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Intent Published\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC058",
+    "title": "Decline a top match and see confirmation toast",
+    "description": "Verifies a user can decline a top match and receives a visible decline confirmation.",
+    "category": "Deal Matching",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Deal Matching\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the top match card in the matching results area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Decline\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Decline\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Declined\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC059",
+    "title": "Undo an Accept action from toast",
+    "description": "Verifies the user can undo an acceptance using the undo action in the toast/feedback component.",
+    "category": "Deal Matching",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "action",
+        "description": "Click the top match card in the matching results area"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Accept\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Intent Published\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Undo\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Undone\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC060",
+    "title": "Undo a Decline action from toast",
+    "description": "Verifies the user can undo a decline using the undo action in the toast/feedback component.",
+    "category": "Deal Matching",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "action",
+        "description": "Click the top match card in the matching results area"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Decline\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Declined\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Undo\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Undone\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC061",
+    "title": "Open top match and view match detail panel/review view",
+    "description": "Verifies clicking a top match card opens a match detail panel or review view with key match information visible.",
+    "category": "Deal Matching",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Top Match\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the top match card in the matching results area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Match Details\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Accept\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Decline\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC062",
+    "title": "Empty state shown when no matches are available",
+    "description": "Verifies an empty state with guidance is shown when the matching list has no available matches.",
+    "category": "Deal Matching",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No matches\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Create an Intent\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Empty state\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC063",
+    "title": "Empty state guidance navigates user to Intents page",
+    "description": "Verifies the empty state call-to-action routes the user to the Intents page to create an intent.",
+    "category": "Deal Matching",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Create an Intent\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Create an Intent\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/intents\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Intents\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC064",
+    "title": "Accept action is not available until a match is opened",
+    "description": "Verifies the user must first open a match card before the Accept action becomes available.",
+    "category": "Deal Matching",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /deal-matching"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Deal Matching\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Accept\" is not visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the top match card in the matching results area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Accept\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC065",
+    "title": "View audit log list on Audit Logs page",
+    "description": "Verifies the Audit Logs page loads and displays an audit entries list.",
+    "category": "Audit Logs",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /audit-logs"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Audit\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Audit Logs\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"audit entries list\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"filter\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Export CSV\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC066",
+    "title": "Filter audit logs by event type using filter dropdown",
+    "description": "Verifies selecting an event type filter updates the visible audit entries list.",
+    "category": "Audit Logs",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /audit-logs"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"audit entries list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Event type\" filter dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Login\" from dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"audit entries list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC067",
+    "title": "Clear or reset event type filter to return to unfiltered list",
+    "description": "Verifies the user can reset the filter and return to the default list view.",
+    "category": "Audit Logs",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /audit-logs"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Event type\" filter dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Login\" from dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Clear filters\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"audit entries list\" is visible"
+      }
+    ]
+  }
+]

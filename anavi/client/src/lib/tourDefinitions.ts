@@ -6,6 +6,10 @@ export interface TourStep {
   title: string;
   content: string;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  /** When true, user can click the highlighted area; show "Try it" hint */
+  interactive?: boolean;
+  /** Optional hint for interactive steps (e.g. "Click Enter Deal Room below") */
+  actionHint?: string;
 }
 
 export const onboardingTour: TourStep[] = [
@@ -55,6 +59,14 @@ export const onboardingTour: TourStep[] = [
 
 export const demoTour: TourStep[] = [
   {
+    targetSelector: '[data-tour="demo-nav"]',
+    title: 'Navigate Freely',
+    content:
+      'Use the sidebar to jump to any section — or click Next to follow the guided path. You can explore on your own anytime.',
+    interactive: true,
+    actionHint: 'Click any sidebar item, or Next to continue.',
+  },
+  {
     targetSelector: '[data-tour="dashboard"]',
     title: 'The Problem Solved',
     content:
@@ -76,7 +88,9 @@ export const demoTour: TourStep[] = [
     targetSelector: '[data-tour="deal-room"]',
     title: 'The Deal Room',
     content:
-      'Each active deal has an "Enter Deal Room" button — click it anytime to explore the interior. NDA signed, documents shared, compliance verified, escrow staged. Everything you need to close, in one secure workspace.',
+      'Each active deal has an "Enter Deal Room" button. Click it now to explore the interior — NDA signed, documents shared, compliance verified, escrow staged. Everything you need to close, in one secure workspace.',
+    interactive: true,
+    actionHint: 'Click "Enter Deal Room" below, then Next when done exploring.',
   },
   {
     targetSelector: '[data-tour="payout"]',

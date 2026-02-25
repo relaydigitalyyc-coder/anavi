@@ -22,6 +22,7 @@ import {
   Bitcoin,
   Gem
 } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 // Stablecoin backing data from Fireflies transcripts
 const stablecoinBackings = [
@@ -83,75 +84,6 @@ const stablecoinBackings = [
   },
 ];
 
-// Crypto portfolio positions
-const cryptoPositions = [
-  {
-    id: 1,
-    asset: 'Bitcoin',
-    symbol: 'BTC',
-    holdings: '45.5',
-    avgCost: '$42,000',
-    currentPrice: '$98,450',
-    value: '$4,479,475',
-    pnl: '+134.4%',
-    pnlValue: '+$2,568,475',
-    isPositive: true,
-    allocation: 35,
-  },
-  {
-    id: 2,
-    asset: 'Ethereum',
-    symbol: 'ETH',
-    holdings: '850',
-    avgCost: '$2,100',
-    currentPrice: '$3,250',
-    value: '$2,762,500',
-    pnl: '+54.8%',
-    pnlValue: '+$977,500',
-    isPositive: true,
-    allocation: 22,
-  },
-  {
-    id: 3,
-    asset: 'USDC',
-    symbol: 'USDC',
-    holdings: '2,500,000',
-    avgCost: '$1.00',
-    currentPrice: '$1.00',
-    value: '$2,500,000',
-    pnl: '0%',
-    pnlValue: '$0',
-    isPositive: true,
-    allocation: 20,
-  },
-  {
-    id: 4,
-    asset: 'Solana',
-    symbol: 'SOL',
-    holdings: '5,000',
-    avgCost: '$85',
-    currentPrice: '$185',
-    value: '$925,000',
-    pnl: '+117.6%',
-    pnlValue: '+$500,000',
-    isPositive: true,
-    allocation: 7,
-  },
-  {
-    id: 5,
-    asset: 'Chainlink',
-    symbol: 'LINK',
-    holdings: '25,000',
-    avgCost: '$12',
-    currentPrice: '$22',
-    value: '$550,000',
-    pnl: '+83.3%',
-    pnlValue: '+$250,000',
-    isPositive: true,
-    allocation: 4,
-  },
-];
-
 // Tokenization pipeline
 const tokenizationPipeline = [
   {
@@ -194,11 +126,23 @@ const tokenizationPipeline = [
 
 export default function CryptoAssets() {
   const [selectedTab, setSelectedTab] = useState('stablecoins');
-
-  const totalPortfolioValue = cryptoPositions.reduce((sum, p) => {
-    const value = parseFloat(p.value.replace(/[$,]/g, ''));
-    return sum + value;
-  }, 0);
+  const { data: dbCrypto = [] } = trpc.crypto.list.useQuery();
+  const cryptoPositions = dbCrypto.map((p) => ({
+    id: p.id,
+    asset: p.name,
+    symbol: p.symbol,
+    holdings: String(p.balance),
+    avgCost: p.avgCost ? `$${parseFloat(p.avgCost).toLocaleString()}` : '$0',
+    currentPrice: p.currentPrice ?? `$${p.value}`,
+    value: `$${p.value.toLocaleString()}`,
+    pnl: p.pnl ?? '0%',
+    pnlValue: p.pnlValue ?? '$0',
+    isPositive: true,
+    allocation: p.allocation ?? 0,
+  }));
+  const totalPortfolioValue = dbCrypto.length > 0
+    ? dbCrypto.reduce((sum, p) => sum + p.value, 0)
+    : 11216675; // fallback for empty
 
   return (
     <div className="p-4 md:p-6 space-y-6">

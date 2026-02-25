@@ -71,60 +71,22 @@ function cardStyle(
   rect: TargetRect,
   placement: CardPlacement,
 ): React.CSSProperties {
-  const scrollY = window.scrollY;
-  const scrollX = window.scrollX;
-
   const base: React.CSSProperties = {
-    position: 'absolute',
+    position: 'fixed',
     width: CARD_WIDTH,
     zIndex: 50002,
   };
+  const left = Math.max(8, Math.min(rect.left + rect.width / 2 - CARD_WIDTH / 2, window.innerWidth - CARD_WIDTH - 8));
 
   switch (placement) {
     case 'top':
-      return {
-        ...base,
-        bottom: undefined,
-        top: scrollY + rect.top - CARD_GAP,
-        left:
-          scrollX +
-          Math.max(
-            8,
-            Math.min(
-              rect.left + rect.width / 2 - CARD_WIDTH / 2,
-              window.innerWidth - CARD_WIDTH - 8,
-            ),
-          ),
-        transform: 'translateY(-100%)',
-      };
+      return { ...base, top: rect.top - CARD_GAP, left, transform: 'translateY(-100%)' };
     case 'bottom':
-      return {
-        ...base,
-        top: scrollY + rect.top + rect.height + CARD_GAP,
-        left:
-          scrollX +
-          Math.max(
-            8,
-            Math.min(
-              rect.left + rect.width / 2 - CARD_WIDTH / 2,
-              window.innerWidth - CARD_WIDTH - 8,
-            ),
-          ),
-      };
+      return { ...base, top: rect.top + rect.height + CARD_GAP, left };
     case 'left':
-      return {
-        ...base,
-        top: scrollY + rect.top + rect.height / 2,
-        left: scrollX + rect.left - CARD_WIDTH - CARD_GAP,
-        transform: 'translateY(-50%)',
-      };
+      return { ...base, top: rect.top + rect.height / 2, left: rect.left - CARD_WIDTH - CARD_GAP, transform: 'translateY(-50%)' };
     case 'right':
-      return {
-        ...base,
-        top: scrollY + rect.top + rect.height / 2,
-        left: scrollX + rect.left + rect.width + CARD_GAP,
-        transform: 'translateY(-50%)',
-      };
+      return { ...base, top: rect.top + rect.height / 2, left: rect.left + rect.width + CARD_GAP, transform: 'translateY(-50%)' };
   }
 }
 
@@ -171,7 +133,7 @@ export default function GuidedTour({
 
     const el = document.querySelector(step.targetSelector);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
     }
 
     const measure = () => {
@@ -224,6 +186,22 @@ export default function GuidedTour({
     : 'bottom';
   const progress = ((stepIdx + 1) / steps.length) * 100;
 
+  // Create "hole" in overlay so spotlight area is clickable
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1000;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const pad = SPOTLIGHT_PADDING;
+  const hole = targetRect
+    ? {
+        top: Math.max(0, targetRect.top - pad),
+        left: Math.max(0, targetRect.left - pad),
+        right: Math.min(vw, targetRect.left + targetRect.width + pad),
+        bottom: Math.min(vh, targetRect.top + targetRect.height + pad),
+      }
+    : null;
+
+  // When target not found, show full overlay so UI isn't exposed
+  const showFullOverlay = !targetRect;
+
   return createPortal(
     <div
       style={{
@@ -233,29 +211,87 @@ export default function GuidedTour({
         pointerEvents: 'none',
       }}
     >
-      {/* Full-screen click blocker */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 50000,
-          pointerEvents: 'auto',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      />
+      {/* Overlay: 4 panels with hole when target found; full overlay when target missing */}
+      {showFullOverlay ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50000,
+            pointerEvents: 'auto',
+            backgroundColor: 'rgba(10,22,40,0.6)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <>
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: hole.top,
+              zIndex: 50000,
+              pointerEvents: 'auto',
+              backgroundColor: 'rgba(10,22,40,0.6)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: hole.bottom,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 50000,
+              pointerEvents: 'auto',
+              backgroundColor: 'rgba(10,22,40,0.6)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: hole.top,
+              left: 0,
+              width: hole.left,
+              height: hole.bottom - hole.top,
+              zIndex: 50000,
+              pointerEvents: 'auto',
+              backgroundColor: 'rgba(10,22,40,0.6)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: hole.top,
+              left: hole.right,
+              right: 0,
+              height: hole.bottom - hole.top,
+              zIndex: 50000,
+              pointerEvents: 'auto',
+              backgroundColor: 'rgba(10,22,40,0.6)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </>
+      )}
 
-      {/* Spotlight cutout */}
+      {/* Spotlight cutout - fixed so it stays in viewport when scrolling */}
       {targetRect && (
         <div
           style={{
-            position: 'absolute',
-            top: window.scrollY + targetRect.top - SPOTLIGHT_PADDING,
-            left: window.scrollX + targetRect.left - SPOTLIGHT_PADDING,
+            position: 'fixed',
+            top: targetRect.top - SPOTLIGHT_PADDING,
+            left: targetRect.left - SPOTLIGHT_PADDING,
             width: targetRect.width + SPOTLIGHT_PADDING * 2,
             height: targetRect.height + SPOTLIGHT_PADDING * 2,
             borderRadius: 8,
             boxShadow: `0 0 0 9999px rgba(10,22,40,0.6), 0 0 ${GLOW_SIZE}px ${GLOW_SIZE}px rgba(37,99,235,0.4)`,
-            border: '4px solid #0A1628',
+            border: '4px solid rgba(37,99,235,0.8)',
             zIndex: 50001,
             pointerEvents: 'none',
             transition: 'all 300ms ease',
@@ -263,11 +299,18 @@ export default function GuidedTour({
         />
       )}
 
-      {/* Tour card */}
-      {targetRect && (
+      {/* Tour card - center when target not found */}
+      {(targetRect || showFullOverlay) && (
         <div
           style={{
-            ...cardStyle(targetRect, placement),
+            ...(targetRect ? cardStyle(targetRect, placement) : {
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: CARD_WIDTH,
+              zIndex: 50002,
+            }),
             background: '#fff',
             borderRadius: 12,
             boxShadow: '0 8px 32px rgba(10,22,40,0.25)',
@@ -317,6 +360,11 @@ export default function GuidedTour({
               }}
             >
               {step.title}
+              {showFullOverlay && (
+                <span style={{ fontSize: 12, fontWeight: 400, color: '#888', marginLeft: 8 }}>
+                  (loading…)
+                </span>
+              )}
             </h3>
 
             {/* Description */}
@@ -330,6 +378,23 @@ export default function GuidedTour({
             >
               {step.content}
             </p>
+            {step.interactive && step.actionHint && (
+              <p
+                style={{
+                  margin: '0 0 16px',
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                  color: '#0A1628',
+                  fontWeight: 500,
+                  padding: '8px 12px',
+                  background: 'rgba(196,151,42,0.15)',
+                  borderRadius: 6,
+                  border: '1px solid rgba(196,151,42,0.3)',
+                }}
+              >
+                ✦ {step.actionHint}
+              </p>
+            )}
 
             {/* Navigation */}
             <div

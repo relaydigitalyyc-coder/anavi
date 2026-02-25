@@ -4,11 +4,12 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerAuthRoutes } from "./oauth";
+import { registerVerificationRoutes } from "./verify";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { sql } from "drizzle-orm";
-import { getDb } from "../db";
+import { getDb, seedDefaultNdaTemplate } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -32,6 +33,35 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  // Stripe webhook - raw body required before express.json parser
+  app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+    try {
+      const { stripe } = await import("./stripe");
+      const sig = req.headers["stripe-signature"] as string;
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      if (!webhookSecret) {
+        return res.status(400).json({ error: "Webhook secret not configured" });
+      }
+      const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+
+      switch (event.type) {
+        case "payment_intent.succeeded": {
+          console.log("Payment succeeded:", event.data.object.id);
+          break;
+        }
+        case "transfer.created": {
+          console.log("Transfer created:", event.data.object.id);
+          break;
+        }
+      }
+
+      res.json({ received: true });
+    } catch (err: any) {
+      console.error("Webhook error:", err.message);
+      res.status(400).json({ error: `Webhook Error: ${err.message}` });
+    }
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -52,6 +82,7 @@ async function startServer() {
 
   // Email/password auth routes
   registerAuthRoutes(app);
+  registerVerificationRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",
@@ -73,6 +104,10 @@ async function startServer() {
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
+
+  seedDefaultNdaTemplate().catch((err) =>
+    console.warn("NDA template seed skipped:", err?.message ?? err)
+  );
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);

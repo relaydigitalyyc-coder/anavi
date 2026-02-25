@@ -8,4 +8,17 @@ export const intelligenceRouter = router({
   marketDepth: protectedProcedure.query(async () => {
     return db.getIntelligenceMarketDepth();
   }),
+  dealIntelligence: protectedProcedure.query(async ({ ctx }) => {
+    const deals = await db.getDealsByUser(ctx.user.id);
+    return {
+      totalDeals: deals.length,
+      deals: deals.slice(0, 20).map((d) => ({
+        id: d.id,
+        title: d.title,
+        stage: d.stage,
+        value: d.dealValue,
+        currency: d.currency,
+      })),
+    };
+  }),
 });

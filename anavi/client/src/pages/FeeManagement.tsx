@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { trpc } from "@/lib/trpc";
 
 // Demo fee data
 const feeStats = {
@@ -34,15 +35,6 @@ const feeStructure = {
   hurdle: 8.0,
 };
 
-const recentFees = [
-  { id: 1, type: "Management Fee", source: "Q4 2025 AUM", amount: 1870500, date: "2026-01-15", status: "collected" },
-  { id: 2, type: "Carry", source: "SPV Alpha - Exit", amount: 2125000, date: "2026-01-12", status: "collected" },
-  { id: 3, type: "Transaction Fee", source: "Gold Trade - Swiss Refinery", amount: 487500, date: "2026-01-10", status: "collected" },
-  { id: 4, type: "Finder Fee", source: "Real Estate - 131 W 57th", amount: 712500, date: "2026-01-08", status: "pending" },
-  { id: 5, type: "Management Fee", source: "Q3 2025 AUM", amount: 1650000, date: "2025-12-15", status: "collected" },
-  { id: 6, type: "Transaction Fee", source: "Oil Trade - NNPC", amount: 785000, date: "2025-12-10", status: "collected" },
-];
-
 const partnerPayouts = [
   { id: 1, partner: "Marcus Chen", tier: "partner", share: 15, amount: 283575, status: "paid", date: "2026-01-15" },
   { id: 2, partner: "Elena Rodriguez", tier: "partner", share: 15, amount: 283575, status: "paid", date: "2026-01-15" },
@@ -60,6 +52,7 @@ const monthlyRevenue = [
 ];
 
 export default function FeeManagement() {
+  const { data: recentFees = [] } = trpc.fees.list.useQuery();
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(2)}M`;
@@ -226,7 +219,7 @@ export default function FeeManagement() {
                           <TableCell className="p-4 text-right font-mono font-medium">{formatCurrency(fee.amount)}</TableCell>
                           <TableCell className="p-4 text-right text-sm text-muted-foreground">{fee.date}</TableCell>
                           <TableCell className="p-4 text-right">
-                            {fee.status === "collected" ? (
+                            {String(fee.status) === "collected" ? (
                               <Badge className="bg-green-500/10 text-green-600">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Collected

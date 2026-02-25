@@ -5,16 +5,21 @@ import * as db from "../db";
 
 export const relationshipRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
-    return db.getRelationshipsByOwner(ctx.user.id);
+    const all = await db.getRelationshipsByOwner(ctx.user.id);
+    return all.filter(
+      (rel) =>
+        rel.ownerId === ctx.user.id ||
+        (rel.isBlind === false && rel.consentGiven === true)
+    );
   }),
 
   get: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       const rel = await db.getRelationshipById(input.id);
-      if (!rel || rel.ownerId !== ctx.user.id) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
+      if (!rel) throw new TRPCError({ code: "NOT_FOUND" });
+      if (rel.ownerId === ctx.user.id) return rel;
+      if (rel.isBlind || !rel.consentGiven) throw new TRPCError({ code: "NOT_FOUND" });
       return rel;
     }),
 

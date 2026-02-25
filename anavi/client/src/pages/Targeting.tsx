@@ -561,7 +561,7 @@ export default function Targeting() {
 
       {/* Detail Sheet */}
       <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
-        <SheetContent className="w-[500px] sm:max-w-[500px]">
+        <SheetContent className="w-full sm:w-[500px] sm:max-w-[500px]">
           <SheetHeader>
             <SheetTitle className="text-xl font-serif font-light">
               {detailData?.familyOffice?.name || "Target Details"}

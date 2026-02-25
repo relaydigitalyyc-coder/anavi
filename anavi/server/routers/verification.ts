@@ -43,6 +43,8 @@ export const verificationRouter = router({
         fileKey: input.fileKey,
         status: "pending",
       });
+      const newScore = await db.calculateTrustScore(ctx.user.id);
+      await db.assignBadge(ctx.user.id, newScore);
       return { id };
     }),
 });

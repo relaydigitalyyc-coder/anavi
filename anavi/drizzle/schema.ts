@@ -329,6 +329,9 @@ export const deals = mysqlTable("deals", {
   complianceStatus: mysqlEnum("complianceStatus", ["pending", "cleared", "flagged", "blocked"]).default("pending"),
   complianceNotes: text("complianceNotes"),
   
+  isFollowOn: boolean("isFollowOn").default(false),
+  originalDealId: int("originalDealId"),
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -526,7 +529,7 @@ export const payouts = mysqlTable("payouts", {
   currency: varchar("currency", { length: 8 }).default("USD"),
   
   payoutType: mysqlEnum("payoutType", [
-    "originator_fee", "introducer_fee", "advisor_fee", "milestone_bonus", "success_fee"
+    "originator_fee", "introducer_fee", "advisor_fee", "lifetime_attribution", "milestone_bonus", "success_fee"
   ]).notNull(),
   
   // Attribution
@@ -545,6 +548,7 @@ export const payouts = mysqlTable("payouts", {
   // Payment Details
   paymentMethod: varchar("paymentMethod", { length: 64 }),
   paymentReference: varchar("paymentReference", { length: 255 }),
+  stripeTransferId: varchar("stripeTransferId", { length: 255 }),
   paidAt: timestamp("paidAt"),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -578,6 +582,24 @@ export const auditLog = mysqlTable("audit_log", {
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ============================================================================
+// USER FLAGS (whitelist / blacklist / watchlist)
+// ============================================================================
+
+export const userFlags = mysqlTable("user_flags", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  flagType: mysqlEnum("flagType", ["whitelist", "blacklist", "watchlist"]).notNull(),
+  reason: text("reason"),
+  flaggedBy: int("flaggedBy"),
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserFlag = typeof userFlags.$inferSelect;
+export type InsertUserFlag = typeof userFlags.$inferInsert;
 
 // ============================================================================
 // NOTIFICATIONS
@@ -627,6 +649,43 @@ export type ComplianceCheck = typeof complianceChecks.$inferSelect;
 export type Payout = typeof payouts.$inferSelect;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+
+// ============================================================================
+// ESCROW ACCOUNTS
+// ============================================================================
+
+export const escrowAccounts = mysqlTable("escrow_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  dealId: int("dealId").notNull(),
+  stripeAccountId: varchar("stripeAccountId", { length: 255 }).notNull(),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  fundedAmount: decimal("fundedAmount", { precision: 15, scale: 2 }).default("0.00"),
+  releasedAmount: decimal("releasedAmount", { precision: 15, scale: 2 }).default("0.00"),
+  status: mysqlEnum("status", ["unfunded", "funded", "partially_released", "released", "refunded"]).default("unfunded").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type EscrowAccount = typeof escrowAccounts.$inferSelect;
+export type InsertEscrowAccount = typeof escrowAccounts.$inferInsert;
+
+// ============================================================================
+// NDA TEMPLATES
+// ============================================================================
+
+export const ndaTemplates = mysqlTable("nda_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  jurisdiction: varchar("jurisdiction", { length: 128 }).default("US"),
+  isDefault: boolean("isDefault").default(false),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NdaTemplate = typeof ndaTemplates.$inferSelect;
+export type InsertNdaTemplate = typeof ndaTemplates.$inferInsert;
 
 
 // ============================================================================
@@ -2231,3 +2290,132 @@ export const verificationProofs = mysqlTable("verification_proofs", {
 
 export type VerificationProof = typeof verificationProofs.$inferSelect;
 export type InsertVerificationProof = typeof verificationProofs.$inferInsert;
+
+// ============================================================================
+// OPERATOR INTAKES
+// ============================================================================
+
+export const operatorIntakes = mysqlTable("operator_intakes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+
+  operatorName: varchar("operatorName", { length: 255 }).notNull(),
+  companyName: varchar("companyName", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  phone: varchar("phone", { length: 32 }),
+  linkedIn: varchar("linkedIn", { length: 512 }),
+
+  dealTitle: varchar("dealTitle", { length: 512 }).notNull(),
+  assetClass: varchar("assetClass", { length: 128 }),
+  geography: varchar("geography", { length: 255 }),
+  targetRaise: varchar("targetRaise", { length: 64 }),
+  minimumInvestment: varchar("minimumInvestment", { length: 64 }),
+
+  investmentThesis: text("investmentThesis"),
+  trackRecord: text("trackRecord"),
+  skinInGame: text("skinInGame"),
+  timeline: varchar("timeline", { length: 255 }),
+
+  accreditedOnly: boolean("accreditedOnly").default(false),
+  manualReview: boolean("manualReview").default(false),
+  noAutomation: boolean("noAutomation").default(false),
+
+  status: mysqlEnum("status", ["pending", "in_review", "approved", "rejected"]).default("pending"),
+  reviewNotes: text("reviewNotes"),
+
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OperatorIntake = typeof operatorIntakes.$inferSelect;
+export type InsertOperatorIntake = typeof operatorIntakes.$inferInsert;
+
+// ============================================================================
+// TRADING POSITIONS (GoFi Trading Platform)
+// ============================================================================
+
+export const tradingPositions = mysqlTable("trading_positions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  asset: varchar("asset", { length: 128 }).notNull(),
+  type: mysqlEnum("type", ["long", "short"]).default("long"),
+  entryPrice: decimal("entryPrice", { precision: 18, scale: 4 }).notNull(),
+  currentPrice: decimal("currentPrice", { precision: 18, scale: 4 }).notNull(),
+  quantity: decimal("quantity", { precision: 18, scale: 4 }).notNull(),
+  pnl: decimal("pnl", { precision: 18, scale: 2 }),
+  pnlPercent: decimal("pnlPercent", { precision: 8, scale: 2 }),
+  status: mysqlEnum("status", ["active", "closed"]).default("active"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TradingPosition = typeof tradingPositions.$inferSelect;
+export type InsertTradingPosition = typeof tradingPositions.$inferInsert;
+
+// ============================================================================
+// FEE COLLECTIONS (Fee Management)
+// ============================================================================
+
+export const feeCollections = mysqlTable("fee_collections", {
+  id: int("id").autoincrement().primaryKey(),
+  type: varchar("type", { length: 64 }).notNull(),
+  source: varchar("source", { length: 255 }),
+  amount: decimal("amount", { precision: 18, scale: 2 }).notNull(),
+  date: varchar("date", { length: 16 }),
+  status: mysqlEnum("status", ["pending", "collected"]).default("pending"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type FeeCollection = typeof feeCollections.$inferSelect;
+export type InsertFeeCollection = typeof feeCollections.$inferInsert;
+
+// ============================================================================
+// NETWORK MEMBERS (Member Onboarding)
+// ============================================================================
+
+export const networkMembers = mysqlTable("network_members", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  status: mysqlEnum("status", ["pending", "active"]).default("pending"),
+  tier: mysqlEnum("tier", ["basic", "premium", "partner"]).default("basic"),
+  industry: varchar("industry", { length: 128 }),
+  allocatedCapital: decimal("allocatedCapital", { precision: 18, scale: 2 }).default("0"),
+  deployedCapital: decimal("deployedCapital", { precision: 18, scale: 2 }).default("0"),
+  totalReturns: decimal("totalReturns", { precision: 18, scale: 2 }).default("0"),
+  returnPercent: decimal("returnPercent", { precision: 8, scale: 2 }).default("0"),
+  joinDate: varchar("joinDate", { length: 16 }),
+  expertise: json("expertise").$type<string[]>(),
+  connections: json("connections").$type<string[]>(),
+  contributionScore: int("contributionScore").default(0),
+  referrals: int("referrals").default(0),
+  verified: boolean("verified").default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NetworkMember = typeof networkMembers.$inferSelect;
+export type InsertNetworkMember = typeof networkMembers.$inferInsert;
+
+// ============================================================================
+// CRYPTO ASSETS (Crypto & Stablecoin Assets)
+// ============================================================================
+
+export const cryptoAssets = mysqlTable("crypto_assets", {
+  id: int("id").autoincrement().primaryKey(),
+  symbol: varchar("symbol", { length: 32 }).notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  balance: decimal("balance", { precision: 24, scale: 8 }).default("0"),
+  value: decimal("value", { precision: 18, scale: 2 }).default("0"),
+  avgCost: decimal("avgCost", { precision: 18, scale: 4 }),
+  currentPrice: varchar("currentPrice", { length: 32 }),
+  pnl: varchar("pnl", { length: 32 }),
+  pnlValue: varchar("pnlValue", { length: 32 }),
+  allocation: int("allocation"),
+  type: mysqlEnum("type", ["crypto", "stablecoin", "tokenization"]).default("crypto"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CryptoAsset = typeof cryptoAssets.$inferSelect;
+export type InsertCryptoAsset = typeof cryptoAssets.$inferInsert;

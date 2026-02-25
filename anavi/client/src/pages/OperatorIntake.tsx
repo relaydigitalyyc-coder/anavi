@@ -66,7 +66,7 @@ export default function OperatorIntake() {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const submitMutation = trpc.ai.chat.useMutation({
+  const submitMutation = trpc.operatorIntake.submit.useMutation({
     onSuccess: () => {
       setIsSubmitted(true);
       toast.success("Submission Received", {
@@ -85,10 +85,23 @@ export default function OperatorIntake() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     submitMutation.mutate({
-      messages: [{
-        role: 'user',
-        content: `OPERATOR INTAKE SUBMISSION:\n${JSON.stringify(formData, null, 2)}`,
-      }],
+      operatorName: formData.operatorName,
+      companyName: formData.companyName,
+      email: formData.email,
+      phone: formData.phone || undefined,
+      linkedIn: formData.linkedIn || undefined,
+      dealTitle: formData.dealTitle,
+      assetClass: formData.assetClass || undefined,
+      geography: formData.geography || undefined,
+      targetRaise: formData.targetRaise || undefined,
+      minimumInvestment: formData.minimumInvestment || undefined,
+      investmentThesis: formData.investmentThesis || undefined,
+      trackRecord: formData.trackRecord || undefined,
+      skinInGame: formData.skinInGame || undefined,
+      timeline: formData.timeline || undefined,
+      accreditedOnly: formData.accreditedOnly,
+      manualReview: formData.manualReview,
+      noAutomation: formData.noAutomation,
     });
   };
 
