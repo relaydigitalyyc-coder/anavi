@@ -57,6 +57,59 @@ export const onboardingTour: TourStep[] = [
   },
 ];
 
+import type { PersonaKey } from "@/lib/copy";
+import { TOUR } from "@/lib/copy";
+
+/** Whitepaper-aligned persona-aware tour steps for the demo experience. */
+export function buildDemoTourSteps(persona: PersonaKey): TourStep[] {
+  return [
+    {
+      targetSelector: '[data-tour="trust-score"]',
+      title: TOUR.trustScore.title,
+      content: TOUR.trustScore.body,
+      position: "bottom",
+    },
+    {
+      targetSelector: '[data-tour="relationships"]',
+      title: TOUR.relationships[persona].title,
+      content: TOUR.relationships[persona].body,
+      position: "right",
+    },
+    {
+      targetSelector: '[data-tour="match-card"]',
+      title: TOUR.blindMatch.title,
+      content: TOUR.blindMatch.body,
+      position: "bottom",
+    },
+    {
+      targetSelector: '[data-tour="deal-room"]',
+      title: TOUR.dealRoom.title,
+      content: TOUR.dealRoom.body,
+      position: "top",
+      interactive: true,
+      actionHint: "Enter the deal room to see the full audit trail.",
+    },
+    {
+      targetSelector: '[data-tour="payout"]',
+      title: TOUR.attribution[persona].title,
+      content: TOUR.attribution[persona].body,
+      position: "top",
+    },
+    {
+      targetSelector: '[data-tour="verification"]',
+      title: TOUR.compliance.title,
+      content: TOUR.compliance.body,
+      position: "right",
+    },
+    {
+      targetSelector: '[data-tour="apply"]',
+      title: TOUR.close.headline,
+      content: TOUR.close.subhead,
+      position: "bottom",
+    },
+  ];
+}
+
 export const demoTour: TourStep[] = [
   {
     targetSelector: '[data-tour="demo-nav"]',

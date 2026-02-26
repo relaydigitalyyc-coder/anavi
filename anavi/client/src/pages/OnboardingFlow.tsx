@@ -17,6 +17,7 @@ import {
   Eye,
 } from "lucide-react";
 import FVMCelebration from "@/components/FVMCelebration";
+import { CustodyReceipt as CustodyReceiptModal } from "@/components/CustodyReceipt";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -88,39 +89,39 @@ const PERSONAS: PersonaTile[] = [
 
 const STEPS: Record<Persona, StepDef[]> = {
   originator: [
-    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority \u2014 the foundation of relationship custody." },
-    { name: "Business Profile", minutes: 2, benefit: "Your deal profile enables precise AI matching." },
-    { name: "First Relationship", minutes: 3, benefit: "Upload your first relationship and receive a custody receipt." },
-    { name: "Upgrade Prompt", minutes: 2, benefit: "Unlock enhanced verification and priority matching." },
-    { name: "Dashboard Intro", minutes: 1, benefit: "You\u2019re ready to operate." },
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Business Profile", minutes: 2, benefit: "Your deal profile enables AI matching against $13T in private market deal flow." },
+    { name: "First Relationship", minutes: 3, benefit: "Upload your first relationship. Receive a custody receipt — your timestamped, signed attribution claim." },
+    { name: "Upgrade Prompt", minutes: 2, benefit: "Tier 2 unlocks whitelist status: enhanced verification, priority matching, and institutional counterparty access." },
+    { name: "Dashboard Intro", minutes: 1, benefit: "Your operating system is ready. Every introduction you make from here is custodied." },
   ],
   investor: [
-    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority \u2014 the foundation of relationship custody." },
-    { name: "Investment Profile", minutes: 4, benefit: "Defines your investment thesis for AI-powered matching." },
-    { name: "KYB / KYC", minutes: 4, benefit: "Compliance verification unlocks premium deal flow." },
-    { name: "First Intent", minutes: 2, benefit: "Broadcast your investment intent to verified counterparties." },
-    { name: "Market Depth", minutes: 1, benefit: "See the depth of opportunities waiting for you." },
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Investment Profile", minutes: 4, benefit: "Defines your investment thesis. ANAVI's matching engine runs on this intent — anonymized, sealed, and matched against verified counterparties only." },
+    { name: "KYB / KYC", minutes: 4, benefit: "Your compliance passport. It travels with every deal you touch — so counterparties never have to run their own check on you." },
+    { name: "First Intent", minutes: 2, benefit: "Broadcast your investment intent to verified counterparties — anonymized until mutual consent." },
+    { name: "Market Depth", minutes: 1, benefit: "See the depth of opportunities waiting for your capital." },
   ],
   developer: [
-    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority \u2014 the foundation of relationship custody." },
-    { name: "Project Profile", minutes: 4, benefit: "Position your project for qualified capital matches." },
-    { name: "Verification", minutes: 3, benefit: "Verified projects receive 3\u00d7 more investor engagement." },
-    { name: "Capital Intent", minutes: 2, benefit: "Signal your capital needs to qualified investors." },
-    { name: "Blind Matching", minutes: 1, benefit: "See how blind matching protects your competitive position." },
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Project Profile", minutes: 4, benefit: "Your raise profile, sealed. Matched to qualified capital without disclosing your identity until you consent." },
+    { name: "Verification", minutes: 3, benefit: "KYB verified, OFAC clean, accredited confirmed — your compliance passport travels with every transaction." },
+    { name: "Capital Intent", minutes: 2, benefit: "Signal your raise to qualified investors — anonymous until you authorize disclosure." },
+    { name: "Blind Matching", minutes: 1, benefit: "Your thesis, protected until the moment you choose to disclose it." },
   ],
   allocator: [
-    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority \u2014 the foundation of relationship custody." },
-    { name: "Fund Profile", minutes: 4, benefit: "Your fund mandate drives systematic deal matching." },
-    { name: "Compliance", minutes: 4, benefit: "Regulatory alignment enables institutional-grade deal flow." },
-    { name: "First Allocation", minutes: 2, benefit: "Define your first allocation target." },
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Fund Profile", minutes: 4, benefit: "Your fund mandate drives systematic deal matching against verified counterparties only." },
+    { name: "Compliance", minutes: 4, benefit: "Your compliance passport enables institutional-grade deal flow without duplicated due diligence." },
+    { name: "First Allocation", minutes: 2, benefit: "Define your first allocation target — matched against verified operators, blind until consent." },
     { name: "Pipeline Preview", minutes: 1, benefit: "See the institutional pipeline awaiting your capital." },
   ],
   acquirer: [
-    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority \u2014 the foundation of relationship custody." },
-    { name: "Acquisition Profile", minutes: 4, benefit: "Define your acquisition thesis for confidential matching." },
-    { name: "Due Diligence", minutes: 3, benefit: "Pre-configure your DD requirements to accelerate deals." },
-    { name: "First Target Intent", minutes: 2, benefit: "Signal your acquisition interest to verified sellers." },
-    { name: "Target Pipeline", minutes: 1, benefit: "Preview acquisition targets matching your criteria." },
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Acquisition Profile", minutes: 4, benefit: "Define your acquisition thesis for confidential matching — your intent stays sealed until mutual consent." },
+    { name: "Due Diligence", minutes: 3, benefit: "Pre-configure your compliance requirements. Share them once — access them everywhere on ANAVI." },
+    { name: "First Target Intent", minutes: 2, benefit: "Signal your acquisition interest to verified sellers — anonymized until both parties consent." },
+    { name: "Target Pipeline", minutes: 1, benefit: "Preview acquisition targets matching your criteria — every counterparty pre-verified." },
   ],
 };
 
@@ -860,6 +861,12 @@ export default function OnboardingFlow() {
   const [showFVM, setShowFVM] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showIntentResult, setShowIntentResult] = useState(false);
+  const [custodyReceiptPayload, setCustodyReceiptPayload] = useState<{
+    relationshipName: string;
+    timestamp: string;
+    hash: string;
+    trustDelta: number;
+  } | null>(null);
 
   useEffect(() => { document.title = "Onboarding | ANAVI"; }, []);
 
@@ -892,6 +899,12 @@ export default function OnboardingFlow() {
     // FVM triggers
     if (persona === "originator" && step === 2 && !showReceipt) {
       setShowReceipt(true);
+      setCustodyReceiptPayload({
+        relationshipName: (formData.relType as string) ? `${formData.relType as string} Relationship` : "New Relationship",
+        timestamp: new Date().toISOString(),
+        hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
+        trustDelta: 12,
+      });
       setShowFVM(true);
       return;
     }
@@ -1041,6 +1054,20 @@ export default function OnboardingFlow() {
           icon={<Lock className="h-8 w-8 text-[#059669]" />}
         />
       )}
+
+      {/* Full-screen custody receipt — fires after FVM dismisses */}
+      <AnimatePresence>
+        {!showFVM && custodyReceiptPayload && (
+          <CustodyReceiptModal
+            {...custodyReceiptPayload}
+            onContinue={() => {
+              setCustodyReceiptPayload(null);
+              setStep((s) => s + 1);
+              setShowReceipt(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Header */}
       <header className="glass-dark sticky top-0 z-20 px-6 py-5">

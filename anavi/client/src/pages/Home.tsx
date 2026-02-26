@@ -12,10 +12,13 @@ import {
   Sparkles,
   Brain,
   Zap,
-  Play
+  Play,
+  Handshake,
 } from "lucide-react";
 import { Link } from "wouter";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { PROBLEMS, PERSONAS, PLATFORM } from "@/lib/copy";
+import { PersonaPicker } from "@/components/PersonaPicker";
 import {
   AnimatedCounter,
   Magnetic,
@@ -42,6 +45,7 @@ import {
 
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
@@ -94,23 +98,22 @@ export default function Home() {
                 </motion.a>
               ))}
             </div>
-            <Link href="/dashboard">
-              <Magnetic strength={0.15}>
-                <motion.button
-                  className="relative bg-[#C4972A] text-[#060A12] px-5 md:px-8 py-2.5 md:py-3 text-xs md:text-sm font-semibold overflow-hidden group"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <motion.span
-                    className="absolute inset-0 bg-accent"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <span className="relative z-10 group-hover:text-foreground transition-colors">Enter Demo</span>
-                </motion.button>
-              </Magnetic>
-            </Link>
+            <Magnetic strength={0.15}>
+              <motion.button
+                onClick={() => setPickerOpen(true)}
+                className="relative bg-[#C4972A] text-[#060A12] px-5 md:px-8 py-2.5 md:py-3 text-xs md:text-sm font-semibold overflow-hidden group cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <motion.span
+                  className="absolute inset-0 bg-accent"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <span className="relative z-10 group-hover:text-foreground transition-colors">Enter Demo</span>
+              </motion.button>
+            </Magnetic>
           </div>
         </div>
       </motion.nav>
@@ -234,27 +237,26 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 }}
               >
-                <Link href="/dashboard">
-                  <Magnetic strength={0.2}>
-                    <GlowingBorder>
-                      <motion.button
-                        className="w-full sm:w-auto bg-foreground text-background px-8 md:px-12 py-5 md:py-6 text-sm uppercase tracking-widest flex items-center justify-center gap-4 group"
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.97 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                <Magnetic strength={0.2}>
+                  <GlowingBorder>
+                    <motion.button
+                      onClick={() => setPickerOpen(true)}
+                      className="w-full sm:w-auto bg-foreground text-background px-8 md:px-12 py-5 md:py-6 text-sm uppercase tracking-widest flex items-center justify-center gap-4 group cursor-pointer"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    >
+                      <span>Enter Demo</span>
+                      <motion.span
+                        className="inline-block"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
                       >
-                        <span>Enter Demo</span>
-                        <motion.span
-                          className="inline-block"
-                          animate={{ x: [0, 5, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          <ArrowRight className="w-5 h-5" />
-                        </motion.span>
-                      </motion.button>
-                    </GlowingBorder>
-                  </Magnetic>
-                </Link>
+                        <ArrowRight className="w-5 h-5" />
+                      </motion.span>
+                    </motion.button>
+                  </GlowingBorder>
+                </Magnetic>
                 <Link href="/deal-intelligence">
                   <motion.button
                     className="w-full sm:w-auto border border-border px-8 md:px-10 py-5 md:py-6 text-sm uppercase tracking-widest hover:bg-accent/10 hover:border-accent/50 transition-all duration-300 flex items-center justify-center gap-3 group"
@@ -392,6 +394,145 @@ export default function Home() {
             ))}
           </span>
         </Marquee>
+      </section>
+
+      {/* The Problem */}
+      <section className="py-20 md:py-32 bg-canvas-deep relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <SmoothReveal>
+            <div className="text-center mb-16 md:mb-24">
+              <p className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-4">The Problem</p>
+              <h2 className="text-5xl md:text-7xl font-serif">
+                <SplitText>Private Markets Are Broken</SplitText>
+              </h2>
+            </div>
+          </SmoothReveal>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {[PROBLEMS.brokerChain, PROBLEMS.fraud, PROBLEMS.dueDiligence].map((p, i) => (
+              <SmoothReveal key={i} delay={i * 0.15}>
+                <motion.div
+                  className="glass-dark p-8 md:p-10 relative overflow-hidden group"
+                  whileHover={{ y: -4 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <div
+                    className="text-6xl md:text-7xl font-serif text-white/10 mb-4 group-hover:text-white/20 transition-colors duration-500"
+                    style={{ WebkitTextStroke: "1px oklch(0.65 0.19 230 / 0.3)" }}
+                  >
+                    {p.stat}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-4">{p.headline}</h3>
+                  <p className="text-sm text-white/50 leading-relaxed">{p.body}</p>
+                </motion.div>
+              </SmoothReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* The Three Roles */}
+      <section className="py-20 md:py-40 bg-canvas-mid relative overflow-hidden">
+        <LiquidGradient className="opacity-20" />
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+          <SmoothReveal>
+            <div className="text-center mb-16 md:mb-24">
+              <p className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-4">Who It's For</p>
+              <h2 className="text-5xl md:text-7xl font-serif">
+                <SplitText>Three Roles. One Operating System.</SplitText>
+              </h2>
+            </div>
+          </SmoothReveal>
+          <div className="space-y-16 md:space-y-32">
+            {(Object.entries(PERSONAS) as [keyof typeof PERSONAS, typeof PERSONAS[keyof typeof PERSONAS]][]).map(([key, p], i) => (
+              <SmoothReveal key={key} delay={i * 0.1}>
+                <motion.div
+                  className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${i % 2 === 1 ? 'lg:grid-flow-dense' : ''}`}
+                >
+                  <div className={i % 2 === 1 ? 'lg:col-start-2' : ''}>
+                    <p className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-3">{p.role}</p>
+                    <h3 className="text-4xl md:text-5xl font-serif text-white mb-6">{p.label}</h3>
+                    <p className="text-lg text-white/40 italic mb-6">"{p.problem}"</p>
+                    <div className="h-px bg-gradient-to-r from-sky-500/50 to-transparent mb-6" />
+                    <p className="text-base text-white/70 leading-relaxed">{p.answer}</p>
+                  </div>
+                  <div className={`glass-dark rounded-xl p-8 border border-white/10 ${i % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}`}>
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="w-2 h-2 rounded-full bg-[#22D4F5] animate-pulse" />
+                      <span className="text-xs uppercase tracking-widest text-white/40">
+                        {key === 'originator' ? 'Custody Register' : key === 'investor' ? 'Blind Match' : 'Deal Room'}
+                      </span>
+                    </div>
+                    {key === 'originator' && (
+                      <div className="space-y-3">
+                        {[
+                          { name: "Ahmad Al-Rashid", tag: "Gulf Sovereign Wealth", score: 91, age: "14 months" },
+                          { name: "Sarah Chen", tag: "Pacific Family Office", score: 88, age: "8 months" },
+                          { name: "Meridian Group", tag: "Private Equity", score: 76, age: "3 months" },
+                        ].map((r) => (
+                          <div key={r.name} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                            <div>
+                              <p className="text-sm font-medium text-white">{r.name}</p>
+                              <p className="text-xs text-white/40">{r.tag} · Custodied {r.age}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-xs font-mono text-[#22D4F5]">Trust {r.score}</div>
+                              <div className="text-xs text-[#C4972A]">Attribution Active</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {key === 'investor' && (
+                      <div className="space-y-3">
+                        {[
+                          { tag: "Solar Infrastructure", size: "$47M", score: 94 },
+                          { tag: "Gulf Coast Commodity", size: "$12M", score: 88 },
+                          { tag: "PropTech Series B", size: "$8M", score: 82 },
+                        ].map((m, mi) => (
+                          <div key={mi} className="p-3 bg-white/5 rounded-lg border border-white/10">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs uppercase tracking-wider text-[#22D4F5]">Match #{mi + 1}</span>
+                              <span className="text-xs font-mono text-white/40">Identity Sealed</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-white/70">{m.tag} · {m.size}</span>
+                              <span className="text-xs bg-[#22D4F5]/10 text-[#22D4F5] px-2 py-0.5 rounded">Score {m.score}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {key === 'developer' && (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-white/60">Riyadh Solar JV</span>
+                          <span className="text-xs bg-[#059669]/10 text-[#059669] px-2 py-0.5 rounded">NDA Active</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs text-white/40">
+                            <span>Raise Progress</span>
+                            <span>$12M / $30M</span>
+                          </div>
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full bg-gradient-to-r from-sky-500 to-sky-400 rounded-full"
+                              initial={{ width: 0 }}
+                              whileInView={{ width: "40%" }}
+                              transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
+                              viewport={{ once: true }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-xs text-white/40">3 qualified investors matched · Identity sealed</div>
+                        <div className="text-xs text-[#22D4F5]">Audit trail: 47 events · OFAC clean · KYB verified</div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </SmoothReveal>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Stats Section */}
@@ -786,32 +927,31 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 md:px-8 text-center relative z-10">
           <SmoothReveal>
             <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif mb-8 md:mb-12 leading-[0.95]">
-              Ready to Transform Your<br />
-              <GradientText>Deal Flow?</GradientText>
+              The Private Market<br />
+              <GradientText>Operating System.</GradientText>
             </h2>
             <p className="text-lg md:text-xl text-white/60 mb-12 md:mb-16 max-w-2xl mx-auto leading-relaxed">
-              Join the private market operating system trusted by family offices,
-              venture capitalists, and deal makers worldwide.
+              Every relationship custodied. Every introduction attributed. Every deal closed on
+              infrastructure purpose-built for the {PLATFORM.market}.
             </p>
-            <Link href="/dashboard">
-              <Magnetic strength={0.2}>
-                <GlowingBorder>
-                  <motion.button
-                    className="bg-foreground text-background px-10 md:px-16 py-5 md:py-7 text-sm uppercase tracking-widest inline-flex items-center gap-4 group"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+            <Magnetic strength={0.2}>
+              <GlowingBorder>
+                <motion.button
+                  onClick={() => setPickerOpen(true)}
+                  className="bg-foreground text-background px-10 md:px-16 py-5 md:py-7 text-sm uppercase tracking-widest inline-flex items-center gap-4 group cursor-pointer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span>Enter Demo</span>
+                  <motion.span
+                    animate={{ x: [0, 8, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
                   >
-                    <span>Enter Demo</span>
-                    <motion.span
-                      animate={{ x: [0, 8, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </motion.span>
-                  </motion.button>
-                </GlowingBorder>
-              </Magnetic>
-            </Link>
+                    <ArrowRight className="w-5 h-5" />
+                  </motion.span>
+                </motion.button>
+              </GlowingBorder>
+            </Magnetic>
           </SmoothReveal>
         </div>
       </section>
@@ -889,6 +1029,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Persona Picker Overlay — mounts when pickerOpen=true */}
+      {pickerOpen && <PersonaPicker onClose={() => setPickerOpen(false)} />}
     </div>
   );
 }

@@ -1,9 +1,11 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
 import { trpc } from "@/lib/trpc";
+import { useDemoFixtures } from "@/contexts/DemoContext";
 import { formatDistanceToNow } from "date-fns";
 import {
   FileText,
+  Lock,
   Shield,
   Target,
   TrendingUp,
@@ -233,7 +235,8 @@ function MarketDepthBar({ label, value, max, index = 0 }: { label: string; value
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const demo = useDemoFixtures();
+  const { user: liveUser } = useAuth();
   const [welcomePersona, setWelcomePersona] = useState<string | null>(() => {
     try {
       const raw = localStorage.getItem("anavi_onboarding");
@@ -252,17 +255,30 @@ export default function Dashboard() {
     setWelcomePersona(null);
   }, []);
 
-  const { data: stats, isLoading: statsLoading } = trpc.user.getStats.useQuery();
-  const { data: notificationsData, isLoading: notificationsLoading } = trpc.notification.list.useQuery({
-    limit: 10,
-  });
-  const { data: payouts } = trpc.payout.list.useQuery();
+  const user = demo ? demo.user : liveUser;
+
+  const { data: stats, isLoading: statsLoading } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const { data: notificationsData, isLoading: notificationsLoading } = trpc.notification.list.useQuery(
+    { limit: 10 },
+    { enabled: !demo },
+  );
+  const { data: payouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
 
   useEffect(() => { document.title = "Dashboard | ANAVI"; }, []);
 
-  const loading = statsLoading || notificationsLoading;
-  const notifications = notificationsData ?? [];
-  const rawScore = Number(stats?.trustScore ?? 0);
+  const loading = demo ? false : (statsLoading || notificationsLoading);
+
+  // Demo notifications have a slightly different shape — normalize here
+  const demoNotifications = demo?.notifications.map((n) => ({
+    id: String(n.id),
+    type: n.type,
+    title: n.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    message: n.message,
+    createdAt: new Date().toISOString(),
+  }));
+  const notifications = demoNotifications ?? notificationsData ?? [];
+
+  const rawScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
   const trustScore = rawScore > 100 ? rawScore / 10 : rawScore;
   const scoreColor = getScoreColor(trustScore);
   const maxDepth = Math.max(...MARKET_DEPTH.map((m) => Math.max(m.buyers, m.sellers)));
@@ -303,7 +319,7 @@ export default function Dashboard() {
           {/* Trust Score Widget — E11: clickable */}
           <StaggerItem>
             <Link href="/verification">
-              <div data-tour-id="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
+              <div data-tour="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
                 <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
                   Trust Score
                 </h3>
@@ -349,6 +365,7 @@ export default function Dashboard() {
               </Link>
               <Link href="/relationships">
                 <button
+                  data-tour="relationships"
                   className="w-full rounded-lg bg-[#C4972A] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#C4972A]/90 active:scale-[0.97]"
                   onClick={() => toast.success("Navigating to Relationships")}
                 >
@@ -366,6 +383,86 @@ export default function Dashboard() {
 
         {/* ───────── Center Column ───────── */}
         <FadeInView delay={0.1}>
+          {/* Demo: Blind Match Cards */}
+          {demo && (demo.matches as unknown as unknown[]).length > 0 && (
+            <div className="mb-6">
+              <h2 className="mb-3 dash-heading text-xl">Blind Matches</h2>
+              <StaggerContainer className="space-y-3">
+                {(demo.matches as unknown as ReadonlyArray<{ id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string }>).map((m, idx) => (
+                  <StaggerItem key={m.id}>
+                    <div
+                      data-tour={idx === 0 ? "match-card" : undefined}
+                      className="card-elevated border-l-4 border-l-[#C4972A] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <span className="rounded-full bg-[#C4972A]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C4972A]">
+                          MATCH
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Lock className="h-3 w-3 text-[#1E3A5F]/40" />
+                          <span className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/40">Sealed</span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628] mb-2">{m.tag}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.assetClass}</span>
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.dealSize}</span>
+                        <span
+                          className="ml-auto font-data-hud text-sm font-bold"
+                          style={{ color: m.compatibilityScore >= 90 ? "#059669" : "#C4972A" }}
+                        >
+                          {m.compatibilityScore}% match
+                        </span>
+                      </div>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          )}
+
+          {/* Demo: Deal Rooms */}
+          {demo && (demo.dealRooms as unknown as unknown[]).length > 0 && (
+            <div className="mb-6">
+              <h2 className="mb-3 dash-heading text-xl">Deal Rooms</h2>
+              <StaggerContainer className="space-y-3">
+                {(demo.dealRooms as unknown as ReadonlyArray<{ id: number; name: string; stage: string; counterparty: string; escrowProgress: number }>).map((dr, idx) => (
+                  <StaggerItem key={dr.id}>
+                    <div
+                      data-tour={idx === 0 ? "deal-room" : undefined}
+                      className="card-elevated border-l-4 border-l-[#2563EB] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-[#0A1628]">{dr.name}</p>
+                        <span className="rounded-full bg-[#2563EB]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+                          {dr.stage}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#1E3A5F]/60 mb-3">{dr.counterparty}</p>
+                      <div className="mb-2">
+                        <div className="flex justify-between text-[10px] text-[#1E3A5F]/50 mb-1">
+                          <span>Escrow</span>
+                          <span>{dr.escrowProgress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#0A1628]/6">
+                          <div
+                            className="h-full rounded-full bg-[#059669]"
+                            style={{ width: `${dr.escrowProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <Link href="/deal-rooms">
+                        <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:text-[#2563EB]/80 uppercase tracking-wider transition-colors">
+                          Enter Deal Room →
+                        </button>
+                      </Link>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          )}
+
           <h2 className="mb-4 dash-heading text-2xl">Activity</h2>
 
           {notifications.length > 0 ? (
@@ -437,6 +534,7 @@ export default function Dashboard() {
 
           {/* E14: Pending Actions with badges */}
           <StaggerItem>
+            <div data-tour="verification">
             <DashCard title="Pending Actions">
               <div className="space-y-3">
                 {PENDING_ACTIONS.map((a) => (
@@ -452,10 +550,12 @@ export default function Dashboard() {
                 ))}
               </div>
             </DashCard>
+            </div>
           </StaggerItem>
 
           {/* Recent Payouts */}
           <StaggerItem>
+            <div data-tour="payout">
             <DashCard title="Recent Payouts">
               <p className="mb-3 text-lg font-bold text-[#0A1628]">
                 Next Payout:{" "}
@@ -463,7 +563,38 @@ export default function Dashboard() {
                   $<SmoothCounter value={92000} prefix="" duration={1.2} />
                 </span>
               </p>
-              {payouts && payouts.length > 0 ? (
+              {demo ? (
+                (demo.payouts as unknown as unknown[]).length > 0 ? (
+                  <div className="space-y-2">
+                    {(demo.payouts as unknown as ReadonlyArray<{ id: number; deal: string; amount: number; status: string }>).map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                      >
+                        <div>
+                          <span className="font-semibold text-[#0A1628]">
+                            ${p.amount.toLocaleString()}
+                          </span>
+                          <span className="ml-2 text-xs text-[#1E3A5F]/60">{p.deal}</span>
+                        </div>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            p.status === "triggered" || p.status === "deployed"
+                              ? "bg-[#059669]/15 text-[#059669]"
+                              : p.status === "pending" || p.status === "fundraising"
+                                ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                                : "bg-[#2563EB]/15 text-[#2563EB]"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState {...EMPTY_STATES.payouts} />
+                )
+              ) : payouts && payouts.length > 0 ? (
                 <div className="space-y-2">
                   {payouts.slice(0, 3).map((p) => (
                     <div
@@ -496,9 +627,25 @@ export default function Dashboard() {
                 <EmptyState {...EMPTY_STATES.payouts} />
               )}
             </DashCard>
+            </div>
           </StaggerItem>
         </StaggerContainer>
       </div>
+
+      {/* Apply CTA — tour target + demo conversion path */}
+      <FadeInView delay={0.3}>
+        <div data-tour="apply" className="mt-8 flex justify-center">
+          <Link href="/onboarding">
+            <motion.button
+              className="px-8 py-3 border border-[#C4972A]/40 text-[#C4972A] text-sm uppercase tracking-widest font-semibold hover:bg-[#C4972A]/5 transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Request Full Access
+            </motion.button>
+          </Link>
+        </div>
+      </FadeInView>
     </>
   );
 }
