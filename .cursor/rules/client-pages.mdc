@@ -1,0 +1,48 @@
+---
+description: Client pages, tRPC usage, routing, and UI patterns
+globs: anavi/client/src/**/*.tsx
+alwaysApply: false
+---
+
+# Client: Pages & Data
+
+## Data Fetching
+
+```tsx
+import { trpc } from "@/lib/trpc";
+const { data, isLoading } = trpc.router.proc.useQuery(...);
+const mutation = trpc.router.proc.useMutation({ onSuccess: () => utils.router.proc.invalidate() });
+```
+
+- Invalidations: `const utils = trpc.useUtils();`
+- Loading/error/empty: `useQueryPage(trpc.x.useQuery(...))` → `{ data, isLoading, isError, isEmpty, isReady }`
+
+## Adding a Page
+
+1. Create `anavi/client/src/pages/MyPage.tsx` — return content div only, no DashboardLayout wrapper.
+2. Register in `App.tsx`: `<Route path="/my-page"><ShellRoute component={MyPage} /></Route>`.
+3. Add to `navItems` in `DashboardLayout.tsx` if it belongs in sidebar.
+
+## Route Rules
+
+- **ShellRoute**: all main app pages. Provides auth + DashboardLayout + PageTransition. Pages MUST NOT render DashboardLayout.
+- **ProtectedPage**: full-screen flows only (Onboarding).
+
+## Sidebar Navigation
+
+Edit `navItems` array at top of `DashboardLayout.tsx` to add/remove sidebar links. Mobile nav is `mobileNavItems` (separate array, same file).
+
+## UI Toolkit
+
+| Need | Use |
+|------|-----|
+| Primitives | `@/components/ui/*` (Card, Button, Dialog, Tabs, Badge, Table, etc.) |
+| Icons | `lucide-react` |
+| Motion | `framer-motion` (`motion.div`, `AnimatePresence`) |
+| Toast | `sonner` via `toast.success(...)` / `toast.error(...)` |
+| Date | `date-fns` |
+
+## Data Backing
+
+- **tRPC-backed**: Dashboard, Relationships, Intents, Matches, Deals, DealRooms, Payouts, Verification, FamilyOffices, Targeting, Calendar, Analytics, AuditLogs, Intelligence, RealEstate, LPPortal, AIBrain.
+- **Demo/mock**: Commodities, TransactionMatching, CapitalManagement, TradingPlatform, CryptoAssets, MemberOnboarding, FeeManagement. Wire to tRPC when adding real features.

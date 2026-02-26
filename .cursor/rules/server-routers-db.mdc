@@ -1,0 +1,54 @@
+---
+description: How to add routers, db functions, and API procedures
+globs: anavi/server/**/*.ts
+alwaysApply: false
+---
+
+# Server: Routers & DB
+
+## Adding a Feature (end-to-end)
+
+1. **DB**: Add function in `db/<domain>.ts` (e.g., `db/deals.ts`). Import `getDb` from `./connection` and schema tables.
+2. **Router**: Add procedure in `routers/<domain>.ts`. Import from `../_core/trpc`, `../db`, `zod`.
+3. **Index**: If new router file, import and add to `appRouter` in `routers/index.ts`.
+4. **Client**: Call via `trpc.<router>.<proc>.useQuery(...)` or `.useMutation(...)`.
+
+## DB Module Structure (`server/db/`)
+
+| Module | Contents |
+|--------|----------|
+| `connection.ts` | `getDb()` singleton |
+| `users.ts` | User CRUD, profiles, trust scores |
+| `relationships.ts` | Relationships + contact handles |
+| `intents.ts` | Intents + intelligence queries |
+| `matches.ts` | Match CRUD |
+| `deals.ts` | Deals + deal rooms + documents + search |
+| `compliance.ts` | Compliance checks |
+| `payouts.ts` | Payout CRUD + triggers |
+| `audit.ts` | Hash-chained audit log |
+| `notifications.ts` | Notifications, verification docs, peer reviews, stats |
+| `familyOffices.ts` | FOs, investors, targeting, activities, social, broker contacts, news |
+| `enrichment.ts` | Data enrichment |
+| `calendar.ts` | Calendar connections, events, reminders |
+| `analytics.ts` | Deal analytics, funnels |
+| `realEstate.ts` | Properties + LP portal |
+| `index.ts` | Barrel re-export |
+
+Add new functions to the matching domain module. Create a new module if the domain doesn't exist.
+
+## Router Files (`server/routers/`)
+
+25 individual files: auth, user, verification, relationship, contact, intent, match, deal, dealRoom, compliance, payout, notification, audit, search, intelligence, lpPortal, realEstate, ai, familyOffice, targeting, brokerContact, enrichment, calendar, analytics. `index.ts` merges all into `appRouter`.
+
+## Auth Levels
+
+- `publicProcedure` — unauthenticated
+- `protectedProcedure` — requires login (`ctx.user`)
+- `adminProcedure` — requires `role === 'admin'`
+
+## Patterns
+
+- Routers are thin: call `db.*`, return.
+- Zod for all `.input()`.
+- `db.logAuditEvent(...)` after sensitive mutations.
+- `db.createNotification(...)` for user-facing events.

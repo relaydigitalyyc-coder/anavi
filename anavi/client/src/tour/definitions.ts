@@ -60,7 +60,7 @@ export const tourDefinitions: TourStep[] = [
   },
   {
     id: "done",
-    target: "[data-tour-id='welcome']",
+    target: "",
     title: "You're all set",
     body: "Explore the platform. Use 'Restart Tour' in Settings or Help when you need a refresher.",
     placement: "center",

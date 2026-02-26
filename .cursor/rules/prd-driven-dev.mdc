@@ -1,0 +1,29 @@
+---
+description: How to implement features from PRDs
+globs: docs/plans/**/*.md
+alwaysApply: false
+---
+
+# PRD-Driven Development
+
+## PRD Locations
+
+- **White paper alignment:** `docs/white-paper-alignment.md` — use when PRD/feature references trust score, custody, attribution, originator, matching
+- Feature PRDs: `docs/plans/2026-02-24-f*-*.md` (F1–F24 improvements)
+- Platform PRDs: `docs/plans/2026-02-24-prd*-*.md` (6 platform PRDs)
+- UI update PRD: `docs/plans/2026-02-25-ui-update-prd.md`
+- Master index: `docs/plans/2026-02-24-23-improvements-index.md`
+
+## Workflow
+
+1. Read the PRD task table for the feature you're implementing.
+2. Follow the end-to-end checklist in `AGENTS.md`.
+3. After each task: `pnpm check && pnpm test`.
+4. Update the PRD's checklist when done (mark `[x]`).
+
+## Patterns
+
+- PRDs reference files relative to `anavi/`. Example: `server/routers/foo.ts` means `anavi/server/routers/foo.ts`.
+- "Wire to tRPC" = replace mock data with `trpc.router.proc.useQuery(...)` or `.useMutation(...)`.
+- "Add route" = add `<Route>` + `<ShellRoute>` in `App.tsx` + import page.
+- "Add to sidebar" = add entry to `navSections` in `DashboardLayout.tsx`.

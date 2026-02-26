@@ -25,9 +25,10 @@ export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: T
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const target = typeof document !== "undefined" ? document.querySelector(step.target) : null;
+  const target = step.target && typeof document !== "undefined" ? document.querySelector(step.target) : null;
   const targetRect = target?.getBoundingClientRect();
-  const useTarget = targetRect && targetRect.width > 0 && targetRect.height > 0;
+  const useTarget = targetRect && targetRect.width > 0 && targetRect.height > 0 && step.placement !== "center";
+  const isLast = currentStep >= totalSteps - 1;
 
   return (
     <div
@@ -81,31 +82,44 @@ export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: T
       {/* Popover */}
       <div
         ref={popoverRef}
-        className="absolute z-[9999] min-w-[280px] max-w-[360px] rounded-xl border border-[#0A1628]/10 bg-white p-5 shadow-xl"
+        className={`absolute z-[9999] rounded-xl border bg-white shadow-xl ${
+          isLast ? "min-w-[340px] max-w-[420px] border-[#C4972A]/30 p-8 text-center" : "min-w-[280px] max-w-[360px] border-[#0A1628]/10 p-5"
+        }`}
         style={getPopoverPosition(useTarget ? targetRect! : null, step.placement)}
       >
-        <p id="tour-title" className="dash-heading text-lg font-semibold text-[#0A1628]">
+        {isLast && (
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#C4972A]/10">
+            <svg className="h-7 w-7 text-[#C4972A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+        <p id="tour-title" className={`dash-heading font-semibold text-[#0A1628] ${isLast ? "text-xl" : "text-lg"}`}>
           {step.title}
         </p>
-        <p id="tour-body" className="mt-2 text-sm text-[#1E3A5F]/80">
+        <p id="tour-body" className={`mt-2 text-sm text-[#1E3A5F]/80 ${isLast ? "mx-auto max-w-[280px]" : ""}`}>
           {step.body}
         </p>
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-xs text-[#1E3A5F]/50" data-label>
-            Step {currentStep + 1} of {totalSteps}
-          </span>
+        <div className={`mt-4 flex items-center gap-3 ${isLast ? "justify-center" : "justify-between"}`}>
+          {!isLast && (
+            <span className="text-xs text-[#1E3A5F]/50" data-label>
+              Step {currentStep + 1} of {totalSteps}
+            </span>
+          )}
           <div className="flex gap-2">
-            <button
-              onClick={onSkip}
-              className="rounded-lg px-4 py-2 text-sm font-medium text-[#1E3A5F]/70 hover:bg-[#0A1628]/5"
-            >
-              Skip
-            </button>
+            {!isLast && (
+              <button
+                onClick={onSkip}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-[#1E3A5F]/70 hover:bg-[#0A1628]/5"
+              >
+                Skip
+              </button>
+            )}
             <button
               onClick={onNext}
-              className="btn-gold rounded-lg px-4 py-2 text-sm font-semibold"
+              className={`rounded-lg px-4 py-2 text-sm font-semibold ${isLast ? "btn-gold px-8 py-3" : "btn-gold"}`}
             >
-              {currentStep >= totalSteps - 1 ? "Finish" : "Next"}
+              {isLast ? "Start Exploring" : "Next"}
             </button>
           </div>
         </div>

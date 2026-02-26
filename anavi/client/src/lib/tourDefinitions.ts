@@ -101,12 +101,6 @@ export function buildDemoTourSteps(persona: PersonaKey): TourStep[] {
       content: TOUR.compliance.body,
       position: "right",
     },
-    {
-      targetSelector: '[data-tour="apply"]',
-      title: TOUR.close.headline,
-      content: TOUR.close.subhead,
-      position: "bottom",
-    },
   ];
 }
 

@@ -1,0 +1,31 @@
+---
+description: Schema, types, and migrations
+globs: anavi/drizzle/**/*,anavi/shared/**/*
+alwaysApply: false
+---
+
+# Schema & Types
+
+## Locations
+
+- Tables: `anavi/drizzle/schema.ts` (`mysqlTable(...)`)
+- Relations: `anavi/drizzle/relations.ts`
+- Migrations: `anavi/drizzle/*.sql`
+- Shared types: `anavi/shared/types.ts` (re-exports from schema)
+
+## Adding a Table
+
+1. Define in `schema.ts`: `export const foos = mysqlTable("foos", { ... });`
+2. Export types: `export type Foo = typeof foos.$inferSelect;`
+3. Add relations in `relations.ts` if FK references exist.
+4. Generate migration: `pnpm drizzle-kit generate`
+
+## White Paper Alignment
+
+When adding schema for trust, custody, or attribution: use white paper terms (`trustScore`, `originatorId`, `attributionPercentage`, `attributionChain`, `isBlind`). See `docs/white-paper-alignment.md` for existing column mappings.
+
+## Type Strategy
+
+- DB shapes: use Drizzle inferred types (`$inferSelect`, `$inferInsert`).
+- API-specific shapes: define in router file or `shared/types.ts`.
+- Client imports from `@shared/types` or directly from schema via tRPC inference.

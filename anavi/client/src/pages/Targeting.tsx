@@ -58,6 +58,7 @@ import {
   Trash2,
   Eye,
   Activity,
+  Zap,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -134,7 +135,7 @@ export default function Targeting() {
     { targetId: detailTargetId! },
     { enabled: !!detailTargetId && detailSheetOpen }
   );
-  
+
   const updateTarget = trpc.targeting.update.useMutation({
     onSuccess: () => {
       utils.targeting.list.invalidate();
@@ -175,6 +176,15 @@ export default function Targeting() {
       setNewActivity({ activityType: "email_sent", subject: "", description: "", outcome: "" });
       utils.targeting.getActivities.invalidate();
       toast.success("Activity logged");
+    },
+  });
+
+  const requestEnrichment = trpc.enrichment.request.useMutation({
+    onSuccess: () => {
+      toast.success("Enrichment job queued");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to queue enrichment");
     },
   });
 
@@ -310,7 +320,7 @@ export default function Targeting() {
           </div>
           <p className="text-2xl font-light text-stone-900">{targetsData?.total || 0}</p>
         </div>
-        
+
         <div className="bg-white border border-stone-200 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center">
@@ -322,7 +332,7 @@ export default function Targeting() {
             {stats?.byStatus?.find(s => s.status === "in_conversation")?.count || 0}
           </p>
         </div>
-        
+
         <div className="bg-white border border-stone-200 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
@@ -334,7 +344,7 @@ export default function Targeting() {
             {stats?.byStatus?.find(s => s.status === "converted")?.count || 0}
           </p>
         </div>
-        
+
         <div className="bg-white border border-stone-200 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -354,25 +364,25 @@ export default function Targeting() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
           <Input placeholder="Search targets..." className="pl-10" />
         </div>
-        
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             {Object.entries(statusLabels).map(([value, label]) => (
               <SelectItem key={value} value={value}>{label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+
+        <Select value={priorityFilter} onValueChange={(v) => setPriorityFilter(v === "all" ? "" : v)}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Priorities" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Priorities</SelectItem>
+            <SelectItem value="all">All Priorities</SelectItem>
             <SelectItem value="critical">Critical</SelectItem>
             <SelectItem value="high">High</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
@@ -390,7 +400,7 @@ export default function Targeting() {
           <div className="col-span-2">Last Contact</div>
           <div className="col-span-2">Actions</div>
         </div>
-        
+
         {targets.length === 0 ? (
           <div className="p-12 text-center">
             <Target className="w-12 h-12 text-stone-300 mx-auto mb-4" />
@@ -424,7 +434,7 @@ export default function Targeting() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="col-span-2" onClick={(e) => e.stopPropagation()}>
                 <Select
                   value={item.target.status || "identified"}
@@ -442,19 +452,19 @@ export default function Targeting() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="col-span-2">
                 <Badge className={priorityColors[item.target.priority || "medium"]}>
                   {(item.target.priority || "medium").charAt(0).toUpperCase() + (item.target.priority || "medium").slice(1)}
                 </Badge>
               </div>
-              
+
               <div className="col-span-2 text-sm text-stone-500">
                 {item.target.lastContactDate
                   ? new Date(item.target.lastContactDate).toLocaleDateString()
                   : "Never"}
               </div>
-              
+
               <div className="col-span-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 {item.target.primaryContactEmail && (
                   <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
@@ -567,7 +577,7 @@ export default function Targeting() {
               {detailData?.familyOffice?.name || "Target Details"}
             </SheetTitle>
           </SheetHeader>
-          
+
           {detailData && (
             <ScrollArea className="h-[calc(100vh-120px)] mt-6 pr-4">
               <div className="space-y-6">
@@ -609,6 +619,25 @@ export default function Targeting() {
                       <span className="text-sm">{new Date(detailData.target.lastContactDate).toLocaleDateString()}</span>
                     </div>
                   )}
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:text-amber-800"
+                      onClick={() => {
+                        if (detailData.familyOffice) {
+                          requestEnrichment.mutate({
+                            entityType: "family_office",
+                            entityId: detailData.familyOffice.id,
+                          });
+                        }
+                      }}
+                      disabled={requestEnrichment.isPending}
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      {requestEnrichment.isPending ? "Queuing Enrichment..." : "Enrich Office Data"}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Activity Log */}

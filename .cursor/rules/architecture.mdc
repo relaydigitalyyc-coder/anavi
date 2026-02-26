@@ -1,0 +1,56 @@
+---
+description: Architecture and where things live - read first
+alwaysApply: true
+---
+
+# ANAVI Architecture
+
+## Product Vision
+
+ANAVI is **The Private Market Operating System** — a Relationship Operating System for the $13+ trillion private markets. Core concepts: **Relationship Custody** (timestamped, attributed relationships), **Trust Score** (verification + transaction history + peer reviews), **Blind Matching** (intent-based, anonymized until consent), **Lifetime Attribution** (originators get 40–60% of fees, follow-on deals compound). Use white paper terminology consistently. See `docs/white-paper-alignment.md` for concept → code mapping.
+
+## Stack
+
+- **Client**: React 19, Vite, wouter, tRPC React Query, Tailwind 4, shadcn/ui, framer-motion
+- **Server**: Node, Express, tRPC v11, Drizzle ORM (MySQL/TiDB), superjson
+- **AI**: Claude API via `_core/llm.ts` + `claude.ts`
+- **Shared**: `anavi/shared/` — types, const, errors
+
+## Key Paths
+
+| Concern | Path |
+|---------|------|
+| API entry | `anavi/api/index.ts` |
+| Router modules | `anavi/server/routers/*.ts` (25 files) → merged in `routers/index.ts` |
+| Router re-export | `anavi/server/routers.ts` (thin barrel) |
+| DB modules | `anavi/server/db/*.ts` (16 files) → re-exported via `db/index.ts` |
+| DB re-export | `anavi/server/db.ts` (thin barrel) |
+| Schema | `anavi/drizzle/schema.ts` (48 tables) |
+| Relations | `anavi/drizzle/relations.ts` (30+ relation defs) |
+| Shared types | `anavi/shared/types.ts` |
+| tRPC client | `anavi/client/src/lib/trpc.ts` |
+| Routes | `anavi/client/src/App.tsx` (39 routes) |
+| Sidebar nav | `DashboardLayout.tsx` → `navSections` array (7 groups, 20 items) |
+| UI primitives | `anavi/client/src/components/ui/*` (53 shadcn components) |
+| Hooks | `anavi/client/src/hooks/` (useQueryPage, useComposition, usePersistFn) |
+
+## Data Flow
+
+```
+Page → trpc.router.proc.useQuery → Router procedure → db.* → Drizzle → MySQL
+Types: drizzle/schema → shared/types → client + server
+```
+
+## Route Wrappers (App.tsx)
+
+- **ShellRoute** = `ProtectedRoute` + `DashboardLayout` + `PageTransition`. ALL main app pages. Pages must NOT render DashboardLayout.
+- **ProtectedPage** = `ProtectedRoute` only. Full-screen flows (Onboarding, OnboardingFlow).
+- **Bare** = public routes (Home, Login, Register, Demo, NotFound).
+
+## Verification
+
+```bash
+cd anavi && pnpm check   # TypeScript
+cd anavi && pnpm test    # 37 tests
+cd anavi && pnpm build   # Client + server
+```
