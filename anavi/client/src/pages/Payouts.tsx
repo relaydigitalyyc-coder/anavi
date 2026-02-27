@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { DASHBOARD } from "@/lib/copy";
 
 
 const fmtCurrency = (amount: number) =>
@@ -347,7 +348,7 @@ export default function Payouts() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Earnings (Lifetime Attribution) */}
           <div>
-            <p className="data-label mb-1">Lifetime Attribution</p>
+            <p className="data-label mb-1">{DASHBOARD.payouts.lifetimeAttribution}</p>
             <p className="font-data-hud text-3xl font-bold text-emerald-600">
               $<SmoothCounter value={totalEarnings} duration={1.2} />
             </p>
@@ -514,6 +515,12 @@ export default function Payouts() {
       {/* ── Deal Payout Timeline ───────────────────────────────────── */}
       {!empty && dealGroups.length > 0 && (
         <div className="card-elevated p-6 space-y-6">
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
+            Attribution Chain
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Every credit in this chain is cryptographically linked to your origination event.
+          </p>
           <h3 className="data-label text-slate-900">
             Deal Payout Timeline
           </h3>
@@ -591,7 +598,7 @@ export default function Payouts() {
                                   </div>
                                   {p.attributionPercentage && (
                                     <p className="text-xs text-muted-foreground">
-                                      Attribution: {parseFloat(p.attributionPercentage)}%
+                                      {DASHBOARD.payouts.originationShare} {parseFloat(p.attributionPercentage)}%
                                       {p.relationshipId && (
                                         <span className="ml-2 text-blue-600">
                                           <Link2 className="inline w-3 h-3 mr-0.5" />

@@ -8,14 +8,12 @@ import {
 import { useLocation } from "wouter";
 import { FadeInView, ScaleHover, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 
-type StatusFilter = "all" | "nda_pending" | "active" | "diligence" | "closing" | "completed" | "declined";
+type StatusFilter = "all" | "nda_pending" | "active" | "completed" | "declined";
 
 const STATUS_FILTERS: { key: StatusFilter; label: string; className: string }[] = [
   { key: "all", label: "All", className: "" },
   { key: "nda_pending", label: "NDA Pending", className: "status-nda-pending" },
   { key: "active", label: "Active", className: "status-active" },
-  { key: "diligence", label: "Diligence", className: "status-diligence" },
-  { key: "closing", label: "Closing", className: "status-closing" },
   { key: "completed", label: "Completed", className: "status-completed" },
   { key: "declined", label: "Declined", className: "status-declined" },
 ];
@@ -83,8 +81,6 @@ export default function DealRooms() {
       all: () => true,
       nda_pending: r => !r.status || r.status === null,
       active: r => r.status === "active",
-      diligence: r => false,
-      closing: r => false,
       completed: r => r.status === "closed",
       declined: r => r.status === "archived",
     };
@@ -98,6 +94,8 @@ export default function DealRooms() {
       {/* Header */}
       <FadeInView>
         <h1 className="dash-heading text-3xl">Deal Rooms</h1>
+        {/* Subtitle added */}
+        <p className="text-lg text-[#1E3A5F]/80 mt-2">NDA-gated workspaces. Immutable audit trail active on every room.</p>
       </FadeInView>
 
       {/* Stats Row */}
@@ -106,7 +104,7 @@ export default function DealRooms() {
           { label: "Active Rooms", value: stats.active, color: "#2563EB" },
           { label: "Pending NDA", value: stats.pendingNda, color: "#C4972A" },
           { label: "Completed", value: stats.completed, color: "#059669" },
-          { label: "Total Value", value: `$${(stats.total * 2.5).toFixed(1)}M`, color: "#0A1628" },
+          { label: "Total Rooms", value: stats.total, color: "#0A1628" },
         ].map((s) => (
           <div
             key={s.label}
@@ -176,6 +174,9 @@ export default function DealRooms() {
                   <h3 className="font-semibold text-base" style={{ color: "#0A1628" }}>
                     {room.name}
                   </h3>
+
+                  {/* New text line added */}
+                  <p className="text-[10px] text-[#1E3A5F]/50">Every document access and signature is cryptographically logged.</p>
 
                   {/* Parties (anonymized) */}
                   <div className="text-sm text-muted-foreground">

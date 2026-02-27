@@ -14,6 +14,7 @@ import { GlowingBorder } from "@/components/PremiumAnimations";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
+import { CUSTODY_RECEIPT } from "@/lib/copy";
 
 const COLORS = {
   navy: "#0A1628",
@@ -96,8 +97,8 @@ export default function Relationships() {
     const matchesSector = !sectorFilter || rel.tags?.includes(sectorFilter);
     const matchesVerification =
       !verificationFilter ||
-      (verificationFilter === "protected" && rel.isBlind) ||
-      (verificationFilter === "visible" && !rel.isBlind);
+      (verificationFilter === "custodied" && rel.isBlind) ||
+      (verificationFilter === "open" && !rel.isBlind);
     const matchesMatch =
       !matchFilter ||
       (matchFilter === "active" && (rel.dealCount || 0) > 0) ||
@@ -147,7 +148,7 @@ export default function Relationships() {
   };
 
   const statCards = [
-    { label: "TOTAL RELATIONSHIPS", value: relationships?.length || 0 },
+    { label: "CUSTODIED RELATIONSHIPS", value: relationships?.length || 0 },
     { label: "PORTFOLIO VALUE", value: totalValue > 0 ? formatCurrency(totalValue) : "$2.4M" },
     { label: "TOTAL ATTRIBUTION EARNED", value: formatCurrency(totalEarnings) },
     { label: "ACTIVE MATCHES", value: activeMatches },
@@ -162,7 +163,8 @@ export default function Relationships() {
     <div style={{ minHeight: "100vh", background: COLORS.surface }}>
       {/* Page Heading */}
       <div style={{ padding: "32px 32px 12px" }}>
-        <h1 className="dash-heading text-3xl">Relationships</h1>
+        <h1 className="dash-heading text-3xl">Relationship Custody</h1>
+        <p className="text-lg text-[#6B7A90] mt-2">Timestamped introductions with cryptographic proof of custody.</p>
       </div>
 
       {/* Header Stats Bar */}
@@ -234,12 +236,12 @@ export default function Relationships() {
 
         <FilterDropdown label="Sector" value={sectorFilter} onChange={setSectorFilter} options={SECTORS} />
         <FilterDropdown
-          label="Verification Status"
+          label="Custody Status"
           value={verificationFilter}
           onChange={setVerificationFilter}
           options={[
-            { value: "protected", label: "Protected" },
-            { value: "visible", label: "Visible" },
+            { value: "custodied", label: "Custodied" },
+            { value: "open", label: "Open" },
           ]}
         />
         <FilterDropdown
@@ -639,8 +641,8 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
           ) : proof ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
-                <p style={{ fontSize: 11, color: "#6B7A90", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>SHA-256 Hash</p>
-                <code style={{ fontSize: 13, color: COLORS.gold, wordBreak: "break-all" }}>{truncated}</code>
+                <p style={{ fontSize: 11, color: "#6B7A90", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Custody Proof</p>
+                <code className="font-data-mono" style={{ fontSize: 13, color: COLORS.gold, wordBreak: "break-all" }}>{truncated}</code>
               </div>
               <div>
                 <p style={{ fontSize: 11, color: "#6B7A90", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Established</p>
@@ -753,8 +755,8 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
           <ReceiptRow label="Custody ID" value={`REL-${rel.id}`} mono />
           <ReceiptRow label="Timestamp" value={new Date(rel.createdAt).toLocaleString()} />
-          <ReceiptRow label="Hash" value={rel.timestampHash?.slice(0, 32) + "..."} mono />
-          <ReceiptRow label="Verification" value={rel.isBlind ? "Protected" : "Visible"} />
+          <ReceiptRow label="Custody Proof" value={rel.timestampHash?.slice(0, 32) + "..."} mono />
+          <ReceiptRow label="Verification" value={rel.isBlind ? "Custodied" : "Open"} />
           <ReceiptRow label="Attribution" value={formatCurrency(parseFloat(rel.totalEarnings || "0"))} last />
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
@@ -869,9 +871,9 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
           <span style={{ color: "#6B7A90" }}>Custody</span>
           {rel.isBlind ? (
-            <span className="bg-[#059669]/15 text-[#059669] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Protected</span>
+            <span className="bg-[#059669]/15 text-[#059669] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Custodied</span>
           ) : (
-            <span className="bg-[#F59E0B]/15 text-[#F59E0B] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Visible</span>
+            <span className="bg-[#F59E0B]/15 text-[#F59E0B] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Open</span>
           )}
         </div>
       </div>
@@ -945,8 +947,8 @@ function CustodyHashRow({ hash, onCopy }: { hash: string; onCopy: (h: string) =>
         gap: 8,
       }}
     >
-      <span className="font-data-hud text-[10px] text-[#1E3A5F]/50" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        Custody: {hash?.slice(0, 8)}...{hash?.slice(-6)}
+      <span className="font-data-mono text-[10px] text-[#1E3A5F]/50" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        Custody Proof: {hash?.slice(0, 8)}...{hash?.slice(-6)}
       </span>
       <button
         onClick={(e) => {
@@ -1174,7 +1176,7 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
       {/* Metadata */}
       <section className="space-y-3">
         <DetailRow label="Type" value={(rel.relationshipType || "direct").charAt(0).toUpperCase() + (rel.relationshipType || "direct").slice(1)} />
-        <DetailRow label="Status" value={rel.isBlind ? "Protected (Blind)" : "Visible"} />
+        <DetailRow label="Status" value={rel.isBlind ? "Custodied (Blind)" : "Open"} />
         <DetailRow label="Custody Timestamp" value={new Date(rel.createdAt).toLocaleString()} />
         <DetailRow label="Established" value={rel.establishedAt ? new Date(rel.establishedAt).toLocaleDateString() : "—"} />
         {rel.tags && rel.tags.length > 0 && (
@@ -1671,9 +1673,9 @@ function ModalStepConfirmation({ id, hash, onDone }: { id: string; hash: string;
       </div>
 
       <h3 style={{ fontSize: 20, fontWeight: 700, color: COLORS.navy, marginBottom: 8 }}>
-        Your relationship is now protected
+        {CUSTODY_RECEIPT.title}
       </h3>
-      <p style={{ fontSize: 14, color: "#6B7A90", marginBottom: 28 }}>Custody receipt generated successfully.</p>
+      <p style={{ fontSize: 14, color: "#6B7A90", marginBottom: 28 }}>{CUSTODY_RECEIPT.body}</p>
 
       <div
         className="card-elevated"
@@ -1685,7 +1687,7 @@ function ModalStepConfirmation({ id, hash, onDone }: { id: string; hash: string;
       >
         <ReceiptRow label="Timestamp" value={now} />
         <ReceiptRow label="Custody ID" value={id} mono />
-        <ReceiptRow label="Timestamp Hash" value={hash.slice(0, 32) + "..."} mono last />
+        <ReceiptRow label="Custody Proof" value={hash.slice(0, 32) + "..."} mono last />
       </div>
 
       <button
@@ -1720,7 +1722,7 @@ function ReceiptRow({ label, value, mono, last }: { label: string; value: string
     >
       <span style={{ fontSize: 13, color: "#6B7A90" }}>{label}</span>
       <span
-        className={mono ? "font-data-hud text-[10px] text-[#1E3A5F]/50 font-semibold" : ""}
+        className={mono ? "font-data-mono text-[10px] text-[#1E3A5F]/50 font-semibold" : ""}
         style={!mono ? { fontSize: 13, fontWeight: 600, color: COLORS.navy } : undefined}
       >
         {value}

@@ -23,6 +23,8 @@ import {
   Check,
   Upload,
   X,
+  Info,
+  Fingerprint, // Added Fingerprint icon
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -39,13 +41,14 @@ const C = {
 } as const;
 
 // ─── Radar / Score Dimensions ────────────────────────────────
-const DIMENSIONS = [
-  { key: "identity", label: "Identity Verification", score: 100, icon: ShieldCheck, status: "Verified" },
-  { key: "financial", label: "Financial Verification", score: 75, icon: FileCheck, status: "Pending" },
-  { key: "behavioral", label: "Behavioral History", score: 85, icon: TrendingUp, status: "Auto" },
-  { key: "deals", label: "Deal Completion Rate", score: 80, icon: Award, status: "Auto" },
-  { key: "peers", label: "Peer Ratings", score: 70, icon: Users, status: "Auto" },
-  { key: "tenure", label: "Platform Tenure", score: 60, icon: Clock, status: "Auto" },
+// Whitepaper-aligned Trust Score components
+const DIMENSIONS_CONFIG = [
+  { key: "kyb_depth", label: "KYB Depth", score: 90, icon: ShieldCheck, status: "Verified" },
+  { key: "transaction_history", label: "Transaction History", score: 80, icon: Award, status: "Auto" },
+  { key: "dispute_outcomes", label: "Dispute Outcomes", score: 70, icon: Info, status: "Auto" },
+  { key: "peer_attestations", label: "Peer Attestations", score: 85, icon: Users, status: "Auto" },
+  { key: "platform_tenure", label: "Platform Tenure", score: 60, icon: Clock, status: "Auto" },
+  { key: "identity_verification", label: "Identity Verification", score: 95, icon: Fingerprint, status: "Verified" },
 ] as const;
 
 const TIER_FEATURES = [
@@ -62,6 +65,7 @@ const AML_QUESTIONS = [
   "Can you provide documentation for the source of funds used in transactions?",
 ];
 
+// TODO: replace with live trpc.user.getTrustScoreHistory data
 const SCORE_HISTORY = [65, 68, 72, 74, 78, 84];
 
 const DOC_TYPES = [
@@ -74,6 +78,9 @@ const DOC_TYPES = [
   "tax_document",
   "accreditation_letter",
 ] as const;
+
+// ─── Constants ───────────────────────────────────────────────
+const PARTNER_COUNT = 12; // TODO: source from live data
 
 function VerificationDocumentsSection() {
   const utils = trpc.useUtils();
@@ -315,7 +322,7 @@ function RadarChart({ scores, size = 240 }: { scores: number[]; size?: number })
       {dataPoints.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r={3} fill={C.blue} />
       ))}
-      {DIMENSIONS.map((d, i) => {
+      {DIMENSIONS_CONFIG.map((d, i) => { // Use DIMENSIONS_CONFIG for labels
         const p = polarToCartesian(cx, cy, maxR + 14, i * 60);
         return (
           <text
@@ -328,7 +335,7 @@ function RadarChart({ scores, size = 240 }: { scores: number[]; size?: number })
             fill={C.navy}
             fontWeight={600}
           >
-            {d.score}%
+            {Math.round(scores[i])}% {/* Display the actual score from the `scores` prop */}
           </text>
         );
       })}
@@ -602,10 +609,12 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
               <div className="relative w-16 h-16">
                 <div
                   className="absolute inset-0 rounded-full animate-spin"
-                  style={{
-                    border: `3px solid ${C.border}`,
-                    borderTopColor: C.blue,
-                  }}
+                  style={
+                    {
+                      border: `3px solid ${C.border}`,
+                      borderTopColor: C.blue,
+                    }
+                  }
                 />
               </div>
               <h4 className="font-bold text-lg text-slate-900">
@@ -682,9 +691,48 @@ export default function Verification() {
   const tier = tierRaw === "institutional" ? 3 : tierRaw === "enhanced" ? 2 : tierRaw === "basic" ? 1 : 1;
   const trustScore = (trustData?.total ?? Number((user as any)?.trustScore ?? 0)) || 0;
 
+  const tierName = useMemo(() => {
+    if (tier === 1) return "Basic";
+    if (tier === 2) return "Enhanced";
+    if (tier === 3) return "Institutional";
+    return "";
+  }, [tier]);
+
   const overallColor = scoreColor(trustScore);
 
   const maskedKey = useMemo(() => "anv_live_••••••••••••" + "k8f2", []);
+
+  const radarScores = useMemo(() => {
+    if (trustData?.components) {
+      // Map trustData components to the 6 dimensions, scaling them to 0-100
+      // Assuming max points for each component as per original code's scaling factors:
+      // verification: 30, deals: 25, peerReviews: 20, compliance: 15, tenure: 10
+      return [
+        (trustData.components.verification / 30) * 100, // KYB Depth
+        (trustData.components.deals / 25) * 100,       // Transaction History
+        (trustData.components.compliance / 15) * 100,  // Dispute Outcomes (mapped to compliance)
+        (trustData.components.peerReviews / 20) * 100, // Peer Attestations
+        (trustData.components.tenure / 10) * 100,      // Platform Tenure
+        (trustData.components.verification / 30) * 100, // Identity Verification (re-using verification score)
+      ].map(score => Math.min(100, Math.max(0, score))); // Ensure scores are between 0 and 100
+    }
+    // Fallback to default scores from DIMENSIONS_CONFIG
+    return DIMENSIONS_CONFIG.map(d => d.score);
+  }, [trustData]);
+
+  const componentDisplayData = useMemo(() => {
+    if (trustData?.components) {
+      return [
+        { key: "kyb_depth", label: "KYB Depth", score: (trustData.components.verification / 30) * 100, icon: ShieldCheck, status: "Verified" as const },
+        { key: "transaction_history", label: "Transaction History", score: (trustData.components.deals / 25) * 100, icon: Award, status: "Auto" as const },
+        { key: "dispute_outcomes", label: "Dispute Outcomes", score: (trustData.components.compliance / 15) * 100, icon: Info, status: "Auto" as const },
+        { key: "peer_attestations", label: "Peer Attestations", score: (trustData.components.peerReviews / 20) * 100, icon: Users, status: "Auto" as const },
+        { key: "platform_tenure", label: "Platform Tenure", score: (trustData.components.tenure / 10) * 100, icon: Clock, status: "Auto" as const },
+        { key: "identity_verification", label: "Identity Verification", score: (trustData.components.verification / 30) * 100, icon: Fingerprint, status: "Verified" as const },
+      ].map(item => ({ ...item, score: Math.min(100, Math.max(0, item.score)) })); // Ensure scores are between 0 and 100
+    }
+    return DIMENSIONS_CONFIG; // Fallback to default DIMENSIONS_CONFIG
+  }, [trustData]);
 
   useEffect(() => { document.title = "Verification | ANAVI"; }, []);
 
@@ -707,7 +755,7 @@ export default function Verification() {
               className="text-xs font-semibold px-3 py-1 border-0"
               style={{ backgroundColor: tier >= 2 ? `${C.gold}20` : `${C.steel}20`, color: tier >= 2 ? C.gold : C.steel }}
             >
-              Tier {tier}
+              Tier {tier} ({tierName})
             </Badge>
           </div>
           <p className="text-sm mt-1 text-slate-900/80">
@@ -740,18 +788,7 @@ export default function Verification() {
           {/* Center — radar (live component scores when available) */}
           <SmoothReveal className="flex justify-center">
             <RadarChart
-              scores={
-                trustData?.components
-                  ? [
-                      trustData.components.verification * (100 / 30),
-                      trustData.components.deals * (100 / 25),
-                      trustData.components.peerReviews * (100 / 20),
-                      trustData.components.compliance * (100 / 15),
-                      trustData.components.tenure * (100 / 10),
-                      trustData.components.verification * (100 / 30),
-                    ]
-                  : DIMENSIONS.map((d) => d.score)
-              }
+              scores={radarScores}
               size={240}
             />
           </SmoothReveal>
@@ -778,17 +815,7 @@ export default function Verification() {
 
       {/* Component Score Cards (live from getTrustScore when available) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {(trustData?.components
-          ? [
-              { key: "verification", label: "Verification Tier", score: trustData.components.verification * (100 / 30), icon: ShieldCheck, status: "Auto" as const },
-              { key: "deals", label: "Deal Activity", score: trustData.components.deals * (100 / 25), icon: Award, status: "Auto" as const },
-              { key: "peers", label: "Peer Reviews", score: trustData.components.peerReviews * (100 / 20), icon: Users, status: "Auto" as const },
-              { key: "compliance", label: "Compliance", score: trustData.components.compliance * (100 / 15), icon: FileCheck, status: "Auto" as const },
-              { key: "tenure", label: "Platform Tenure", score: trustData.components.tenure * (100 / 10), icon: Clock, status: "Auto" as const },
-              { key: "identity", label: "Identity Verification", score: trustData.components.verification * (100 / 30), icon: ShieldCheck, status: "Verified" as const },
-            ]
-          : DIMENSIONS
-        ).map((dim, dimIndex) => {
+        {componentDisplayData.map((dim) => {
           const Icon = dim.icon;
           const scoreVal = Math.min(100, Math.round(dim.score));
           const borderColor = dimBorderColor(scoreVal);
@@ -860,7 +887,7 @@ export default function Verification() {
           <TierShieldBadge tier={tier} size={72} />
           <div className="flex-1">
             <h3 className="text-lg font-bold text-slate-900">
-              Current Tier: Tier {tier}
+              Current Tier: Tier {tier} ({tierName})
             </h3>
             <p className="text-sm mt-1 text-slate-900/70">
               {tier === 1 && "Basic access — deals up to $1M, standard matching, basic counterparty visibility."}
@@ -1077,7 +1104,7 @@ export default function Verification() {
               style={{ backgroundColor: `${C.green}08`, color: C.green }}
             >
               <Lock className="w-4 h-4" />
-              <span className="font-medium">Accepted by 12 institutional partners</span>
+              <span className="font-medium">Accepted by {PARTNER_COUNT} institutional partners</span>
             </div>
           </div>
         </div>
