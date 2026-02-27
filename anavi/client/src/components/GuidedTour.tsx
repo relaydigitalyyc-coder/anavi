@@ -109,7 +109,7 @@ export default function GuidedTour({
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [scrolling, setScrolling] = useState(false);
   const rafRef = useRef(0);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const step = steps[stepIdx];
   const isFirst = stepIdx === 0;
@@ -201,11 +201,11 @@ export default function GuidedTour({
 
   const hole = hasTarget
     ? {
-        top: Math.max(0, targetRect!.top - pad),
-        left: Math.max(0, targetRect!.left - pad),
-        right: Math.min(vw, targetRect!.left + targetRect!.width + pad),
-        bottom: Math.min(vh, targetRect!.top + targetRect!.height + pad),
-      }
+      top: Math.max(0, targetRect!.top - pad),
+      left: Math.max(0, targetRect!.left - pad),
+      right: Math.min(vw, targetRect!.left + targetRect!.width + pad),
+      bottom: Math.min(vh, targetRect!.top + targetRect!.height + pad),
+    }
     : null;
 
   const validHole = hole && hole.bottom > hole.top && hole.right > hole.left;
