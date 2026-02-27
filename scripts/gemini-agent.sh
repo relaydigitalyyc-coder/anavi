@@ -4,7 +4,11 @@
 
 PROMPT_FILE="$1"
 OUTPUT_FILE="$2"
-API_KEY="AIzaSyB8Bk3pXuwnhhfkXcwVbCfUBQtJxMNsQxk"
+API_KEY="${GEMINI_API_KEY}"
+if [ -z "$API_KEY" ]; then
+  echo "Error: GEMINI_API_KEY env var not set"
+  exit 1
+fi
 
 if [ -z "$PROMPT_FILE" ] || [ -z "$OUTPUT_FILE" ]; then
   echo "Usage: $0 <prompt-file> <output-file>"

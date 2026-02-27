@@ -13,7 +13,7 @@
 ## Prerequisites
 
 - Working dir: `anavi/` (all pnpm commands run from there)
-- Gemini API key: `AIzaSyB8Bk3pXuwnhhfkXcwVbCfUBQtJxMNsQxk`
+- Gemini API key: `YOUR_GEMINI_API_KEY`
 - Baseline: `pnpm check` currently shows 1 error: `llmFactory.ts` missing `openai` package
 
 ---
@@ -65,7 +65,7 @@ Create `scripts/gemini-agent.sh`:
 
 PROMPT_FILE="$1"
 OUTPUT_FILE="$2"
-API_KEY="AIzaSyB8Bk3pXuwnhhfkXcwVbCfUBQtJxMNsQxk"
+API_KEY="YOUR_GEMINI_API_KEY"
 
 if [ -z "$PROMPT_FILE" ] || [ -z "$OUTPUT_FILE" ]; then
   echo "Usage: $0 <prompt-file> <output-file>"

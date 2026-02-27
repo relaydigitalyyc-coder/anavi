@@ -689,7 +689,7 @@ chmod +x scripts/run-page-agents.sh
 **Step 1: Set the Gemini API key**
 
 ```bash
-export GEMINI_API_KEY="AIzaSyB8Bk3pXuwnhhfkXcwVbCfUBQtJxMNsQxk"
+export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 ```
 
 **Step 2: Run all agents**
