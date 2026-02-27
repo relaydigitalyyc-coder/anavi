@@ -1,0 +1,1382 @@
+You are a world-class React frontend engineer and product designer. Your task is to upgrade the ANAVI Dashboard component to feel like "The Quiet Operating System That Serious Private Capital Plugs Into."
+
+
+ANAVI is "The Private Market Operating System" — "If Bloomberg runs public markets, ANAVI will run private ones."
+6 Modules: (1) Identity/KYC — Trust Score (2) Relationship Custody (3) Blind Matching (4) Deal Rooms (5) Compliance/Escrow (6) Economics Engine
+UX: navy/blue palette, luxury aesthetic, institutional-grade, simplicity + progressive disclosure
+Personas: Family Offices, Institutional Investors, Deal Originators, Asset Owners, Project Developers
+
+
+# AGENT 1 AUDIT FINDINGS (what needs to change in Dashboard)
+```json
+{
+  "module_audit": [
+    {
+      "module": "Identity/KYC",
+      "visual_weight_current": "medium",
+      "visual_weight_needed": "high",
+      "issues": [
+        "Trust Score, while prominent, doesn't explicitly convey its 'dynamic, compound' nature or its underlying components (KYB depth, transaction history, etc.) on the dashboard itself.",
+        "The 'Pending Actions' card, while related, is not explicitly branded as a 'Compliance' or 'Verification' hub, leading to fragmented information architecture for this module.",
+        "The 'whitelist status' concept, crucial for access tiers, is not visually represented or mentioned."
+      ],
+      "whitepaper_concepts_missing": [
+        "Whitelist Status",
+        "Dispute Resolution Outcomes (as a component of Trust Score)",
+        "Peer Attestations (as a component of Trust Score)",
+        "Explicit KYB status beyond a generic 'tier' label"
+      ],
+      "copy_violations": [
+        "The '+3 this month' text for Trust Score is hardcoded and lacks dynamic data context.",
+        "The 'Click to view breakdown \u2192' text is hardcoded."
+      ],
+      "proposed_changes": [
+        "Elevate the Trust Score widget to a more central, possibly wider, hero position at the top of the dashboard.",
+        "Integrate a small, expandable section or tooltip within the Trust Score widget to briefly explain its 'compound' nature and components (e.g., 'Built from KYB, Transaction History, Attestations').",
+        "Rename 'Pending Actions' to 'Verification & Compliance' or 'Compliance Status' to align with the module's purpose and provide a clearer CTA for improving status.",
+        "Add a visual indicator or badge for 'Whitelist Status' if applicable to the user's current tier.",
+        "Replace hardcoded '+3 this month' with dynamic data for score change over time.",
+        "Replace hardcoded 'Click to view breakdown \u2192' with a copy token (e.g., `COPY.TRUST_SCORE.BREAKDOWN_CTA`)."
+      ]
+    },
+    {
+      "module": "Relationship Custody",
+      "visual_weight_current": "low",
+      "visual_weight_needed": "medium",
+      "issues": [
+        "The core action of 'Protect Relationship' is a generic button, not a primary feature with appropriate visual weight for a 'Private Market Operating System'.",
+        "There is no dedicated dashboard section or widget to view 'Custodied Relationships' or a 'Relationship Register'.",
+        "The concept of 'cryptographic timestamps' and 'forever attribution' is not explicitly visible or emphasized on the dashboard, only implied by payouts.",
+        "The whitepaper mentions originators getting '40-60%' of payouts, but the UI only shows the amount, not the percentage or the basis of calculation."
+      ],
+      "whitepaper_concepts_missing": [
+        "Cryptographic Timestamps (visual representation)",
+        "Relationship Register (dedicated view)",
+        "Relationship Leakage (problem solved, not explicitly shown as 'prevented')",
+        "Compounding Relationship Value (visual representation or metric)"
+      ],
+      "copy_violations": [
+        "The toast message 'Navigating to Relationships' is hardcoded."
+      ],
+      "proposed_changes": [
+        "Create a 'Custodied Relationships' widget in the left column, displaying a summary of recent custodied relationships, their 'custody age', and 'attribution status'.",
+        "Elevate the 'Protect Relationship' CTA to a more prominent card or primary action within the 'Custodied Relationships' widget.",
+        "Enhance 'Recent Payouts' items to explicitly show the attribution percentage (e.g., '2.5% origination share') and link to the custodied relationship that generated it.",
+        "Add a small visual cue or text in the 'Custodied Relationships' widget to highlight 'cryptographic timestamps' and 'forever attribution'.",
+        "Add a copy token for 'Navigating to Relationships' toast message."
+      ]
+    },
+    {
+      "module": "Blind Matching",
+      "visual_weight_current": "high",
+      "visual_weight_needed": "high",
+      "issues": [
+        "While matches are displayed, there's no explicit summary of the user's active 'Buy/Sell/Invest intents' that are driving these matches, making the 'intent-based' aspect less visible."
+      ],
+      "whitepaper_concepts_missing": [
+        "Explicit display of user's active 'Buy/Sell/Invest intents'"
+      ],
+      "copy_violations": [
+        "The toast message 'Navigating to Deal Matching' is hardcoded.",
+        "The 'Sealed' badge text is hardcoded."
+      ],
+      "proposed_changes": [
+        "Add a small 'Your Active Intents' summary section above the 'Blind Matches' list, showing 1-2 active intents and a CTA to manage them.",
+        "Add a copy token for 'Navigating to Deal Matching' toast message.",
+        "Add a copy token for the 'Sealed' badge text."
+      ]
+    },
+    {
+      "module": "Deal Rooms",
+      "visual_weight_current": "medium",
+      "visual_weight_needed": "medium",
+      "issues": [
+        "The Deal Rooms section is currently only shown in demo mode and not wired to live data, which is a critical gap for a core module.",
+        "Key whitepaper features like 'document versioning', 'e-signature', and 'immutable audit trail' are not explicitly surfaced on the dashboard cards, even though the demo fixture includes `auditEvents` and `documentCount`.",
+        "The 'Enter Deal Room \u2192' CTA is hardcoded."
+      ],
+      "whitepaper_concepts_missing": [
+        "Explicit mention/summary of 'Document Versioning'",
+        "Explicit mention/summary of 'E-signature'",
+        "Explicit mention/summary of 'Immutable Audit Trail'"
+      ],
+      "copy_violations": [
+        "The 'Escrow' label is hardcoded.",
+        "The 'Enter Deal Room \u2192' text is hardcoded."
+      ],
+      "proposed_changes": [
+        "Prioritize wiring the 'Deal Rooms' section to live data, ensuring it's always visible (even if empty) to maintain module prominence.",
+        "Enhance Deal Room cards to display a summary of 'Audit Events' (e.g., '47 Audit Events') and 'Documents' (e.g., '5 Documents') to highlight the immutable audit trail and document versioning features.",
+        "Add a copy token for the 'Escrow' label.",
+        "Add a copy token for the 'Enter Deal Room \u2192' CTA."
+      ]
+    },
+    {
+      "module": "Compliance/Escrow",
+      "visual_weight_current": "low",
+      "visual_weight_needed": "medium",
+      "issues": [
+        "The 'Pending Actions' card is a good start but lacks the explicit branding and comprehensive view of 'Compliance' as a core module.",
+        "The concept of a 'Compliance Passport' (AML/KYC rails, OFAC screening, per-deal compliance) is not explicitly visible or summarized on the dashboard.",
+        "The 'action' badge on pending actions is generic."
+      ],
+      "whitepaper_concepts_missing": [
+        "Compliance Passport (dedicated summary/link)",
+        "AML/KYC Rails (explicit mention)",
+        "OFAC Screening (explicit mention)",
+        "Per-deal Compliance (explicit mention)"
+      ],
+      "copy_violations": [
+        "The 'action' badge text is hardcoded."
+      ],
+      "proposed_changes": [
+        "Rename 'Pending Actions' to 'Compliance Status' or 'Verification & Compliance' to better reflect the module's scope.",
+        "Introduce a 'Compliance Passport' summary within this card, showing high-level status for KYB, AML, and OFAC, with a clear CTA to view the full passport.",
+        "Replace the generic 'action' badge with a more specific status like 'REQUIRED' or 'PENDING'."
+      ]
+    },
+    {
+      "module": "Economics Engine",
+      "visual_weight_current": "medium",
+      "visual_weight_needed": "medium",
+      "issues": [
+        "The 'Next Payout' amount is hardcoded in the component, not dynamic.",
+        "The dashboard doesn't explicitly convey the 'lifetime attribution for follow-on deals' or 'trajectory tracking' aspects of the Economics Engine.",
+        "The payout items show amount and status, but could provide more context on the 'transparent, automated economics'."
+      ],
+      "whitepaper_concepts_missing": [
+        "Lifetime Attribution for Follow-on Deals (explicit metric/summary)",
+        "Trajectory Tracking (visual representation or link)",
+        "Transparent, Automated Economics (more detail on calculation)"
+      ],
+      "copy_violations": [
+        "The 'Next Payout:' label is hardcoded.",
+        "The '92000' amount for next payout is hardcoded."
+      ],
+      "proposed_changes": [
+        "Make the 'Next Payout' amount dynamic, fetched from the backend.",
+        "Add a small line or metric within the 'Recent Payouts' card to indicate 'Lifetime Attribution Value' or 'Compounding Value' over time.",
+        "Consider adding a link to a dedicated 'Economics Report' or 'Attribution Trajectory' page for deeper insights.",
+        "Add a copy token for the 'Next Payout:' label."
+      ]
+    }
+  ],
+  "data_tour_coverage": {
+    "present": [
+      "dashboard",
+      "trust-score",
+      "create-intent",
+      "relationships",
+      "deal-matching",
+      "match-card",
+      "deal-room",
+      "activity-feed",
+      "verification",
+      "payout",
+      "completion",
+      "apply"
+    ],
+    "referenced_in_tour_defs_but_missing_in_dom": [],
+    "present_but_not_in_tour_defs": [
+      "dashboard",
+      "activity-feed",
+      "completion"
+    ],
+    "incorrect_selectors": [
+      {
+        "tourFile": "lib/copy.ts",
+        "step_title": "Compliance Passport",
+        "selector": "data-tour='verification'",
+        "correct_selector": "data-tour='compliance-status'"
+      }
+    ]
+  },
+  "demo_mode_audit": {
+    "tRPC_queries_missing_enabled_guard": [],
+    "navigation_links_missing_MaybeLink": [
+      {
+        "link_target": "/onboarding",
+        "line_approx": 470
+      }
+    ],
+    "tRPC_queries_correctly_gated": [
+      "trpc.user.getStats.useQuery",
+      "trpc.notification.list.useQuery",
+      "trpc.payout.list.useQuery"
+    ]
+  },
+  "copy_drift": [
+    {
+      "line_approx": 223,
+      "hardcoded_string": "+3 this month",
+      "should_use": "Dynamic data for score change"
+    },
+    {
+      "line_approx": 232,
+      "hardcoded_string": "Click to view breakdown \u2192",
+      "should_use": "COPY.TRUST_SCORE.BREAKDOWN_CTA"
+    },
+    {
+      "line_approx": 240,
+      "hardcoded_string": "Navigating to Deal Matching",
+      "should_use": "COPY.TOASTS.NAVIGATING_DEAL_MATCHING"
+    },
+    {
+      "line_approx": 247,
+      "hardcoded_string": "Navigating to Relationships",
+      "should_use": "COPY.TOASTS.NAVIGATING_RELATIONSHIPS"
+    },
+    {
+      "line_approx": 300,
+      "hardcoded_string": "Sealed",
+      "should_use": "COPY.MATCH.SEALED_STATUS"
+    },
+    {
+      "line_approx": 349,
+      "hardcoded_string": "Escrow",
+      "should_use": "COPY.DEAL_ROOM.ESCROW_LABEL"
+    },
+    {
+      "line_approx": 360,
+      "hardcoded_string": "Enter Deal Room \u2192",
+      "should_use": "COPY.DEAL_ROOM.ENTER_CTA"
+    },
+    {
+      "line_approx": 430,
+      "hardcoded_string": "action",
+      "should_use": "COPY.PENDING_ACTION.BADGE_LABEL"
+    },
+    {
+      "line_approx": 444,
+      "hardcoded_string": "Next Payout:",
+      "should_use": "COPY.PAYOUTS.NEXT_PAYOUT_LABEL"
+    },
+    {
+      "line_approx": 446,
+      "hardcoded_string": "92000",
+      "should_use": "Dynamic data for next payout amount"
+    },
+    {
+      "line_approx": 410,
+      "hardcoded_string": "Buyers",
+      "should_use": "COPY.MARKET_DEPTH.BUYERS_LABEL"
+    },
+    {
+      "line_approx": 411,
+      "hardcoded_string": "Sellers",
+      "should_use": "COPY.MARKET_DEPTH.SELLERS_LABEL"
+    }
+  ],
+  "visual_hierarchy_score": {
+    "score": 7,
+    "max": 10,
+    "critique": "The 3-column layout provides a clear and functional hierarchy. The left column effectively groups primary actions and the Trust Score, while the center column is dedicated to primary content like matches and activity. The right column serves well for secondary information. Animations (stagger, fade-in, smooth counter) enhance the premium feel. However, the 'Quick Actions' buttons feel somewhat generic, and 'Pending Actions' could be more integrated with a broader 'Compliance' view. The overall information density could be higher to better align with the 'Bloomberg Terminal' aesthetic, which typically features more data-rich displays and less whitespace. The large 'Welcome Banner' also temporarily disrupts the hierarchy.",
+    "top_3_improvements": [
+      "Elevate the Trust Score to a more prominent, potentially wider, hero section at the top, integrating more details about its components and significance.",
+      "Consolidate 'Quick Actions' and 'Pending Actions' into more sophisticated, data-driven widgets that directly reflect core modules (e.g., 'Your Active Intents', 'Compliance Status').",
+      "Increase information density in key content areas (e.g., match cards, deal rooms) to surface more whitepaper concepts (audit trails, attribution details) without sacrificing readability."
+    ]
+  },
+  "institutional_feel_score": {
+    "score": 6,
+    "max": 10,
+    "critique": "The navy/blue palette with gold accents, custom data fonts (`font-data-hud`, `font-data-mono`), and subtle animations contribute positively to a premium feel. The `card-elevated` styling is clean and professional. However, the dashboard currently leans more towards a modern, clean SaaS aesthetic rather than the dense, information-rich, and often 'power-user' interface of a Bloomberg Terminal. There's a significant amount of whitespace, and some interactive elements (like the generic 'Quick Actions' buttons) lack the sophistication expected of an 'Operating System for Private Markets'. The overall experience feels a bit too 'friendly' and not 'commanding' enough.",
+    "what_would_make_it_10": "To achieve a 10, the dashboard needs to embrace higher information density, potentially with configurable widgets and a more 'data-hud' aesthetic. This would involve more sophisticated data visualizations (e.g., small sparklines, network graphs for relationships, trend charts for economics), a prominent and always-available command palette for rapid navigation and actions (akin to Bloomberg's command line), and a greater emphasis on real-time data streams. The UI should feel less like a collection of cards and more like an integrated, powerful control center. Richer, more detailed tooltips and hover states, along with a more 'compact' default view, would also contribute to a 'Bloomberg Terminal meets private club' feel, where advanced features are readily accessible but not overwhelming."
+  },
+  "dashboard_upgrade_spec": {
+    "structural_changes": [
+      "Move Trust Score to a wider, more prominent hero section at the top of the dashboard, potentially spanning two columns to give it more visual weight.",
+      "Introduce a dedicated 'Your Active Intents' widget in the left column, replacing the generic 'Create Intent' button 
+```
+
+# AGENT 5 COPY FINDINGS (terminology violations)
+```json
+{
+  "terminology_violations": [
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 189,
+      "found": "tier, verificationLevel",
+      "should_be": "Verification Tier (Basic/Enhanced/Institutional)",
+      "severity": "high"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 214,
+      "found": "View Matches",
+      "should_be": "View Blind Matches or View Intents",
+      "severity": "medium"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 275,
+      "found": "Escrow",
+      "should_be": "Escrow Milestone",
+      "severity": "medium"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 35,
+      "found": "Deal Matching",
+      "should_be": "Blind Matching",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 36,
+      "found": "Relationships",
+      "should_be": "Relationship Custody",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 43,
+      "found": "Verification",
+      "should_be": "Identity & KYC",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 45,
+      "found": "Compliance",
+      "should_be": "Compliance & Escrow",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 49,
+      "found": "Payouts",
+      "should_be": "Economics Engine",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 130,
+      "found": "n.title (derived from n.type, e.g., 'Payout Received', 'Compliance Alert')",
+      "should_be": "Specific whitepaper-aligned notification titles (e.g., 'Attribution Payout', 'Compliance Alert')",
+      "severity": "medium"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 290,
+      "found": "Matches",
+      "should_be": "Blind Matches or Intents",
+      "severity": "medium"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 291,
+      "found": "Relationships",
+      "should_be": "Relationship Custody",
+      "severity": "medium"
+    },
+    {
+      "file": "OnboardingFlow.tsx",
+      "line_approx": 416,
+      "found": "Tier 2",
+      "should_be": "Enhanced Verification Tier",
+      "severity": "medium"
+    },
+    {
+      "file": "OnboardingFlow.tsx",
+      "line_approx": 411,
+      "found": "Tier 1",
+      "should_be": "Basic Verification Tier",
+      "severity": "medium"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 120,
+      "found": "milestone",
+      "should_be": "Escrow Milestone",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 126,
+      "found": "compounding attribution over time",
+      "should_be": "Lifetime Attribution",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 149,
+      "found": "permanently attributed",
+      "should_be": "Lifetime Attribution",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 79,
+      "found": "access tier",
+      "should_be": "Verification Tier",
+      "severity": "low"
+    }
+  ],
+  "missing_copy_tokens": [
+    {
+      "concept": "Blind Matching Module Title",
+      "appears_in": [
+        "Dashboard.tsx line 223"
+      ],
+      "token_needed": "DASHBOARD.blindMatches.title",
+      "suggested_value": "Blind Matches"
+    },
+    {
+      "concept": "Deal Rooms Module Title",
+      "appears_in": [
+        "Dashboard.tsx line 254"
+      ],
+      "token_needed": "DASHBOARD.dealRooms.title",
+      "suggested_value": "Deal Rooms"
+    },
+    {
+      "concept": "Escrow Milestone Label",
+      "appears_in": [
+        "Dashboard.tsx line 275"
+      ],
+      "token_needed": "DASHBOARD.escrow.label",
+      "suggested_value": "Escrow Milestone"
+    },
+    {
+      "concept": "Navigation Labels (for all 6 core modules)",
+      "appears_in": [
+        "DashboardLayout.tsx line 30-60"
+      ],
+      "token_needed": "MODULES.identityKyC.navLabel, etc.",
+      "suggested_value": "Identity & KYC, Relationship Custody, Blind Matching, Deal Rooms, Compliance & Escrow, Economics Engine"
+    },
+    {
+      "concept": "Page Titles (for all 6 core modules)",
+      "appears_in": [
+        "DashboardLayout.tsx line 63-65"
+      ],
+      "token_needed": "MODULES.identityKyC.pageTitle, etc.",
+      "suggested_value": "Identity & KYC, Relationship Custody, Blind Matching, Deal Rooms, Compliance & Escrow, Economics Engine"
+    },
+    {
+      "concept": "Notification Type Labels (for Dashboard.tsx NOTIFICATION_STYLES)",
+      "appears_in": [
+        "Dashboard.tsx line 40-55"
+      ],
+      "token_needed": "NOTIFICATIONS.matchFound.label, NOTIFICATIONS.dealUpdate.label, NOTIFICATIONS.payoutReceived.label, NOTIFICATIONS.complianceAlert.label, NOTIFICATIONS.system.label",
+      "suggested_value": "MATCH, DEAL ROOM, ATTRIBUTION, VERIFICATION, INTELLIGENCE"
+    },
+    {
+      "concept": "Notification 
+```
+
+# AGENT 7 TYPE FINDINGS (unsafe patterns to fix)
+```json
+{
+  "typescript_errors": [
+    {
+      "file": "server/_core/llmFactory.ts",
+      "line": 3,
+      "error_code": "TS2307",
+      "error_text": "Cannot find module 'openai' or its corresponding type declarations.",
+      "root_cause": "The 'openai' package is listed in the import statement but is not present in the project's 'dependencies' or 'devDependencies' in package.json. TypeScript cannot resolve the module.",
+      "fix_command": "pnpm add openai",
+      "fix_code": null
+    }
+  ],
+  "unsafe_patterns": [
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "line_approx": 272,
+      "pattern": "any cast",
+      "description": "Multiple explicit 'as unknown as unknown[]' and 'as unknown as ReadonlyArray<...>' type assertions are used when accessing 'demo.matches', 'demo.dealRooms', and 'demo.payouts'. These casts bypass TypeScript's type checking and are unnecessary, as the 'DEMO_FIXTURES' are already strongly typed with 'as const'. This hides potential type mismatches and reduces type safety.",
+      "severity": "high"
+    },
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "line_approx": 204,
+      "pattern": "implicit any",
+      "description": "The result of 'JSON.parse(raw)' is implicitly 'any'. While wrapped in a try/catch block, 'parsed.persona' could be 'any' before the nullish coalescing operator. This is a minor implicit 'any' risk.",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "line_approx": 500,
+      "pattern": "data structure divergence",
+      "description": "The rendering logic for payouts explicitly branches for demo vs. live data, indicating a divergence in expected data structures. Specifically, demo payouts use 'p.deal' for description and have statuses like 'triggered', 'deployed', 'fundraising', while live payouts (from tRPC) use 'p.payoutType' and have statuses like 'completed', 'pending'. While handled by separate code paths, this divergence makes the demo data less representative of the live API and complicates future refactoring or unification.",
+      "severity": "medium"
+    }
+  ],
+  "demo_type_issues": [
+    {
+      "description": "The 'payouts' data structure in 'demoFixtures.ts' does not fully align with the assumed response type from 'trpc.payout.list.useQuery'. Demo payouts use a 'deal' property for description and a broader set of 'status' literal values ('triggered', 'deployed', 'fundraising'), whereas the live tRPC data is expected to have a 'payoutType' property and a different set of 'status' values ('completed', 'pending'). This requires separate rendering logic in 'Dashboard.tsx' and reduces the fidelity of the demo data as a mirror of the live system."
+    }
+  ],
+  "patches": [
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "description": "Remove unnecessary 'as unknown as unknown[]' and 'as unknown as ReadonlyArray<...>' type assertions for demo.matches.",
+      "old_code": "              {(demo.matches as unknown as Readon
+```
+
+# CURRENT DASHBOARD SOURCE
+```tsx
+import { useAuth } from "@/_core/hooks/useAuth";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import { trpc } from "@/lib/trpc";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+import { formatDistanceToNow } from "date-fns";
+import {
+  FileText,
+  Lock,
+  Shield,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
+import { toast } from "sonner";
+
+const NOTIFICATION_STYLES: Record<
+  string,
+  { border: string; badge: string; label: string }
+> = {
+  match_found: {
+    border: "border-l-[#C4972A]",
+    badge: "bg-[#C4972A]/15 text-[#C4972A]",
+    label: "MATCH",
+  },
+  deal_update: {
+    border: "border-l-[#2563EB]",
+    badge: "bg-[#2563EB]/15 text-[#2563EB]",
+    label: "DEAL ROOM",
+  },
+  payout_received: {
+    border: "border-l-[#059669]",
+    badge: "bg-[#059669]/15 text-[#059669]",
+    label: "ATTRIBUTION",
+  },
+  compliance_alert: {
+    border: "border-l-[#1E3A5F]",
+    badge: "bg-[#1E3A5F]/15 text-[#1E3A5F]",
+    label: "VERIFICATION",
+  },
+};
+
+const DEFAULT_STYLE = {
+  border: "border-l-[#0A1628]",
+  badge: "bg-[#0A1628]/15 text-[#0A1628]",
+  label: "INTELLIGENCE",
+};
+
+const MARKET_DEPTH = [
+  { sector: "Solar", buyers: 47, sellers: 12 },
+  { sector: "Oil & Gas", buyers: 23, sellers: 8 },
+  { sector: "Real Estate", buyers: 34, sellers: 19 },
+  { sector: "Infrastructure", buyers: 15, sellers: 6 },
+];
+
+const PENDING_ACTIONS = [
+  { text: "Complete Tier 2 verification", Icon: Shield },
+  { text: "Review 3 new matches", Icon: Target },
+  { text: "Sign NDA for Deal Room #12", Icon: FileText },
+];
+
+function getScoreColor(score: number) {
+  if (score > 70) return "#059669";
+  if (score >= 40) return "#F59E0B";
+  return "#DC2626";
+}
+
+function TrustRing({ score }: { score: number }) {
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.min(Math.max(score, 0), 100);
+  const offset = circumference - (progress / 100) * circumference;
+  const color = getScoreColor(score);
+
+  return (
+    <svg width="140" height="140" viewBox="0 0 140 140" className="mx-auto">
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke="#0A1628"
+        strokeWidth="8"
+        opacity="0.12"
+      />
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform="rotate(-90 70 70)"
+        className="transition-all duration-700"
+      />
+    </svg>
+  );
+}
+
+function DashCard({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`card-elevated p-6 ${className}`}>
+      <h3 className="mb-4 data-label">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+// ── Welcome Banner (shown once after onboarding) ───────────────────────────
+const PERSONA_SUBTITLES: Record<string, string> = {
+  originator: "Your first relationship has been custodied. Deal matching is live.",
+  investor:   "Your investment intent is broadcasting to verified counterparties.",
+  developer:  "Your project is verified. Qualified capital matches are incoming.",
+  allocator:  "Your fund mandate is active. Institutional pipeline is open.",
+  acquirer:   "Your acquisition criteria are live. Confidential matches are sourcing.",
+};
+
+const PERSONA_LABELS: Record<string, string> = {
+  originator: "Deal Originator",
+  investor:   "Investor",
+  developer:  "Project Developer",
+  allocator:  "Institutional Allocator",
+  acquirer:   "Strategic Acquirer",
+};
+
+function WelcomeBanner({ name, persona, onDismiss }: { name: string; persona: string; onDismiss: () => void }) {
+  const subtitle = PERSONA_SUBTITLES[persona] ?? "Your profile is ready.";
+  const personaLabel = PERSONA_LABELS[persona] ?? persona;
+  return (
+    <div className="mb-6 card-elevated border-l-4 border-l-[#C4972A] p-4 flex items-start justify-between gap-4">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A]/15">
+          <svg className="h-4 w-4 text-[#C4972A]" viewBox="0 0 16 16" fill="currentColor">
+            <path fillRule="evenodd" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#0A1628]">
+            Welcome, {name}. Your {personaLabel} profile is ready.
+          </p>
+          <p className="mt-0.5 text-sm text-[#1E3A5F]/70">{subtitle}</p>
+        </div>
+      </div>
+      <button
+        onClick={onDismiss}
+        className="mt-0.5 shrink-0 rounded p-1 text-[#1E3A5F]/40 hover:bg-[#1E3A5F]/8 hover:text-[#1E3A5F]/70 transition-colors"
+        aria-label="Dismiss welcome banner"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+      <div className="space-y-6">
+        <div className="card-elevated p-6">
+          <div className="h-4 w-24 animate-shimmer rounded mb-4" />
+          <div className="mx-auto h-[140px] w-[140px] animate-shimmer rounded-full" />
+          <div className="mt-4 h-3 w-20 animate-shimmer rounded mx-auto" />
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-12 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="h-6 w-24 animate-shimmer rounded" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="card-elevated p-6">
+            <div className="h-4 w-32 animate-shimmer rounded mb-4" />
+            <div className="space-y-2">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-4 animate-shimmer rounded" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** In demo mode suppress navigation so clicking a card doesn't destroy demo context. */
+function MaybeLink({
+  href,
+  demo,
+  children,
+}: {
+  href: string;
+  demo: boolean;
+  children: React.ReactNode;
+}) {
+  if (demo) return <>{children}</>;
+  return <Link href={href}>{children}</Link>;
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function MarketDepthBar({ label, value, max, index = 0 }: { label: string; value: number; max: number; index?: number }) {
+  const pct = Math.round((value / max) * 100);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-8 text-right font-data-hud text-[10px] text-[#1E3A5F]/60">{value}</span>
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#0A1628]/6">
+        <motion.div
+          className="h-full rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+          style={{ background: label === "buyers" ? "#2563EB" : "#C4972A" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const demo = useDemoFixtures();
+  const { user: liveUser } = useAuth();
+  const [welcomePersona, setWelcomePersona] = useState<string | null>(() => {
+    try {
+      const raw = localStorage.getItem("anavi_onboarding");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const welcomed = localStorage.getItem("anavi_welcomed");
+      if (welcomed) return null;
+      return parsed.persona ?? null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleDismissWelcome = useCallback(() => {
+    localStorage.setItem("anavi_welcomed", "true");
+    setWelcomePersona(null);
+  }, []);
+
+  const user = demo ? demo.user : liveUser;
+
+  const { data: stats, isLoading: statsLoading } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const { data: notificationsData, isLoading: notificationsLoading } = trpc.notification.list.useQuery(
+    { limit: 10 },
+    { enabled: !demo },
+  );
+  const { data: payouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
+
+  useEffect(() => { document.title = "Dashboard | ANAVI"; }, []);
+
+  const loading = demo ? false : (statsLoading || notificationsLoading);
+
+  // Demo notifications have a slightly different shape — normalize here.
+  // Map fixture time strings to approximate Date offsets so relative timestamps are accurate.
+  const FIXTURE_TIME_OFFSETS: Record<string, number> = {
+    "30 minutes ago": 30 * 60 * 1000,
+    "1 hour ago":     1 * 60 * 60 * 1000,
+    "2 hours ago":    2 * 60 * 60 * 1000,
+    "4 hours ago":    4 * 60 * 60 * 1000,
+    "Yesterday":      24 * 60 * 60 * 1000,
+    "2 days ago":     2 * 24 * 60 * 60 * 1000,
+    "3 days ago":     3 * 24 * 60 * 60 * 1000,
+  };
+  const demoNotifications = demo?.notifications.map((n) => ({
+    id: String(n.id),
+    type: n.type,
+    title: n.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    message: n.message,
+    createdAt: new Date(Date.now() - (FIXTURE_TIME_OFFSETS[n.time] ?? 0)).toISOString(),
+  }));
+  const notifications = demoNotifications ?? notificationsData ?? [];
+
+  const rawScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
+  const trustScore = rawScore > 100 ? rawScore / 10 : rawScore;
+  const scoreColor = getScoreColor(trustScore);
+  const maxDepth = Math.max(...MARKET_DEPTH.map((m) => Math.max(m.buyers, m.sellers)));
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  return (
+    <>
+      {welcomePersona && (
+        <WelcomeBanner
+          name={user?.name?.split(" ")[0] ?? "there"}
+          persona={welcomePersona}
+          onDismiss={handleDismissWelcome}
+        />
+      )}
+      {/* E13: Personalized greeting */}
+      <FadeInView>
+        <div data-tour="dashboard" className="mb-6 flex items-baseline justify-between">
+          <div>
+            <h1 className="dash-heading text-3xl">
+              {getGreeting()}, {user?.name?.split(" ")[0] ?? "there"}
+            </h1>
+            <p className="mt-1 text-sm text-[#1E3A5F]/60">
+              {notifications.length > 0
+                ? `${notifications.length} new notification${notifications.length > 1 ? "s" : ""}`
+                : "You're all caught up"}{" "}
+              &middot; {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </p>
+          </div>
+        </div>
+      </FadeInView>
+
+      <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+        {/* ───────── Left Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* Trust Score Widget — E11: clickable */}
+          <StaggerItem>
+            <MaybeLink href="/verification" demo={!!demo}>
+              <div data-tour="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
+                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
+                  Trust Score
+                </h3>
+
+                <div className="relative mx-auto w-[140px] transition-transform duration-200 group-hover:scale-105">
+                  <TrustRing score={trustScore} />
+                  <span
+                    className="font-data-hud text-4xl font-bold absolute inset-0 flex items-center justify-center"
+                    style={{ color: scoreColor }}
+                  >
+                    <SmoothCounter value={Math.round(trustScore)} duration={1} />
+                  </span>
+                </div>
+
+                <p className="mt-3 text-xs text-[#1E3A5F]/60">
+                  <TrendingUp className="mr-1 inline h-3 w-3" style={{ color: "#059669" }} />
+                  <span style={{ color: "#059669" }}>+3</span> this month
+                </p>
+
+                {(demo?.user.tier ?? stats?.verificationLevel) && (
+                  <span className="mt-3 inline-block rounded-full bg-[#0A1628]/10 px-3 py-1 text-xs font-semibold text-[#0A1628]">
+                    {demo?.user.tier ?? stats?.verificationLevel}
+                  </span>
+                )}
+
+                {!demo && (
+                  <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1E3A5F]/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    Click to view breakdown →
+                  </p>
+                )}
+              </div>
+            </MaybeLink>
+          </StaggerItem>
+
+          {/* E12: Quick Actions with ElasticButton feel + toast */}
+          <StaggerItem>
+            <div className="space-y-2">
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button
+                  data-tour="create-intent"
+                  className="btn-gold w-full rounded-lg px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Deal Matching"); }}
+                >
+                  Create Intent
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/relationships" demo={!!demo}>
+                <button
+                  data-tour="relationships"
+                  className="w-full rounded-lg bg-[#C4972A] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#C4972A]/90 active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Relationships"); }}
+                >
+                  Protect Relationship
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button className="w-full rounded-lg border border-[#D1DCF0] bg-white px-4 py-3 text-sm font-semibold text-[#1E3A5F] transition-colors hover:bg-[#F3F7FC]">
+                  View Matches
+                </button>
+              </MaybeLink>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+
+        {/* ───────── Center Column ───────── */}
+        <FadeInView delay={0.1}>
+          {/* Blind Matches — always present so onboardingTour can target it.
+              Demo: shows fixture match cards. Live: shows tRPC data (wired when real matching lands). */}
+          <div data-tour="deal-matching" className="mb-6">
+            <h2 className="mb-3 dash-heading text-xl">Blind Matches</h2>
+            {demo && (demo.matches as unknown as unknown[]).length > 0 ? (
+              <StaggerContainer className="space-y-3">
+                {(demo.matches as unknown as ReadonlyArray<{ id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string }>).map((m, idx) => (
+                  <StaggerItem key={m.id}>
+                    <div
+                      data-tour={idx === 0 ? "match-card" : undefined}
+                      className="card-elevated border-l-4 border-l-[#C4972A] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <span className="rounded-full bg-[#C4972A]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C4972A]">
+                          MATCH
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Lock className="h-3 w-3 text-[#1E3A5F]/40" />
+                          <span className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/40">Sealed</span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628] mb-2">{m.tag}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.assetClass}</span>
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.dealSize}</span>
+                        <span
+                          className="ml-auto font-data-hud text-sm font-bold"
+                          style={{ color: m.compatibilityScore >= 90 ? "#059669" : "#C4972A" }}
+                        >
+                          {m.compatibilityScore}% match
+                        </span>
+                      </div>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : !demo ? (
+              <div className="card-elevated p-6">
+                <EmptyState {...EMPTY_STATES.matches} />
+              </div>
+            ) : null}
+          </div>
+
+          {/* Deal Rooms — demo only until live deal rooms are wired to this dashboard */}
+          {demo && (demo.dealRooms as unknown as unknown[]).length > 0 && (
+            <div className="mb-6">
+              <h2 className="mb-3 dash-heading text-xl">Deal Rooms</h2>
+              <StaggerContainer className="space-y-3">
+                {(demo.dealRooms as unknown as ReadonlyArray<{ id: number; name: string; stage: string; counterparty: string; escrowProgress: number }>).map((dr, idx) => (
+                  <StaggerItem key={dr.id}>
+                    <div
+                      data-tour={idx === 0 ? "deal-room" : undefined}
+                      className="card-elevated border-l-4 border-l-[#2563EB] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-[#0A1628]">{dr.name}</p>
+                        <span className="rounded-full bg-[#2563EB]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+                          {dr.stage}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#1E3A5F]/60 mb-3">{dr.counterparty}</p>
+                      <div className="mb-2">
+                        <div className="flex justify-between text-[10px] text-[#1E3A5F]/50 mb-1">
+                          <span>Escrow</span>
+                          <span>{dr.escrowProgress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#0A1628]/6">
+                          <div
+                            className="h-full rounded-full bg-[#059669]"
+                            style={{ width: `${dr.escrowProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <MaybeLink href="/deal-rooms" demo={!!demo}>
+                        <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:text-[#2563EB]/80 uppercase tracking-wider transition-colors">
+                          Enter Deal Room →
+                        </button>
+                      </MaybeLink>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          )}
+
+          <div data-tour="activity-feed">
+          <h2 className="mb-4 dash-heading text-2xl">Activity</h2>
+
+          {notifications.length > 0 ? (
+            <StaggerContainer className="space-y-3">
+              {notifications.map((n, idx) => {
+                const style = NOTIFICATION_STYLES[n.type] ?? DEFAULT_STYLE;
+                return (
+                  <StaggerItem key={n.id}>
+                    <div
+                      className={`card-elevated border-l-4 p-4 hover:translate-y-[-2px] ${style.border}`}
+                    >
+                      <div className="mb-1 flex items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge}`}
+                        >
+                          {style.label}
+                        </span>
+                        {/* E9: pulse dot on newest */}
+                        {idx === 0 && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C4972A] opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C4972A]" />
+                          </span>
+                        )}
+                        <span className="font-data-mono text-[#1E3A5F]/50">
+                          {formatDistanceToNow(new Date(n.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628]">
+                        {n.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-[#1E3A5F]/70">
+                        {n.message}
+                      </p>
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          ) : (
+            <div className="card-elevated p-6">
+              <EmptyState {...EMPTY_STATES.notifications} />
+            </div>
+          )}
+          </div>{/* /data-tour="activity-feed" */}
+        </FadeInView>
+
+        {/* ───────── Right Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* E10: Market Depth — horizontal bar chart */}
+          <StaggerItem>
+            <DashCard title="Market Depth">
+              <div className="space-y-4">
+                {MARKET_DEPTH.map((m, i) => (
+                  <div key={m.sector}>
+                    <p className="mb-1.5 text-xs font-semibold text-[#0A1628]">{m.sector}</p>
+                    <MarketDepthBar label="buyers" value={m.buyers} max={maxDepth} index={i * 2} />
+                    <MarketDepthBar label="sellers" value={m.sellers} max={maxDepth} index={i * 2 + 1} />
+                  </div>
+                ))}
+                <div className="flex items-center gap-4 border-t border-[#D1DCF0] pt-2 text-[10px] text-[#1E3A5F]/60">
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#2563EB]" /> Buyers</span>
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#C4972A]" /> Sellers</span>
+                </div>
+              </div>
+            </DashCard>
+          </StaggerItem>
+
+          {/* E14: Pending Actions with badges */}
+          <StaggerItem>
+            <div data-tour="verification">
+            <DashCard title="Pending Actions">
+              <div className="space-y-3">
+                {PENDING_ACTIONS.map((a) => (
+                  <div key={a.text} className="flex items-center gap-3 text-sm">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/5">
+                      <a.Icon className="h-4 w-4 text-[#1E3A5F]/60" />
+                    </span>
+                    <span className="flex-1 text-[#0A1628]">{a.text}</span>
+                    <span className="rounded-full bg-[#F59E0B]/15 px-2 py-0.5 text-[10px] font-bold uppercase text-[#F59E0B]">
+                      action
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </DashCard>
+            </div>
+          </StaggerItem>
+
+          {/* Recent Payouts */}
+          <StaggerItem>
+            <div data-tour="payout">
+            <DashCard title="Recent Payouts">
+              <p className="mb-3 text-lg font-bold text-[#0A1628]">
+                Next Payout:{" "}
+                <span className="text-[#059669]">
+                  $<SmoothCounter value={92000} prefix="" duration={1.2} />
+                </span>
+              </p>
+              {demo ? (
+                (demo.payouts as unknown as unknown[]).length > 0 ? (
+                  <div className="space-y-2">
+                    {(demo.payouts as unknown as ReadonlyArray<{ id: number; deal: string; amount: number; status: string }>).map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                      >
+                        <div>
+                          <span className="font-semibold text-[#0A1628]">
+                            ${p.amount.toLocaleString()}
+                          </span>
+                          <span className="ml-2 text-xs text-[#1E3A5F]/60">{p.deal}</span>
+                        </div>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            p.status === "triggered" || p.status === "deployed"
+                              ? "bg-[#059669]/15 text-[#059669]"
+                              : p.status === "pending" || p.status === "fundraising"
+                                ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                                : "bg-[#2563EB]/15 text-[#2563EB]"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState {...EMPTY_STATES.payouts} />
+                )
+              ) : payouts && payouts.length > 0 ? (
+                <div className="space-y-2">
+                  {payouts.slice(0, 3).map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                    >
+                      <div>
+                        <span className="font-semibold text-[#0A1628]">
+                          ${parseFloat(p.amount).toLocaleString()}
+                        </span>
+                        <span className="ml-2 text-xs text-[#1E3A5F]/60">
+                          {p.payoutType.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          p.status === "completed"
+                            ? "bg-[#059669]/15 text-[#059669]"
+                            : p.status === "pending"
+                              ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                              : "bg-[#2563EB]/15 text-[#2563EB]"
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState {...EMPTY_STATES.payouts} />
+              )}
+            </DashCard>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+      </div>
+
+      {/* Apply CTA — onboardingTour "completion" target + demo "apply" target */}
+      <FadeInView delay={0.3}>
+        <div data-tour="completion" className="mt-8">
+          <div data-tour="apply" className="flex justify-center">
+            <Link href="/onboarding">
+              <motion.button
+                className="px-8 py-3 border border-[#C4972A]/40 text-[#C4972A] text-sm uppercase tracking-widest font-semibold hover:bg-[#C4972A]/5 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Request Full Access
+              </motion.button>
+            </Link>
+          </div>
+        </div>
+      </FadeInView>
+    </>
+  );
+}
+
+```
+
+# CURRENT COPY.TS (for token references)
+```ts
+// client/src/lib/copy.ts
+// Single source of truth for all whitepaper-aligned platform language.
+// Import from here — never write custody/attribution/trust copy inline.
+
+export const PLATFORM = {
+  tagline: "The Private Market Operating System",
+  thesis: "If Bloomberg runs public markets, ANAVI will run private ones.",
+  market: "$13 trillion private market",
+} as const;
+
+export const PROBLEMS = {
+  brokerChain: {
+    stat: "5–15",
+    headline: "Intermediaries Per Deal",
+    body: "5 to 15 intermediaries per deal. Each extracting 1–5%. The originator — the person whose relationship made the deal possible — receives no attribution, no compounding value, and no protection if they're cut out.",
+  },
+  fraud: {
+    stat: "$40B",
+    headline: "Annual Fraud Losses",
+    body: "$10 to $40 billion in annual US investment fraud losses. Because identity verification across private markets is fragmented, unshared, and trivially forged. Everyone runs their own checks. No one shares the results.",
+  },
+  dueDiligence: {
+    stat: "$500K",
+    headline: "Duplicated Per Deal",
+    body: "$50,000 to $500,000 per deal in duplicated compliance costs. Every investor in the chain runs the same KYC, the same OFAC screen, the same accreditation check — independently, expensively, and without coordination.",
+  },
+} as const;
+
+export const PERSONAS = {
+  originator: {
+    label: "Deal Originator / Broker",
+    role: "Relationship Holder",
+    problem: "My introductions close deals I never get credit for.",
+    answer: "Custody your relationships. Timestamp your introductions. Collect your attribution.",
+    tourPitch: "You made 847 introductions last year. ANAVI would have attributed every one.",
+  },
+  investor: {
+    label: "Investor / Family Office",
+    role: "Capital Deployer",
+    problem: "I can't tell which deals are real or who's already seen them.",
+    answer: "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
+    tourPitch: "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
+  },
+  developer: {
+    label: "Developer / Asset Owner",
+    role: "Capital Seeker",
+    problem: "Raising capital means exposing my thesis before anyone commits.",
+    answer: "Anonymous until you consent. NDA-gated rooms. Escrow-backed milestones.",
+    tourPitch: "You raised $30M. ANAVI would have protected your thesis until the moment you chose to disclose it.",
+  },
+} as const;
+
+export type PersonaKey = keyof typeof PERSONAS;
+
+export const TOUR = {
+  trustScore: {
+    title: "Your Trust Score",
+    body: "A dynamic credential built from KYB verification depth, transaction history, dispute resolution outcomes, and peer attestations. It determines your access tier, your whitelist status, and whether counterparties transact with you.",
+  },
+  relationships: {
+    originator: {
+      title: "Custody Your Relationship",
+      body: "Click to timestamp this introduction with a cryptographic custody hash — immutable proof of when you made it. If this relationship produces a deal in three years, this record is your attribution claim.",
+    },
+    investor: {
+      title: "Protect Your Counterparty",
+      body: "Click to custody a counterparty relationship. Every counterparty you protect has passed KYB verification, OFAC screening, and accreditation confirmation — and every disclosure is logged permanently.",
+    },
+    developer: {
+      title: "Seal Your Register",
+      body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
+    },
+  },
+  blindMatch: {
+    title: "Blind Match",
+    body: "A qualified counterparty has been matched to your intent. Their identity, firm, and terms remain sealed. ANAVI's matching engine operates on anonymized attributes — the platform cannot see unencrypted details until both parties authorize disclosure.",
+  },
+  dealRoom: {
+    title: "Deal Room",
+    body: "NDA executed. Immutable audit trail initiated. Every document access, version change, and signature event is cryptographically logged. This record is the basis for originator attribution, payout calculation, and regulatory compliance.",
+  },
+  attribution: {
+    originator: {
+      title: "Attribution & Payout",
+      body: "Your introduction. $47M Riyadh Solar JV. Originator share: 2.5% — $1.175M — calculated automatically from the closing ledger. Triggered on milestone. No negotiation. No intermediary.",
+    },
+    investor: {
+      title: "Attribution & Payout",
+      body: "Your capital deployed across 3 verified SPVs. Every subsequent deal from this relationship credits your participation — compounding attribution over time.",
+    },
+    developer: {
+      title: "Escrow Milestone",
+      body: "Milestone reached: $12M of $30M committed. Funds release triggered automatically. Your operator economics, protected and automated.",
+    },
+  },
+  compliance: {
+    title: "Compliance Passport",
+    body: "This counterparty's compliance passport — KYB verified, OFAC clean, accredited status confirmed — travels with every transaction they execute on ANAVI. You access their verification record. You don't duplicate it. $500,000 in due diligence costs, shared.",
+  },
+  close: {
+    headline: "The Private Market Operating System.",
+    subhead: "Every relationship custodied. Every introduction attributed. Every deal closed on infrastructure purpose-built for the $13 trillion private market.",
+    cta: {
+      title: "Apply for Access",
+      body: "You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?",
+    },
+  },
+} as const;
+
+export const CUSTODY_RECEIPT = {
+  title: "Introduction Custodied.",
+  body: "This introduction is now timestamped, cryptographically signed, and permanently attributed to you. If this relationship produces a deal — today or in five years — this record is your claim.",
+  cta: "View Your Custody Register",
+} as const;
+
+```
+
+# UPGRADE REQUIREMENTS
+
+## Visual Hierarchy Changes (implement ALL)
+1. Trust Score → HERO element. Wider section, larger ring (160px+), tier badge prominent, "+3 this month" should show as real delta indicator
+2. Relationship Custody section → should show custody hash + timestamp age visually, "Protect" button as primary CTA with more weight
+3. Blind Matches section → match cards should feel like "sealed intelligence briefs" — compartmentalized, cryptic, weighty
+4. Deal Rooms section → institutional feel — NDA status, stage, audit count all visible at a glance
+5. Compliance/Verification section → "Compliance Status" header, pending actions feel urgent-but-calm
+6. Payouts section → show originatorShare% explicitly, "Lifetime Attribution" framing
+
+## Copy/Terminology Changes (implement ALL)
+- Replace "Pending Actions" with "Compliance Status"
+- Replace generic "View Matches" with "View Blind Matches"
+- All match cards: show "SEALED — [AssetClass]" not just the intent description
+- Payout items: show "Originator Share: X%" prominently
+- Activity feed labels: MATCH / ATTRIBUTION / VERIFICATION / DEAL ROOM (not generic)
+
+## Type Safety Changes (implement ALL)
+- Remove unnecessary `as unknown as unknown[]` and `as unknown as ReadonlyArray<...>` type assertions for demo arrays
+- Use proper TypeScript generics instead
+
+## data-tour Attributes (preserve ALL existing):
+- data-tour="dashboard" — keep on page header div
+- data-tour="trust-score" — keep on TrustRing wrapper div
+- data-tour="create-intent" — keep on Create Intent button
+- data-tour="relationships" — keep on Protect Relationship button
+- data-tour="deal-matching" — keep on matches section wrapper
+- data-tour="match-card" — keep on idx===0 match card
+- data-tour="deal-room" — keep on idx===0 deal room card
+- data-tour="activity-feed" — keep on activity feed section
+- data-tour="verification" — keep on verification section
+- data-tour="payout" — keep on payout section (NOTE: "payout" not "payouts")
+- data-tour="completion" — keep on completion section
+- data-tour="apply" — keep on Request Access CTA
+
+## Demo Mode Preservation (preserve ALL):
+- Keep useDemoFixtures() hook
+- Keep all `enabled: !demo` guards on tRPC queries
+- Keep MaybeLink for all navigation in demo mode
+- Keep demo fixture data rendering branches
+
+## Constraints:
+- Do NOT add new package imports (use only currently imported packages)
+- Do NOT change the component function signature
+- Do NOT change the file exports
+- Keep all existing utility functions (MaybeLink, TrustRing, DashCard, WelcomeBanner, etc.)
+- Keep all existing type definitions
+
+Write the COMPLETE upgraded Dashboard.tsx file. Return JSON with this structure:
+{
+  "upgraded_dashboard_tsx": "COMPLETE file content here — all 700+ lines",
+  "changes_summary": "bullet list of what changed",
+  "data_tour_preservation": "confirm all 12 data-tour attributes preserved"
+}

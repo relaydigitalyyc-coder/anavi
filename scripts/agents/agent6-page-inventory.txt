@@ -1,22 +1,276 @@
+You are a senior frontend architect cataloging all pages in the ANAVI application against its 6-module architecture. Be hyper-meticulous.
+
+
+ANAVI WHITEPAPER VISION (condensed):
+- "The Private Market Operating System" — "If Bloomberg runs public markets, ANAVI will run private ones."
+- Positioning: neutral trust infrastructure for the $13+ trillion private markets ecosystem
+- Eliminates: broker chains (5-15 per deal), relationship leakage, due diligence duplication, fraud
+
+6 CORE MODULES:
+1. Identity/KYC — Trust Score (dynamic, compound), verification tiers: Basic/Enhanced/Institutional, KYB
+2. Relationship Custody — Cryptographic timestamps, blind until consent, forever attribution (originators get 40-60%)
+3. Blind Matching — Intent-based (Buy/Sell/Invest intents), anonymized until mutual consent, compatibility scoring
+4. Deal Rooms — NDA-gated, document versioning, e-signature, immutable audit trail, escrow milestones
+5. Compliance/Escrow — AML/KYC rails, OFAC screening, per-deal compliance, milestone-triggered fund release
+6. Economics Engine — Automated payouts on deal close, lifetime attribution for follow-on deals, trajectory tracking
+
+TARGET PERSONAS:
+- Deal Originator/Broker: "My introductions close deals I never get credit for." → custody + lifetime attribution
+- Investor/Family Office: "I can't tell which deals are real." → verified counterparties + blind matching
+- Project Developer/Asset Owner: "Raising capital means exposing my thesis." → anonymous until consent
+
+UX PRINCIPLES (from Webaroo spec):
+- Navy/blue palette, luxury aesthetic, institutional-grade
+- "Simplicity as design principle. Progressive disclosure — advanced features available but not in the way."
+- The platform should feel like Bloomberg Terminal meets private club
+
+THE TRANSFORMATION:
+Before: 5-15 broker chains → After: Direct verified counterparty access
+Before: Manual costly due diligence → After: Pre-verified participant network
+Before: Relationship leakage + circumvention → After: Custodied relationships with lifetime attribution
+Before: Opaque, negotiated fees → After: Transparent, automated economics
+Before: High fraud risk → After: Trust-scored network with blacklist controls
+Before: One-time transaction relationships → After: Compounding relationship value over time
+
+CODEBASE ARCHITECTURE:
+- Client: React 19, Vite, wouter, tRPC React Query, Tailwind 4, shadcn/ui, framer-motion
+- Server: Node, Express, tRPC v11, Drizzle ORM (MySQL/TiDB)
+- Working dir: anavi/
+- Key paths: client/src/pages/ (40+ pages), client/src/components/, client/src/lib/, client/src/contexts/
+- Route wrappers: ShellRoute (auth + DashboardLayout + PageTransition), ProtectedPage (auth only), Bare (public)
+
+
+# APP.TSX (all routes)
+```tsx
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import NotFound from "@/pages/NotFound";
+import { Route, Switch } from "wouter";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import Relationships from "./pages/Relationships";
+import Intents from "./pages/Intents";
+import Matches from "./pages/Matches";
+import Deals from "./pages/Deals";
+import DealRooms from "./pages/DealRooms";
+import Compliance from "./pages/Compliance";
+import Payouts from "./pages/Payouts";
+import Network from "./pages/Network";
+import Settings from "./pages/Settings";
+import FamilyOffices from "./pages/FamilyOffices";
+import Targeting from "./pages/Targeting";
+import Calendar from "./pages/Calendar";
+import Analytics from "./pages/Analytics";
+import SPVGenerator from "./pages/SPVGenerator";
+import LPPortal from "./pages/LPPortal";
+import CapitalManagement from "./pages/CapitalManagement";
+import AuditLogs from "./pages/AuditLogs";
+import Commodities from "./pages/Commodities";
+import RealEstate from "./pages/RealEstate";
+import TransactionMatching from "./pages/TransactionMatching";
+import TradingPlatform from "./pages/TradingPlatform";
+import MemberOnboarding from "./pages/MemberOnboarding";
+import FeeManagement from "./pages/FeeManagement";
+import DealRoom from "./pages/DealRoom";
+import Manifesto from "./pages/Manifesto";
+import OperatorIntake from "./pages/OperatorIntake";
+import KnowledgeGraphPage from "./pages/KnowledgeGraphPage";
+import DealIntelligence from "./pages/DealIntelligence";
+import CryptoAssets from "./pages/CryptoAssets";
+import AIBrain from "./pages/AIBrain";
+import DealMatching from "./pages/DealMatching";
+import Verification from "./pages/Verification";
+import Onboarding from "./pages/Onboarding";
+import OnboardingFlow from "./pages/OnboardingFlow";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import Intelligence from "./pages/Intelligence";
+import Demo from "./pages/Demo";
+import DashboardLayout from "./components/DashboardLayout";
+import { PageTransition } from "./components/PageTransition";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { CursorGlow } from "./components/CursorGlow";
+import { TourProvider } from "./contexts/TourContext";
+
+function ShellRoute({ component: Component }: { component: React.ComponentType }) {
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <PageTransition>
+          <Component />
+        </PageTransition>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function ProtectedPage({ component: Component }: { component: React.ComponentType }) {
+  return (
+    <ProtectedRoute>
+      <Component />
+    </ProtectedRoute>
+  );
+}
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/intelligence">
+        <ShellRoute component={Intelligence} />
+      </Route>
+      <Route path="/demo" component={Demo} />
+      <Route path="/welcome">
+        <ProtectedPage component={Onboarding} />
+      </Route>
+      <Route path="/onboarding">
+        <ProtectedPage component={OnboardingFlow} />
+      </Route>
+      <Route path="/dashboard">
+        <ShellRoute component={Dashboard} />
+      </Route>
+      <Route path="/relationships">
+        <ShellRoute component={Relationships} />
+      </Route>
+      <Route path="/intents">
+        <ShellRoute component={Intents} />
+      </Route>
+      <Route path="/matches">
+        <ShellRoute component={Matches} />
+      </Route>
+      <Route path="/deals">
+        <ShellRoute component={Deals} />
+      </Route>
+      <Route path="/deal-rooms">
+        <ShellRoute component={DealRooms} />
+      </Route>
+      <Route path="/compliance">
+        <ShellRoute component={Compliance} />
+      </Route>
+      <Route path="/payouts">
+        <ShellRoute component={Payouts} />
+      </Route>
+      <Route path="/network">
+        <ShellRoute component={Network} />
+      </Route>
+      <Route path="/settings">
+        <ShellRoute component={Settings} />
+      </Route>
+      <Route path="/family-offices">
+        <ShellRoute component={FamilyOffices} />
+      </Route>
+      <Route path="/targeting">
+        <ShellRoute component={Targeting} />
+      </Route>
+      <Route path="/calendar">
+        <ShellRoute component={Calendar} />
+      </Route>
+      <Route path="/analytics">
+        <ShellRoute component={Analytics} />
+      </Route>
+      <Route path="/spv-generator">
+        <ShellRoute component={SPVGenerator} />
+      </Route>
+      <Route path="/lp-portal">
+        <ShellRoute component={LPPortal} />
+      </Route>
+      <Route path="/capital-management">
+        <ShellRoute component={CapitalManagement} />
+      </Route>
+      <Route path="/audit-logs">
+        <ShellRoute component={AuditLogs} />
+      </Route>
+      <Route path="/commodities">
+        <ShellRoute component={Commodities} />
+      </Route>
+      <Route path="/real-estate">
+        <ShellRoute component={RealEstate} />
+      </Route>
+      <Route path="/transaction-matching">
+        <ShellRoute component={TransactionMatching} />
+      </Route>
+      <Route path="/trading">
+        <ShellRoute component={TradingPlatform} />
+      </Route>
+      <Route path="/member-onboarding">
+        <ShellRoute component={MemberOnboarding} />
+      </Route>
+      <Route path="/fee-management">
+        <ShellRoute component={FeeManagement} />
+      </Route>
+      <Route path="/deal-rooms/:id">
+        <ShellRoute component={DealRoom} />
+      </Route>
+      <Route path="/manifesto">
+        <ShellRoute component={Manifesto} />
+      </Route>
+      <Route path="/operator-intake">
+        <ShellRoute component={OperatorIntake} />
+      </Route>
+      <Route path="/knowledge-graph">
+        <ShellRoute component={KnowledgeGraphPage} />
+      </Route>
+      <Route path="/deal-intelligence">
+        <ShellRoute component={DealIntelligence} />
+      </Route>
+      <Route path="/deal-matching">
+        <ShellRoute component={DealMatching} />
+      </Route>
+      <Route path="/verification">
+        <ShellRoute component={Verification} />
+      </Route>
+      <Route path="/crypto-assets">
+        <ShellRoute component={CryptoAssets} />
+      </Route>
+      <Route path="/ai-brain">
+        <ShellRoute component={AIBrain} />
+      </Route>
+      <Route path="/404" component={NotFound} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <CursorGlow />
+      <ThemeProvider defaultTheme="light">
+        <TooltipProvider>
+          <TourProvider>
+            <Toaster />
+            <Router />
+          </TourProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
+  );
+}
+
+export default App;
+
+```
+
+# DASHBOARDLAYOUT.TSX (navSections)
+```tsx
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useDemoContext } from "@/contexts/DemoContext";
 import {
   BarChart3,
   Bell,
   Brain,
-  Briefcase,
   Building2,
   Calendar as CalendarIcon,
   CheckCircle,
-  CheckCircle2,
-  ChevronDown,
   Crosshair,
-  DollarSign,
-  FileSearch,
   FolderOpen,
-  Handshake,
   Home,
-  Info,
   Lightbulb,
   LogOut,
   Menu,
@@ -25,13 +279,18 @@ import {
   Search,
   Settings,
   Shield,
+  FileSearch,
+  Briefcase,
   Target,
   TrendingUp,
   User,
   Users,
   Wallet,
   X,
+  CheckCircle2,
   AlertTriangle,
+  ChevronDown,
+  Info,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { GlobalSearchModal } from "./GlobalSearchModal";
@@ -47,39 +306,36 @@ interface NavItem { icon: LucideIcon; label: string; path: string; tourId?: stri
 interface NavSection { label: string; items: NavItem[] }
 
 const navSections: NavSection[] = [
-  { label: "OVERVIEW", items: [
+  { label: "Overview", items: [
     { icon: Home, label: "Dashboard", path: "/dashboard" },
     { icon: BarChart3, label: "Analytics", path: "/analytics" },
   ]},
-  { label: "TRUST & IDENTITY", items: [
-    { icon: Shield, label: "Verification", path: "/verification" },
-    { icon: CheckCircle, label: "Compliance", path: "/compliance" },
-    { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
+  { label: "Deals", items: [
+    { icon: Target, label: "Deal Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
+    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
+    { icon: Briefcase, label: "Deals", path: "/deals" },
+    { icon: Lightbulb, label: "Deal Intelligence", path: "/deal-intelligence" },
   ]},
-  { label: "RELATIONSHIPS", items: [
+  { label: "Network", items: [
     { icon: Users, label: "Relationships", path: "/relationships", tourId: "nav-relationships" },
     { icon: Building2, label: "Family Offices", path: "/family-offices" },
     { icon: Crosshair, label: "Targeting", path: "/targeting" },
     { icon: Network, label: "Network Graph", path: "/network" },
   ]},
-  { label: "DEALS", items: [
-    { icon: Target, label: "Blind Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
-    { icon: Handshake, label: "Intents", path: "/intents" },
-    { icon: CheckCircle2, label: "Matches", path: "/matches" },
-    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
-    { icon: Briefcase, label: "Deals", path: "/deals" },
-    { icon: Lightbulb, label: "Deal Intelligence", path: "/deal-intelligence" },
+  { label: "Compliance", items: [
+    { icon: Shield, label: "Verification", path: "/verification" },
+    { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
+    { icon: CheckCircle, label: "Compliance", path: "/compliance" },
   ]},
-  { label: "ECONOMICS", items: [
+  { label: "Finance", items: [
     { icon: Wallet, label: "Payouts", path: "/payouts", tourId: "nav-payouts" },
     { icon: PieChart, label: "LP Portal", path: "/lp-portal" },
-    { icon: DollarSign, label: "Fee Management", path: "/fee-management" },
   ]},
-  { label: "INTELLIGENCE", items: [
+  { label: "AI & Intel", items: [
     { icon: Brain, label: "AI Brain", path: "/ai-brain" },
     { icon: TrendingUp, label: "Intelligence", path: "/intelligence" },
   ]},
-  { label: "SETTINGS", items: [
+  { label: "Settings", items: [
     { icon: CalendarIcon, label: "Calendar", path: "/calendar" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ]},
@@ -377,7 +633,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             >
               <Search className="h-5 w-5" />
             </button>
-            <div className="hidden md:block" data-tour-id="trust-score">
+            <div className="hidden md:block">
               <TrustScoreChip score={isDemo ? (demoFixtures?.user.trustScore ?? 84) : 84} />
             </div>
 
@@ -527,3 +783,108 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default DashboardLayout;
+
+```
+
+# ALL PAGE FILES IN client/src/pages/:
+AIBrain.tsx
+Analytics.tsx
+AuditLogs.tsx
+Calendar.tsx
+CapitalManagement.tsx
+Commodities.tsx
+Compliance.tsx
+ComponentShowcase.tsx
+CryptoAssets.tsx
+Dashboard.tsx
+DealIntelligence.tsx
+DealMatching.tsx
+DealRoom.tsx
+DealRooms.tsx
+Deals.tsx
+Demo.tsx
+FamilyOffices.tsx
+FeeManagement.tsx
+ForgotPassword.tsx
+Home.tsx
+Intelligence.tsx
+Intents.tsx
+KnowledgeGraphPage.tsx
+LPPortal.tsx
+Login.tsx
+Manifesto.tsx
+Matches.tsx
+MemberOnboarding.tsx
+Network.tsx
+NotFound.tsx
+Onboarding.tsx
+OnboardingFlow.tsx
+OperatorIntake.tsx
+Payouts.tsx
+RealEstate.tsx
+Register.tsx
+Relationships.tsx
+SPVGenerator.tsx
+Settings.tsx
+Targeting.tsx
+TradingPlatform.tsx
+TransactionMatching.tsx
+Verification.tsx
+
+# CLAUDE.MD NOTES ON PAGES:
+tRPC-backed: Dashboard, Relationships, Intents, Matches, Deals, DealRooms, Payouts, Verification, FamilyOffices, Targeting, Calendar, Analytics, AuditLogs, Intelligence, RealEstate, LPPortal, AIBrain
+Demo/mock (wire to tRPC when adding real features): Commodities, TransactionMatching, CapitalManagement, TradingPlatform, CryptoAssets, MemberOnboarding, FeeManagement
+
+# AUDIT TASK
+Map every page to the 6-module architecture. Determine what's real, what's demo-mock, what's a stub, and what's an orphan.
+
+For EACH page, determine:
+1. Which whitepaper module does it serve?
+2. Is it tRPC-backed, demo-mock, or a stub?
+3. Is it in navSections? Should it be?
+4. Does it have a proper route wrapper (ShellRoute vs ProtectedPage vs Bare)?
+5. Is it reachable from the main user flow?
+6. What's its quality/completeness level?
+
+Also identify:
+- Feature gaps: module capabilities from the whitepaper with NO page implementing them
+- Redundant pages: multiple pages serving the same purpose
+- Upgrade priorities: which stub/demo pages should be real-tRPC soonest?
+
+Return EXACTLY this JSON (no markdown, pure JSON):
+{
+  "page_inventory": [
+    {
+      "file": "Dashboard.tsx",
+      "route": "/dashboard",
+      "whitepaper_module": "Overview (all 6 modules)",
+      "status": "tRPC-backed|demo-mock|stub|orphaned|hybrid",
+      "in_nav": true,
+      "nav_section": "Overview",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high|medium|low",
+      "notes": "primary landing page, demo-aware"
+    }
+  ],
+  "module_coverage": {
+    "Identity/KYC": ["Verification.tsx (tRPC-backed)", "Onboarding.tsx"],
+    "Relationship Custody": [],
+    "Blind Matching": [],
+    "Deal Rooms": [],
+    "Compliance/Escrow": [],
+    "Economics Engine": []
+  },
+  "feature_gaps": [
+    {"module": "Relationship Custody", "missing_feature": "Introduction chain visualization", "whitepaper_reference": "Track multi-hop referrals with graph-based attribution flows"}
+  ],
+  "redundant_pages": [
+    {"pages": ["Matches.tsx", "DealMatching.tsx"], "issue": "both handle matching — unclear distinction", "recommendation": "consolidate or clarify separation"}
+  ],
+  "upgrade_priorities": [
+    {"page": "FeeManagement.tsx", "current_status": "demo-mock", "priority": "high", "reason": "Economics Engine is core whitepaper module"}
+  ],
+  "orphaned_pages": ["pages with no route or no nav item and no clear purpose"],
+  "summary": "high-level summary of page inventory findings"
+}

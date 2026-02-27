@@ -7,6 +7,10 @@ import type { PersonaKey } from "@/lib/copy";
 
 export const DEMO_FIXTURES = {
   originator: {
+    intents: [
+      { id: 1, type: "sell" as const, assetClass: "Commodities", size: "$10M – $15M" },
+      { id: 2, type: "sell" as const, assetClass: "Infrastructure", size: "$40M – $50M" },
+    ],
     user: {
       id: "demo-originator",
       name: "Alex Mercer",
@@ -42,6 +46,10 @@ export const DEMO_FIXTURES = {
   },
 
   investor: {
+    intents: [
+      { id: 1, type: "buy" as const, assetClass: "Infrastructure", size: "$30M – $100M" },
+      { id: 2, type: "buy" as const, assetClass: "Commodities", size: "$10M – $20M" },
+    ],
     user: {
       id: "demo-investor",
       name: "Pacific Capital Partners",
@@ -77,6 +85,9 @@ export const DEMO_FIXTURES = {
   },
 
   developer: {
+    intents: [
+      { id: 1, type: "sell" as const, assetClass: "Infrastructure", size: "$30M raise" },
+    ],
     user: {
       id: "demo-developer",
       name: "Meridian Renewables",

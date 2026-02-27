@@ -1,0 +1,690 @@
+{
+  "page_inventory": [
+    {
+      "file": "AIBrain.tsx",
+      "route": "/ai-brain",
+      "whitepaper_module": "AI & Intel (cross-cutting)",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "AI & Intel",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Central AI hub for insights, likely feeds into matching, deal intelligence, and potentially compliance/economics. Part of the 'AI & Intel' section."
+    },
+    {
+      "file": "Analytics.tsx",
+      "route": "/analytics",
+      "whitepaper_module": "Overview (cross-cutting)",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Overview",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Provides performance metrics, deal flow, and network growth insights across all modules."
+    },
+    {
+      "file": "AuditLogs.tsx",
+      "route": "/audit-logs",
+      "whitepaper_module": "Compliance/Escrow",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Compliance",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Tracks all actions for an immutable audit trail, essential for compliance and dispute resolution."
+    },
+    {
+      "file": "Calendar.tsx",
+      "route": "/calendar",
+      "whitepaper_module": "Platform Management/Settings",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Settings",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Utility for scheduling and tracking deal milestones, meetings, and deadlines."
+    },
+    {
+      "file": "CapitalManagement.tsx",
+      "route": "/capital-management",
+      "whitepaper_module": "Economics Engine",
+      "status": "demo-mock",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Manages funds, allocations, and LP interests. Critical for investor persona, high upgrade priority."
+    },
+    {
+      "file": "Commodities.tsx",
+      "route": "/commodities",
+      "whitepaper_module": "Asset-Specific (Blind Matching/Deal Rooms)",
+      "status": "demo-mock",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Placeholder for a specific vertical market expansion (commodities deals)."
+    },
+    {
+      "file": "Compliance.tsx",
+      "route": "/compliance",
+      "whitepaper_module": "Compliance/Escrow",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Compliance",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Central hub for managing compliance status, policies, and checks across the platform and deals."
+    },
+    {
+      "file": "ComponentShowcase.tsx",
+      "route": null,
+      "whitepaper_module": "Utility/Development",
+      "status": "orphaned",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": null,
+      "route_wrapper_correct": false,
+      "reachable_from_main_flow": false,
+      "completeness": "N/A",
+      "notes": "Development utility for showcasing UI components, not part of the application's user-facing routes."
+    },
+    {
+      "file": "CryptoAssets.tsx",
+      "route": "/crypto-assets",
+      "whitepaper_module": "Asset-Specific (Blind Matching/Deal Rooms)",
+      "status": "demo-mock",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Placeholder for a specific vertical market expansion (crypto asset deals)."
+    },
+    {
+      "file": "Dashboard.tsx",
+      "route": "/dashboard",
+      "whitepaper_module": "Overview (all 6 modules)",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Overview",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Primary landing page for logged-in users, aggregating key information and actions from across the platform. Demo-aware."
+    },
+    {
+      "file": "DealIntelligence.tsx",
+      "route": "/deal-intelligence",
+      "whitepaper_module": "Blind Matching / AI & Intel",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Deals",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Provides data-driven insights and analytics to support deal discovery and origination strategies."
+    },
+    {
+      "file": "DealMatching.tsx",
+      "route": "/deal-matching",
+      "whitepaper_module": "Blind Matching",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Deals",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Core functionality for creating and discovering deal intents, central to the blind matching process. Also accessible via 'Create Intent' button."
+    },
+    {
+      "file": "DealRoom.tsx",
+      "route": "/deal-rooms/:id",
+      "whitepaper_module": "Deal Rooms",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Detailed view and interaction space for a specific deal, including document management, e-signatures, and milestones."
+    },
+    {
+      "file": "DealRooms.tsx",
+      "route": "/deal-rooms",
+      "whitepaper_module": "Deal Rooms",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Deals",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Overview and management of all active and past deal rooms, serving as the entry point to specific deal workspaces."
+    },
+    {
+      "file": "Deals.tsx",
+      "route": "/deals",
+      "whitepaper_module": "Deal Rooms / Blind Matching",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Deals",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Provides a higher-level summary of deals, potentially encompassing both active deals (linking to rooms) and closed deals (for historical context/analytics)."
+    },
+    {
+      "file": "Demo.tsx",
+      "route": "/demo",
+      "whitepaper_module": "Public/Marketing",
+      "status": "stub",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "Bare",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "low",
+      "notes": "Entry point for a guided demonstration of the platform's features."
+    },
+    {
+      "file": "FamilyOffices.tsx",
+      "route": "/family-offices",
+      "whitepaper_module": "Relationship Custody / Identity/KYC",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Network",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Manages relationships and interactions with family offices, a key investor persona in the private markets."
+    },
+    {
+      "file": "FeeManagement.tsx",
+      "route": "/fee-management",
+      "whitepaper_module": "Economics Engine",
+      "status": "demo-mock",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Manages transparent and automated fee structures. Crucial for the 'Economics Engine' whitepaper promise, high upgrade priority."
+    },
+    {
+      "file": "ForgotPassword.tsx",
+      "route": "/forgot-password",
+      "whitepaper_module": "Authentication",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "Bare",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Standard authentication utility for password recovery."
+    },
+    {
+      "file": "Home.tsx",
+      "route": "/",
+      "whitepaper_module": "Public/Marketing",
+      "status": "stub",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "Bare",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "low",
+      "notes": "Public-facing landing page for the application."
+    },
+    {
+      "file": "Intelligence.tsx",
+      "route": "/intelligence",
+      "whitepaper_module": "AI & Intel",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "AI & Intel",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Provides broader market intelligence, trends, and insights, complementing deal-specific intelligence."
+    },
+    {
+      "file": "Intents.tsx",
+      "route": "/intents",
+      "whitepaper_module": "Blind Matching",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Manages a user's personal list of created or expressed buy/sell/invest intents. Likely linked from Deal Matching or Dashboard."
+    },
+    {
+      "file": "KnowledgeGraphPage.tsx",
+      "route": "/knowledge-graph",
+      "whitepaper_module": "AI & Intel / Network",
+      "status": "stub",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "medium",
+      "notes": "Visualizes relationships, deals, and entities within the ANAVI ecosystem. High potential for network insights."
+    },
+    {
+      "file": "LPPortal.tsx",
+      "route": "/lp-portal",
+      "whitepaper_module": "Economics Engine / Compliance/Escrow",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Finance",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Interface for Limited Partners to track their capital, investments, and payouts."
+    },
+    {
+      "file": "Login.tsx",
+      "route": "/login",
+      "whitepaper_module": "Authentication",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "Bare",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Standard user login page."
+    },
+    {
+      "file": "Manifesto.tsx",
+      "route": "/manifesto",
+      "whitepaper_module": "Public/Marketing",
+      "status": "stub",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Internal vision statement or detailed 'about us' for logged-in members. If intended for public, wrapper should be Bare."
+    },
+    {
+      "file": "Matches.tsx",
+      "route": "/matches",
+      "whitepaper_module": "Blind Matching",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Displays specific matches found for a user's intents. Overlaps with functionality in DealMatching."
+    },
+    {
+      "file": "MemberOnboarding.tsx",
+      "route": "/member-onboarding",
+      "whitepaper_module": "Identity/KYC",
+      "status": "demo-mock",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "A more advanced or administrative onboarding flow for new members, potentially for KYB or specific roles."
+    },
+    {
+      "file": "Network.tsx",
+      "route": "/network",
+      "whitepaper_module": "Relationship Custody",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Network",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Visual representation and management of the user's professional network, central to relationship custody."
+    },
+    {
+      "file": "NotFound.tsx",
+      "route": "/404",
+      "whitepaper_module": "Utility/System",
+      "status": "stub",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "Bare",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Standard 404 error page for invalid routes."
+    },
+    {
+      "file": "Onboarding.tsx",
+      "route": "/welcome",
+      "whitepaper_module": "Identity/KYC",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ProtectedPage",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Initial user setup after registration, collecting basic profile information."
+    },
+    {
+      "file": "OnboardingFlow.tsx",
+      "route": "/onboarding",
+      "whitepaper_module": "Identity/KYC",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ProtectedPage",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Multi-step onboarding process, likely for more detailed profile information and initial verification steps."
+    },
+    {
+      "file": "OperatorIntake.tsx",
+      "route": "/operator-intake",
+      "whitepaper_module": "Relationship Custody / Identity/KYC",
+      "status": "stub",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "medium",
+      "notes": "Specific onboarding or profile management for 'Deal Originator/Broker' persona, focusing on their role and attribution."
+    },
+    {
+      "file": "Payouts.tsx",
+      "route": "/payouts",
+      "whitepaper_module": "Economics Engine",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Finance",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Manages and tracks automated payouts on deal close, central to the economics engine."
+    },
+    {
+      "file": "RealEstate.tsx",
+      "route": "/real-estate",
+      "whitepaper_module": "Asset-Specific (Blind Matching/Deal Rooms)",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "high",
+      "notes": "A developed vertical market for real estate deals, implying specialized matching and deal room features."
+    },
+    {
+      "file": "Register.tsx",
+      "route": "/register",
+      "whitepaper_module": "Authentication",
+      "status": "tRPC-backed",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "Bare",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Standard user registration page."
+    },
+    {
+      "file": "Relationships.tsx",
+      "route": "/relationships",
+      "whitepaper_module": "Relationship Custody",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Network",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Manages user connections and tracks relationship value, central to the 'Relationship Custody' module."
+    },
+    {
+      "file": "SPVGenerator.tsx",
+      "route": "/spv-generator",
+      "whitepaper_module": "Compliance/Escrow",
+      "status": "stub",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Tool for generating Special Purpose Vehicles, likely for legal/tax structuring and compliance. Complex feature, currently a placeholder."
+    },
+    {
+      "file": "Settings.tsx",
+      "route": "/settings",
+      "whitepaper_module": "Platform Management/Settings",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Settings",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "User profile, account management, preferences, and security settings."
+    },
+    {
+      "file": "Targeting.tsx",
+      "route": "/targeting",
+      "whitepaper_module": "Blind Matching",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Network",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Tool for users (originators/investors) to define and refine criteria for discovering potential counterparties or deals."
+    },
+    {
+      "file": "TradingPlatform.tsx",
+      "route": "/trading",
+      "whitepaper_module": "Asset-Specific (Blind Matching)",
+      "status": "demo-mock",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Placeholder for a direct trading interface, potentially for more liquid or tokenized private assets."
+    },
+    {
+      "file": "TransactionMatching.tsx",
+      "route": "/transaction-matching",
+      "whitepaper_module": "Blind Matching / Compliance/Escrow",
+      "status": "demo-mock",
+      "in_nav": false,
+      "nav_section": null,
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": false,
+      "completeness": "low",
+      "notes": "Placeholder for matching specific transactions, possibly for reconciliation, compliance checks, or post-deal processes."
+    },
+    {
+      "file": "Verification.tsx",
+      "route": "/verification",
+      "whitepaper_module": "Identity/KYC",
+      "status": "tRPC-backed",
+      "in_nav": true,
+      "nav_section": "Compliance",
+      "route_wrapper": "ShellRoute",
+      "route_wrapper_correct": true,
+      "reachable_from_main_flow": true,
+      "completeness": "high",
+      "notes": "Central to establishing user trust scores and managing verification tiers (Basic/Enhanced/Institutional)."
+    }
+  ],
+  "module_coverage": {
+    "Identity/KYC": [
+      "Verification.tsx (tRPC-backed)",
+      "Onboarding.tsx (tRPC-backed)",
+      "OnboardingFlow.tsx (tRPC-backed)",
+      "FamilyOffices.tsx (tRPC-backed)",
+      "MemberOnboarding.tsx (demo-mock)",
+      "OperatorIntake.tsx (stub)"
+    ],
+    "Relationship Custody": [
+      "Relationships.tsx (tRPC-backed)",
+      "Network.tsx (tRPC-backed)",
+      "FamilyOffices.tsx (tRPC-backed)",
+      "OperatorIntake.tsx (stub)"
+    ],
+    "Blind Matching": [
+      "DealMatching.tsx (tRPC-backed)",
+      "Intents.tsx (tRPC-backed)",
+      "Matches.tsx (tRPC-backed)",
+      "Targeting.tsx (tRPC-backed)",
+      "DealIntelligence.tsx (tRPC-backed)",
+      "AIBrain.tsx (tRPC-backed)",
+      "Commodities.tsx (demo-mock)",
+      "CryptoAssets.tsx (demo-mock)",
+      "RealEstate.tsx (tRPC-backed)",
+      "TradingPlatform.tsx (demo-mock)",
+      "TransactionMatching.tsx (demo-mock)"
+    ],
+    "Deal Rooms": [
+      "DealRooms.tsx (tRPC-backed)",
+      "DealRoom.tsx (tRPC-backed)",
+      "Deals.tsx (tRPC-backed)"
+    ],
+    "Compliance/Escrow": [
+      "Compliance.tsx (tRPC-backed)",
+      "AuditLogs.tsx (tRPC-backed)",
+      "Verification.tsx (tRPC-backed)",
+      "LPPortal.tsx (tRPC-backed)",
+      "SPVGenerator.tsx (stub)",
+      "TransactionMatching.tsx (demo-mock)"
+    ],
+    "Economics Engine": [
+      "Payouts.tsx (tRPC-backed)",
+      "LPPortal.tsx (tRPC-backed)",
+      "CapitalManagement.tsx (demo-mock)",
+      "FeeManagement.tsx (demo-mock)"
+    ]
+  },
+  "feature_gaps": [
+    {
+      "module": "Identity/KYC",
+      "missing_feature": "Trust Score Management/Profile",
+      "whitepaper_reference": "Trust Score (dynamic, compound) - how users interact with or improve their score is not explicitly covered by a dedicated page, though the score is displayed."
+    },
+    {
+      "module": "Identity/KYC",
+      "missing_feature": "Blacklist Controls",
+      "whitepaper_reference": "Trust-scored network with blacklist controls - no explicit page for managing blacklists (e.g., for administrators) to enforce network integrity."
+    },
+    {
+      "module": "Relationship Custody",
+      "missing_feature": "Attribution Dashboard / Originator Earnings",
+      "whitepaper_reference": "Forever attribution (originators get 40-60%), lifetime attribution for follow-on deals - while Payouts and Relationships contribute, a dedicated dashboard for tracking and visualizing attribution value for originators is not explicit."
+    },
+    {
+      "module": "Blind Matching",
+      "missing_feature": "Compatibility Score Settings/Breakdown",
+      "whitepaper_reference": "Compatibility scoring - no explicit page for users to understand the factors contributing to their compatibility scores or to configure preferences that influence it."
+    },
+    {
+      "module": "Deal Rooms",
+      "missing_feature": "Document Templates / E-signature Configuration",
+      "whitepaper_reference": "Document versioning, e-signature - these are features within a DealRoom, but there are no separate pages for managing global document templates or configuring e-signature workflows across all deal rooms."
+    },
+    {
+      "module": "Compliance/Escrow",
+      "missing_feature": "AML Case Management / OFAC Screening Results",
+      "whitepaper_reference": "AML/KYC rails, OFAC screening, per-deal compliance - while Compliance and Verification exist, explicit pages for managing flagged cases, detailed screening results, or compliance workflows are not apparent."
+    }
+  ],
+  "redundant_pages": [
+    {
+      "pages": [
+        "Intents.tsx",
+        "Matches.tsx",
+        "DealMatching.tsx"
+      ],
+      "issue": "Intents.tsx (user's created intents) and Matches.tsx (found matches) represent sub-views that could be consolidated as tabs or sections within the primary DealMatching.tsx page, which is already in the navigation and serves as the main entry point for matching.",
+      "recommendation": "Consolidate Intents.tsx and Matches.tsx into sub-sections or tabs within DealMatching.tsx to streamline the user experience for deal discovery and management."
+    }
+  ],
+  "upgrade_priorities": [
+    {
+      "page": "FeeManagement.tsx",
+      "current_status": "demo-mock",
+      "priority": "high",
+      "reason": "Directly addresses the 'transparent, automated economics' promise of the Economics Engine module, which is core to ANAVI's value proposition and eliminates opaque fees."
+    },
+    {
+      "page": "CapitalManagement.tsx",
+      "current_status": "demo-mock",
+      "priority": "high",
+      "reason": "Crucial for the LP/Investor persona and the Economics Engine, enabling comprehensive management of capital and investments, aligning with the 'Private Market Operating System' vision."
+    },
+    {
+      "page": "MemberOnboarding.tsx",
+      "current_status": "demo-mock",
+      "priority": "medium",
+      "reason": "Important for scaling the verified participant network and robust KYB processes, enhancing the Identity/KYC module and reducing manual due diligence."
+    },
+    {
+      "page": "SPVGenerator.tsx",
+      "current_status": "stub",
+      "priority": "medium",
+      "reason": "An advanced feature for deal structuring and compliance, directly supporting the Compliance/Escrow module's capabilities and streamlining complex deal setups."
+    },
+    {
+      "page": "KnowledgeGraphPage.tsx",
+      "current_status": "stub",
+      "priority": "medium",
+      "reason": "Offers powerful visualization for network and deal intelligence, enhancing both Relationship Custody and AI & Intel modules for better discovery and trust."
+    }
+  ],
+  "orphaned_pages": [
+    "ComponentShowcase.tsx"
+  ],
+  "summary": "The ANAVI application presents a well-structured frontend with a strong foundation for its 6 core modules. A significant portion of critical pages are tRPC-backed, indicating robust backend integration and high completeness for core functionalities like Identity/KYC (Verification, Onboarding), Relationship Custody (Relationships, Network), Blind Matching (DealMatching, DealIntelligence), Deal Rooms (DealRooms, DealRoom), Compliance/Escrow (Compliance, AuditLogs), and Economics Engine (Payouts, LPPortal). The navigation is clear for primary user flows. However, several key features, particularly within the Economics Engine (FeeManagement, CapitalManagement) and advanced Identity/KYC (MemberOnboarding), are currently demo-mocked or stubs, representing critical upgrade priorities to fully realize the whitepaper vision of 'transparent, automated economics' and a 'pre-verified participant network'. There is also a notable redundancy in deal matching pages (Intents, Matches vs. DealMatching) that could benefit from consolidation for a more streamlined user experience. Feature gaps exist in specific areas such as granular trust score management, dedicated attribution dashboards, and advanced compliance case handling. The presence of asset-specific demo pages (Commodities, CryptoAssets, TradingPlatform) suggests a strategic roadmap for vertical market expansion. Overall, the application has a solid architectural base, but focused development is needed to bring all core whitepaper features to full production readiness."
+}

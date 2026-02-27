@@ -1,0 +1,386 @@
+{
+  "terminology_violations": [
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 189,
+      "found": "tier, verificationLevel",
+      "should_be": "Verification Tier (Basic/Enhanced/Institutional)",
+      "severity": "high"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 214,
+      "found": "View Matches",
+      "should_be": "View Blind Matches or View Intents",
+      "severity": "medium"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 275,
+      "found": "Escrow",
+      "should_be": "Escrow Milestone",
+      "severity": "medium"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 35,
+      "found": "Deal Matching",
+      "should_be": "Blind Matching",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 36,
+      "found": "Relationships",
+      "should_be": "Relationship Custody",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 43,
+      "found": "Verification",
+      "should_be": "Identity & KYC",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 45,
+      "found": "Compliance",
+      "should_be": "Compliance & Escrow",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 49,
+      "found": "Payouts",
+      "should_be": "Economics Engine",
+      "severity": "high"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 130,
+      "found": "n.title (derived from n.type, e.g., 'Payout Received', 'Compliance Alert')",
+      "should_be": "Specific whitepaper-aligned notification titles (e.g., 'Attribution Payout', 'Compliance Alert')",
+      "severity": "medium"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 290,
+      "found": "Matches",
+      "should_be": "Blind Matches or Intents",
+      "severity": "medium"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 291,
+      "found": "Relationships",
+      "should_be": "Relationship Custody",
+      "severity": "medium"
+    },
+    {
+      "file": "OnboardingFlow.tsx",
+      "line_approx": 416,
+      "found": "Tier 2",
+      "should_be": "Enhanced Verification Tier",
+      "severity": "medium"
+    },
+    {
+      "file": "OnboardingFlow.tsx",
+      "line_approx": 411,
+      "found": "Tier 1",
+      "should_be": "Basic Verification Tier",
+      "severity": "medium"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 120,
+      "found": "milestone",
+      "should_be": "Escrow Milestone",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 126,
+      "found": "compounding attribution over time",
+      "should_be": "Lifetime Attribution",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 149,
+      "found": "permanently attributed",
+      "should_be": "Lifetime Attribution",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/lib/copy.ts",
+      "line_approx": 79,
+      "found": "access tier",
+      "should_be": "Verification Tier",
+      "severity": "low"
+    }
+  ],
+  "missing_copy_tokens": [
+    {
+      "concept": "Blind Matching Module Title",
+      "appears_in": [
+        "Dashboard.tsx line 223"
+      ],
+      "token_needed": "DASHBOARD.blindMatches.title",
+      "suggested_value": "Blind Matches"
+    },
+    {
+      "concept": "Deal Rooms Module Title",
+      "appears_in": [
+        "Dashboard.tsx line 254"
+      ],
+      "token_needed": "DASHBOARD.dealRooms.title",
+      "suggested_value": "Deal Rooms"
+    },
+    {
+      "concept": "Escrow Milestone Label",
+      "appears_in": [
+        "Dashboard.tsx line 275"
+      ],
+      "token_needed": "DASHBOARD.escrow.label",
+      "suggested_value": "Escrow Milestone"
+    },
+    {
+      "concept": "Navigation Labels (for all 6 core modules)",
+      "appears_in": [
+        "DashboardLayout.tsx line 30-60"
+      ],
+      "token_needed": "MODULES.identityKyC.navLabel, etc.",
+      "suggested_value": "Identity & KYC, Relationship Custody, Blind Matching, Deal Rooms, Compliance & Escrow, Economics Engine"
+    },
+    {
+      "concept": "Page Titles (for all 6 core modules)",
+      "appears_in": [
+        "DashboardLayout.tsx line 63-65"
+      ],
+      "token_needed": "MODULES.identityKyC.pageTitle, etc.",
+      "suggested_value": "Identity & KYC, Relationship Custody, Blind Matching, Deal Rooms, Compliance & Escrow, Economics Engine"
+    },
+    {
+      "concept": "Notification Type Labels (for Dashboard.tsx NOTIFICATION_STYLES)",
+      "appears_in": [
+        "Dashboard.tsx line 40-55"
+      ],
+      "token_needed": "NOTIFICATIONS.matchFound.label, NOTIFICATIONS.dealUpdate.label, NOTIFICATIONS.payoutReceived.label, NOTIFICATIONS.complianceAlert.label, NOTIFICATIONS.system.label",
+      "suggested_value": "MATCH, DEAL ROOM, ATTRIBUTION, VERIFICATION, INTELLIGENCE"
+    },
+    {
+      "concept": "Notification Titles (for DashboardLayout.tsx notification drawer)",
+      "appears_in": [
+        "DashboardLayout.tsx line 130"
+      ],
+      "token_needed": "NOTIFICATIONS.matchFound.title, NOTIFICATIONS.dealUpdate.title, NOTIFICATIONS.payoutReceived.title, NOTIFICATIONS.complianceAlert.title, etc.",
+      "suggested_value": "Blind Match Found, Deal Room Update, Attribution Payout, Compliance Alert, etc."
+    },
+    {
+      "concept": "Verification Tier Names (Basic/Enhanced/Institutional)",
+      "appears_in": [
+        "OnboardingFlow.tsx line 411, 416"
+      ],
+      "token_needed": "VERIFICATION_TIERS.basic.label, VERIFICATION_TIERS.enhanced.label",
+      "suggested_value": "Basic, Enhanced"
+    },
+    {
+      "concept": "Dashboard CTA: Create Intent",
+      "appears_in": [
+        "Dashboard.tsx line 200"
+      ],
+      "token_needed": "DASHBOARD.createIntentCta",
+      "suggested_value": "Create Intent"
+    },
+    {
+      "concept": "Dashboard CTA: Protect Relationship",
+      "appears_in": [
+        "Dashboard.tsx line 207"
+      ],
+      "token_needed": "DASHBOARD.protectRelationshipCta",
+      "suggested_value": "Protect Relationship"
+    }
+  ],
+  "nav_label_issues": [
+    {
+      "current": "Deal Matching",
+      "page": "/deal-matching",
+      "whitepaper_module": "Blind Matching",
+      "recommended": "Blind Matching"
+    },
+    {
+      "current": "Relationships",
+      "page": "/relationships",
+      "whitepaper_module": "Relationship Custody",
+      "recommended": "Relationship Custody"
+    },
+    {
+      "current": "Verification",
+      "page": "/verification",
+      "whitepaper_module": "Identity/KYC",
+      "recommended": "Identity & KYC"
+    },
+    {
+      "current": "Compliance",
+      "page": "/compliance",
+      "whitepaper_module": "Compliance/Escrow",
+      "recommended": "Compliance & Escrow"
+    },
+    {
+      "current": "Payouts",
+      "page": "/payouts",
+      "whitepaper_module": "Economics Engine",
+      "recommended": "Economics Engine"
+    }
+  ],
+  "copy_token_additions": "export const MODULES = {\n  identityKyC: {\n    navLabel: \"Identity & KYC\",\n    pageTitle: \"Identity & KYC\",\n  },\n  relationshipCustody: {\n    navLabel: \"Relationship Custody\",\n    pageTitle: \"Relationship Custody\",\n  },\n  blindMatching: {\n    navLabel: \"Blind Matching\",\n    pageTitle: \"Blind Matching\",\n  },\n  dealRooms: {\n    navLabel: \"Deal Rooms\",\n    pageTitle: \"Deal Rooms\",\n  },\n  complianceEscrow: {\n    navLabel: \"Compliance & Escrow\",\n    pageTitle: \"Compliance & Escrow\",\n  },\n  economicsEngine: {\n    navLabel: \"Economics Engine\",\n    pageTitle: \"Economics Engine\",\n  },\n} as const;\n\nexport const VERIFICATION_TIERS = {\n  basic: {\n    label: \"Basic Verification Tier\",\n    description: \"Basic identity verification.\",\n  },\n  enhanced: {\n    label: \"Enhanced Verification Tier\",\n    description: \"Enhanced identity verification, including KYB.\",\n  },\n  institutional: {\n    label: \"Institutional Verification Tier\",\n    description: \"Institutional-grade verification with full compliance passport.\",\n  },\n} as const;\n\nexport const DASHBOARD = {\n  blindMatches: {\n    title: \"Blind Matches\",\n  },\n  dealRooms: {\n    title: \"Deal Rooms\",\n  },\n  escrow: {\n    label: \"Escrow Milestone\",\n  },\n  viewBlindMatchesCta: \"View Blind Matches\",\n  protectRelationshipCta: \"Protect Relationship\",\n  createIntentCta: \"Create Intent\",\n} as const;\n\nexport const NOTIFICATIONS = {\n  matchFound: {\n    label: \"MATCH\",\n    title: \"Blind Match Found\",\n  },\n  dealUpdate: {\n    label: \"DEAL ROOM\",\n    title: \"Deal Room Update\",\n  },\n  payoutReceived: {\n    label: \"ATTRIBUTION\",\n    title: \"Attribution Payout\",\n  },\n  complianceAlert: {\n    label: \"VERIFICATION\",\n    title: \"Compliance Alert\",\n  },\n  documentShared: {\n    label: \"DOCUMENT\",\n    title: \"Document Shared\",\n  },\n  signatureRequested: {\n    label: \"SIGNATURE\",\n    title: \"Signature Requested\",\n  },\n  relationshipRequest: {\n    label: \"RELATIONSHIP\",\n    title: \"Relationship Request\",\n  },\n  system: {\n    label: \"INTELLIGENCE\",\n    title: \"System Notification\",\n  },\n} as const;\n\n// --- Patches to existing tokens ---\n\n// TOUR.trustScore.body\n// old: It determines your access tier, your whitelist status, and whether counterparties transact with you.\n// new: It determines your Verification Tier, your whitelist status, and whether counterparties transact with you.\n\n// TOUR.attribution.originator.body\n// old: Triggered on milestone. No negotiation. No intermediary.\n// new: Triggered on Escrow Milestone. No negotiation. No intermediary.\n\n// TOUR.attribution.investor.body\n// old: Every subsequent deal from this relationship credits your participation \u2014 compounding attribution over time.\n// new: Every subsequent deal from this relationship credits your participation \u2014 Lifetime Attribution over time.\n\n// CUSTODY_RECEIPT.body\n// old: This introduction is now timestamped, cryptographically signed, and permanently attributed to you.\n// new: This introduction is now timestamped, cryptographically signed, and Lifetime Attribution to you.\n",
+  "label_patches": [
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 40,
+      "old": "label: \"MATCH\"",
+      "new": "label: NOTIFICATIONS.matchFound.label"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 45,
+      "old": "label: \"DEAL ROOM\"",
+      "new": "label: NOTIFICATIONS.dealUpdate.label"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 50,
+      "old": "label: \"ATTRIBUTION\"",
+      "new": "label: NOTIFICATIONS.payoutReceived.label"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 55,
+      "old": "label: \"VERIFICATION\"",
+      "new": "label: NOTIFICATIONS.complianceAlert.label"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 60,
+      "old": "label: \"INTELLIGENCE\"",
+      "new": "label: NOTIFICATIONS.system.label"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 189,
+      "old": "{demo?.user.tier ?? stats?.verificationLevel}",
+      "new": "{demo?.user.tier ? VERIFICATION_TIERS[demo.user.tier.toLowerCase() as keyof typeof VERIFICATION_TIERS].label : stats?.verificationLevel ? VERIFICATION_TIERS[stats.verificationLevel.toLowerCase() as keyof typeof VERIFICATION_TIERS].label : VERIFICATION_TIERS.basic.label}"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 200,
+      "old": "Create Intent",
+      "new": "{DASHBOARD.createIntentCta}"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 207,
+      "old": "Protect Relationship",
+      "new": "{DASHBOARD.protectRelationshipCta}"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 214,
+      "old": "View Matches",
+      "new": "{DASHBOARD.viewBlindMatchesCta}"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 223,
+      "old": "Blind Matches",
+      "new": "{DASHBOARD.blindMatches.title}"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 254,
+      "old": "Deal Rooms",
+      "new": "{DASHBOARD.dealRooms.title}"
+    },
+    {
+      "file": "Dashboard.tsx",
+      "line_approx": 275,
+      "old": "Escrow",
+      "new": "{DASHBOARD.escrow.label}"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 35,
+      "old": "label: \"Deal Matching\", path: \"/deal-matching\"",
+      "new": "label: MODULES.blindMatching.navLabel, pageTitle: MODULES.blindMatching.pageTitle, path: \"/deal-matching\""
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 36,
+      "old": "label: \"Relationships\", path: \"/relationships\"",
+      "new": "label: MODULES.relationshipCustody.navLabel, pageTitle: MODULES.relationshipCustody.pageTitle, path: \"/relationships\""
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 43,
+      "old": "label: \"Verification\", path: \"/verification\"",
+      "new": "label: MODULES.identityKyC.navLabel, pageTitle: MODULES.identityKyC.pageTitle, path: \"/verification\""
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 45,
+      "old": "label: \"Compliance\", path: \"/compliance\"",
+      "new": "label: MODULES.complianceEscrow.navLabel, pageTitle: MODULES.complianceEscrow.pageTitle, path: \"/compliance\""
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 49,
+      "old": "label: \"Payouts\", path: \"/payouts\"",
+      "new": "label: MODULES.economicsEngine.navLabel, pageTitle: MODULES.economicsEngine.pageTitle, path: \"/payouts\""
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 63,
+      "old": "const pageTitles: Record<string, string> = Object.fromEntries(\n  allNavItems.map((item) => [item.path, item.label])\n);",
+      "new": "const pageTitles: Record<string, string> = Object.fromEntries(\n  allNavItems.map((item) => [item.path, item.pageTitle || item.label])\n);"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 130,
+      "old": "title: n.title,",
+      "new": "title: NOTIFICATIONS[n.type as keyof typeof NOTIFICATIONS]?.title ?? n.title,"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 290,
+      "old": "{ icon: Target, label: \"Matches\", path: \"/deal-matching\" }",
+      "new": "{ icon: Target, label: MODULES.blindMatching.navLabel, path: \"/deal-matching\" }"
+    },
+    {
+      "file": "DashboardLayout.tsx",
+      "line_approx": 291,
+      "old": "{ icon: Users, label: \"Relationships\", path: \"/relationships\" }",
+      "new": "{ icon: Users, label: MODULES.relationshipCustody.navLabel, path: \"/relationships\" }"
+    },
+    {
+      "file": "OnboardingFlow.tsx",
+      "line_approx": 411,
+      "old": "Current \u2014 Tier 1",
+      "new": "Current \u2014 {VERIFICATION_TIERS.basic.label}"
+    },
+    {
+      "file": "OnboardingFlow.tsx",
+      "line_approx": 416,
+      "old": "Upgrade \u2014 Tier 2",
+      "new": "Upgrade \u2014 {VERIFICATION_TIERS.enhanced.label}"
+    }
+  ],
+  "overall_copy_quality_score": 7,
+  "top_copy_improvements": [
+    "Centralize all module and navigation labels in `client/src/lib/copy.ts` to ensure consistent terminology across the platform, especially for the 6 core modules.",
+    "Strictly enforce 'Verification Tier' (Basic/Enhanced/Institutional) across all user-facing text, replacing generic 'tier' or 'level' references.",
+    "Ensure 'Lifetime Attribution' is used explicitly wherever the concept of compounding relationship value or permanent credit is discussed.",
+    "Align all 'matching' references with 'Blind Matching' or 'Intent' to highlight ANAVI's unique, confidential matching mechanism.",
+    "Consistently use 'Escrow Milestone' instead of just 'milestone' or 'escrow' when referring to the deal progression and fund release mechanism."
+  ]
+}

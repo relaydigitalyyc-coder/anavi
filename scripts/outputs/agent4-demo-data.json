@@ -1,0 +1,288 @@
+{
+  "shape_mismatches": [],
+  "unused_fixture_keys": [
+    {
+      "persona": "originator",
+      "key": "relationships",
+      "value_preview": "[...]",
+      "evidence": "The entire 'relationships' array is present in the fixture but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "user.email",
+      "value_preview": "alex@mercercapital.com",
+      "evidence": "The 'email' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "user.kybStatus",
+      "value_preview": "verified",
+      "evidence": "The 'kybStatus' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "user.onboardingCompleted",
+      "value_preview": "true",
+      "evidence": "The 'onboardingCompleted' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "user.relationshipCount",
+      "value_preview": "4",
+      "evidence": "The 'relationshipCount' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "matches[].status",
+      "value_preview": "pending_consent",
+      "evidence": "The 'status' field for matches is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "dealRooms[].ndaStatus",
+      "value_preview": "executed",
+      "evidence": "The 'ndaStatus' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "dealRooms[].escrowCurrent",
+      "value_preview": "12000000",
+      "evidence": "The 'escrowCurrent' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "dealRooms[].escrowTarget",
+      "value_preview": "30000000",
+      "evidence": "The 'escrowTarget' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "dealRooms[].auditEvents",
+      "value_preview": "47",
+      "evidence": "The 'auditEvents' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "dealRooms[].documentCount",
+      "value_preview": "3",
+      "evidence": "The 'documentCount' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "payouts[].originatorShare",
+      "value_preview": "2.5",
+      "evidence": "The 'originatorShare' field for payouts is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "originator",
+      "key": "payouts[].closingDate",
+      "value_preview": "2026-02-18",
+      "evidence": "The 'closingDate' field for payouts is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "relationships",
+      "value_preview": "[...]",
+      "evidence": "The entire 'relationships' array is present in the fixture but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "user.email",
+      "value_preview": "invest@pacificcapital.com",
+      "evidence": "The 'email' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "user.kybStatus",
+      "value_preview": "verified",
+      "evidence": "The 'kybStatus' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "user.onboardingCompleted",
+      "value_preview": "true",
+      "evidence": "The 'onboardingCompleted' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "user.aum",
+      "value_preview": "$340M",
+      "evidence": "The 'aum' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "matches[].status",
+      "value_preview": "pending_consent",
+      "evidence": "The 'status' field for matches is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "dealRooms[].ndaStatus",
+      "value_preview": "executed",
+      "evidence": "The 'ndaStatus' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "dealRooms[].escrowCurrent",
+      "value_preview": "2100000",
+      "evidence": "The 'escrowCurrent' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "dealRooms[].escrowTarget",
+      "value_preview": "3000000",
+      "evidence": "The 'escrowTarget' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "dealRooms[].auditEvents",
+      "value_preview": "31",
+      "evidence": "The 'auditEvents' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "dealRooms[].documentCount",
+      "value_preview": "8",
+      "evidence": "The 'documentCount' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "payouts[].irr",
+      "value_preview": "18.5",
+      "evidence": "The 'irr' field for payouts is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "investor",
+      "key": "payouts[].vintage",
+      "value_preview": "2025",
+      "evidence": "The 'vintage' field for payouts is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "relationships",
+      "value_preview": "[...]",
+      "evidence": "The entire 'relationships' array is present in the fixture but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "user.email",
+      "value_preview": "raise@meridianrenewables.com",
+      "evidence": "The 'email' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "user.kybStatus",
+      "value_preview": "verified",
+      "evidence": "The 'kybStatus' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "user.onboardingCompleted",
+      "value_preview": "true",
+      "evidence": "The 'onboardingCompleted' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "user.upgradePromptActive",
+      "value_preview": "true",
+      "evidence": "The 'upgradePromptActive' field in the user object is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "matches[].status",
+      "value_preview": "pending_consent",
+      "evidence": "The 'status' field for matches is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "dealRooms[].ndaStatus",
+      "value_preview": "executed",
+      "evidence": "The 'ndaStatus' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "dealRooms[].escrowCurrent",
+      "value_preview": "12000000",
+      "evidence": "The 'escrowCurrent' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "dealRooms[].escrowTarget",
+      "value_preview": "30000000",
+      "evidence": "The 'escrowTarget' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "dealRooms[].auditEvents",
+      "value_preview": "47",
+      "evidence": "The 'auditEvents' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "dealRooms[].documentCount",
+      "value_preview": "5",
+      "evidence": "The 'documentCount' field for deal rooms is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "payouts[].escrowMilestone",
+      "value_preview": "40",
+      "evidence": "The 'escrowMilestone' field for payouts is present but not read by Dashboard.tsx."
+    },
+    {
+      "persona": "developer",
+      "key": "payouts[].nextTrigger",
+      "value_preview": "$18M committed",
+      "evidence": "The 'nextTrigger' field for payouts is present but not read by Dashboard.tsx."
+    }
+  ],
+  "missing_fixture_keys": [],
+  "type_mismatches": [],
+  "persona_narrative_issues": [
+    {
+      "persona": "originator",
+      "issue": "The 'company' names for 'Meridian Group' and 'Delta Capital' in the 'relationships' array are generic ('Private Equity', 'Hedge Fund'). While this array is currently unused in Dashboard.tsx, more specific firm names would enhance realism and whitepaper alignment for future use.",
+      "fix": "Update `originator.relationships[2].company` to 'Meridian Group Capital' and `originator.relationships[3].company` to 'Delta Capital Partners'."
+    },
+    {
+      "persona": "investor",
+      "issue": "The 'name' fields for 'Verified Operator A' and 'Verified Operator B' in the 'relationships' array are generic. While this array is currently unused in Dashboard.tsx, more descriptive sealed identities would enhance realism and whitepaper alignment for future use.",
+      "fix": "Update `investor.relationships[0].name` to '[Sealed \u2014 Solar Infrastructure Operator]' and `investor.relationships[1].name` to '[Sealed \u2014 Gulf Coast Commodity Producer]'."
+    }
+  ],
+  "whitepaper_alignment_issues": [
+    {
+      "persona": "originator",
+      "field": "payouts[].originatorShare",
+      "current": "present but unused in Dashboard.tsx",
+      "issue": "The 'originatorShare' percentage is a core component of the originator's attribution narrative, but it is not displayed in the Dashboard's 'Recent Payouts' card. This misses an opportunity to reinforce the automated economics module.",
+      "fix": "Modify `Dashboard.tsx` to display `p.originatorShare` alongside the amount for originator payouts, e.g., '$1,175,000 (2.5%)'."
+    },
+    {
+      "persona": "investor",
+      "field": "payouts[].irr, payouts[].vintage",
+      "current": "present but unused in Dashboard.tsx",
+      "issue": "Key investor metrics like Internal Rate of Return (IRR) and Vintage are present in the fixture but not displayed in the Dashboard's 'Recent Payouts' card. This misses an opportunity to highlight investor-specific value and the economics engine.",
+      "fix": "Modify `Dashboard.tsx` to display `p.irr` and `p.vintage` for investor payouts, e.g., '$2,100,000 (18.5% IRR, 2025 Vintage)'."
+    },
+    {
+      "persona": "developer",
+      "field": "payouts[].escrowMilestone, payouts[].nextTrigger",
+      "current": "present but unused in Dashboard.tsx",
+      "issue": "Crucial developer fundraising details like 'escrowMilestone' and 'nextTrigger' are present in the fixture but not displayed in the Dashboard's 'Recent Payouts' card. This misses an opportunity to reinforce the escrow milestones and compliance module.",
+      "fix": "Modify `Dashboard.tsx` to display `p.escrowMilestone` and `p.nextTrigger` for developer payouts, e.g., '$30,000,000 (40% committed, next trigger: $18M)'."
+    }
+  ],
+  "patches": {
+    "originator": {
+      "relationships[2].company": "Meridian Group Capital",
+      "relationships[3].company": "Delta Capital Partners"
+    },
+    "investor": {
+      "relationships[0].name": "[Sealed \u2014 Solar Infrastructure Operator]",
+      "relationships[1].name": "[Sealed \u2014 Gulf Coast Commodity Producer]"
+    },
+    "developer": {}
+  },
+  "narrative_improvements": "The demo fixtures provide a strong foundation for the ANAVI vision, with well-crafted scenarios for each persona. To further enhance the narrative quality and whitepaper alignment, consider the following: \n1.  **Utilize Unused User Fields**: Introduce a 'Profile Snapshot' or 'My Stats' card on the dashboard that leverages currently unused `user` fields such as `email`, `kybStatus`, `onboardingCompleted`, `relationshipCount`, `aum`, and `upgradePromptActive`. This would make the persona profiles feel more complete and demonstrate more aspects of the Identity/KYC module. \n2.  **Integrate Relationships Data**: Create a 'Recent Relationships' card on the dashboard to display items from the `relationships` array. This would directly highlight the 'Relationship Custody' module, a core ANAVI offering, which is currently not represented on the dashboard. \n3.  **Enhance Payouts Card**: As noted in 'whitepaper_alignment_issues', modifying the 'Recent Payouts' card in `Dashboard.tsx` to display persona-specific metrics (e.g., originator share percentage, IRR/Vintage, escrow milestones/next triggers) would significantly deepen the narrative impact and showcase the 'Economics Engine' and 'Compliance/Escrow' modules more effectively for each persona. \n4.  **Expand Notifications**: While current notifications are excellent, adding more variety or a 'progress' notification (e.g., 'Your Trust Score increased by 3 points') could further enrich the dynamic feel of the platform."
+}

@@ -112,3 +112,91 @@ export const CUSTODY_RECEIPT = {
   body: "This introduction is now timestamped, cryptographically signed, and permanently attributed to you. If this relationship produces a deal — today or in five years — this record is your claim.",
   cta: "View Your Custody Register",
 } as const;
+
+/** Six-module navigation section labels. */
+export const MODULES = {
+  overview: "OVERVIEW",
+  trustIdentity: "TRUST & IDENTITY",
+  relationships: "RELATIONSHIPS",
+  deals: "DEALS",
+  economics: "ECONOMICS",
+  intelligence: "INTELLIGENCE",
+  settings: "SETTINGS",
+} as const;
+
+/** Notification type labels shown on activity feed badges. */
+export const NOTIFICATIONS = {
+  matchFound:      { label: "MATCH" },
+  dealUpdate:      { label: "DEAL ROOM" },
+  payoutReceived:  { label: "ATTRIBUTION" },
+  complianceAlert: { label: "VERIFICATION" },
+  system:          { label: "SYSTEM" },
+} as const;
+
+/** Toast messages triggered by dashboard CTA clicks. */
+export const TOASTS = {
+  navigatingRelationships: "Opening Relationship Custody",
+  navigatingDealMatching:  "Opening Blind Matching",
+} as const;
+
+/** Dashboard widget titles, labels, and CTAs. */
+export const DASHBOARD = {
+  trustScore: {
+    title: "Trust Score",
+    scoreChange: (delta: number) => `${delta > 0 ? "+" : ""}${delta} this month`,
+    whitelistStatus: "Whitelist",
+    compoundNature:
+      "Your score compounds with every verified transaction and peer attestation.",
+    breakdownCta: "Click to view breakdown →",
+  },
+  marketDepth: {
+    title: "Market Depth",
+    buyersLabel: "Buyers",
+    sellersLabel: "Sellers",
+  },
+  blindMatches: {
+    title: "Blind Matches",
+    sealedStatus: "Sealed",
+    noMatches: "No matches yet. Express an intent to activate matching.",
+  },
+  dealRooms: {
+    title: "Deal Rooms",
+    documents: "Documents:",
+    auditEvents: "Audit Events:",
+    immutableAuditTrail: "Immutable audit trail & document versioning active",
+    escrowLabel: "Escrow",
+    enterCta: "Enter Deal Room →",
+    noDealRooms: "No deal rooms yet. Accept a match to open a deal room.",
+  },
+  complianceStatus: {
+    title: "Compliance Status",
+    passportSummary: "Compliance Passport",
+    kybStatus: "KYB",
+    ofacStatus: "OFAC",
+    amlStatus: "AML",
+    viewPassportCta: "View Passport",
+    badgeRequired: "Required",
+    noPendingActions: "All compliance requirements met.",
+  },
+  payouts: {
+    title: "Economics Engine",
+    nextPayoutLabel: "Next Payout:",
+    lifetimeAttribution: "Lifetime Attribution Value:",
+    originationShare: "Originator Share:",
+    noPayouts: "No payouts yet. Close a deal to trigger attribution.",
+  },
+  activeIntents: {
+    title: "Your Active Intents",
+    manageCta: "Manage Intents",
+    noIntents: "No active intents. Visit Blind Matching to express an intent.",
+  },
+  custodiedRelationships: {
+    title: "Relationship Custody",
+    custodyAge: "Custodied:",
+    attributionCue: "Cryptographic timestamps ensure forever attribution",
+    protectCta: "Protect a Relationship",
+    viewRegisterCta: "View Custody Register",
+    noRelationships:
+      "No custodied relationships yet. Protect your first introduction.",
+  },
+} as const;

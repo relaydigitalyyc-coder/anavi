@@ -1,0 +1,62 @@
+{
+  "typescript_errors": [
+    {
+      "file": "server/_core/llmFactory.ts",
+      "line": 3,
+      "error_code": "TS2307",
+      "error_text": "Cannot find module 'openai' or its corresponding type declarations.",
+      "root_cause": "The 'openai' package is listed in the import statement but is not present in the project's 'dependencies' or 'devDependencies' in package.json. TypeScript cannot resolve the module.",
+      "fix_command": "pnpm add openai",
+      "fix_code": null
+    }
+  ],
+  "unsafe_patterns": [
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "line_approx": 272,
+      "pattern": "any cast",
+      "description": "Multiple explicit 'as unknown as unknown[]' and 'as unknown as ReadonlyArray<...>' type assertions are used when accessing 'demo.matches', 'demo.dealRooms', and 'demo.payouts'. These casts bypass TypeScript's type checking and are unnecessary, as the 'DEMO_FIXTURES' are already strongly typed with 'as const'. This hides potential type mismatches and reduces type safety.",
+      "severity": "high"
+    },
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "line_approx": 204,
+      "pattern": "implicit any",
+      "description": "The result of 'JSON.parse(raw)' is implicitly 'any'. While wrapped in a try/catch block, 'parsed.persona' could be 'any' before the nullish coalescing operator. This is a minor implicit 'any' risk.",
+      "severity": "low"
+    },
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "line_approx": 500,
+      "pattern": "data structure divergence",
+      "description": "The rendering logic for payouts explicitly branches for demo vs. live data, indicating a divergence in expected data structures. Specifically, demo payouts use 'p.deal' for description and have statuses like 'triggered', 'deployed', 'fundraising', while live payouts (from tRPC) use 'p.payoutType' and have statuses like 'completed', 'pending'. While handled by separate code paths, this divergence makes the demo data less representative of the live API and complicates future refactoring or unification.",
+      "severity": "medium"
+    }
+  ],
+  "demo_type_issues": [
+    {
+      "description": "The 'payouts' data structure in 'demoFixtures.ts' does not fully align with the assumed response type from 'trpc.payout.list.useQuery'. Demo payouts use a 'deal' property for description and a broader set of 'status' literal values ('triggered', 'deployed', 'fundraising'), whereas the live tRPC data is expected to have a 'payoutType' property and a different set of 'status' values ('completed', 'pending'). This requires separate rendering logic in 'Dashboard.tsx' and reduces the fidelity of the demo data as a mirror of the live system."
+    }
+  ],
+  "patches": [
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "description": "Remove unnecessary 'as unknown as unknown[]' and 'as unknown as ReadonlyArray<...>' type assertions for demo.matches.",
+      "old_code": "              {(demo.matches as unknown as ReadonlyArray<{ id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string }>).map((m, idx) => (",
+      "new_code": "              {demo.matches.map((m, idx) => ("
+    },
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "description": "Remove unnecessary 'as unknown as unknown[]' and 'as unknown as ReadonlyArray<...>' type assertions for demo.dealRooms.",
+      "old_code": "                {(demo.dealRooms as unknown as ReadonlyArray<{ id: number; name: string; stage: string; counterparty: string; escrowProgress: number }>).map((dr, idx) => (",
+      "new_code": "                {demo.dealRooms.map((dr, idx) => ("
+    },
+    {
+      "file": "client/src/pages/Dashboard.tsx",
+      "description": "Remove unnecessary 'as unknown as unknown[]' and 'as unknown as ReadonlyArray<...>' type assertions for demo.payouts.",
+      "old_code": "                {(demo.payouts as unknown as ReadonlyArray<{ id: number; deal: string; amount: number; status: string }>).map((p) => (",
+      "new_code": "                {demo.payouts.map((p) => ("
+    }
+  ],
+  "summary": "The ANAVI codebase has one critical TypeScript error related to a missing 'openai' package. Beyond this, the audit revealed several unsafe type patterns, primarily in 'Dashboard.tsx', where explicit 'any' casts are used unnecessarily for demo data, bypassing TypeScript's type inference. There's also a minor implicit 'any' risk with 'JSON.parse'. A notable type divergence exists in the 'payouts' data structure between demo fixtures and the expected live tRPC response, leading to separate rendering logic. Addressing the missing package and removing the explicit 'any' casts will significantly improve the codebase's type safety and maintainability."
+}

@@ -1,0 +1,320 @@
+{
+  "selector_drift": [
+    {
+      "tour": "onboardingTour",
+      "step_title": "Dashboard Overview",
+      "selector_used": "[data-tour=\"dashboard\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "onboardingTour",
+      "step_title": "Your Trust Score",
+      "selector_used": "[data-tour=\"trust-score\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "onboardingTour",
+      "step_title": "Your Custodied Relationships",
+      "selector_used": "[data-tour=\"relationships\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "onboardingTour",
+      "step_title": "Deal Matching",
+      "selector_used": "[data-tour=\"deal-matching\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "onboardingTour",
+      "step_title": "Activity Feed",
+      "selector_used": "[data-tour=\"activity-feed\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "onboardingTour",
+      "step_title": "Create Intent",
+      "selector_used": "[data-tour=\"create-intent\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "onboardingTour",
+      "step_title": "You Are Ready",
+      "selector_used": "[data-tour=\"completion\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "Navigate Freely",
+      "selector_used": "[data-tour=\"demo-nav\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "DashboardLayout.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "The Problem Solved",
+      "selector_used": "[data-tour=\"dashboard\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "Custodied Relationships",
+      "selector_used": "[data-tour=\"relationships\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "The Match",
+      "selector_used": "[data-tour=\"match-card\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "The Deal Room",
+      "selector_used": "[data-tour=\"deal-room\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "The Payout",
+      "selector_used": "[data-tour=\"payout\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "Verification & Trust",
+      "selector_used": "[data-tour=\"verification\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "demoTour",
+      "step_title": "Apply for Access",
+      "selector_used": "[data-tour=\"apply\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "buildDemoTourSteps",
+      "step_title": "TOUR.trustScore.title",
+      "selector_used": "[data-tour=\"trust-score\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "buildDemoTourSteps",
+      "step_title": "TOUR.relationships[persona].title",
+      "selector_used": "[data-tour=\"relationships\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "buildDemoTourSteps",
+      "step_title": "TOUR.blindMatch.title",
+      "selector_used": "[data-tour=\"match-card\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "buildDemoTourSteps",
+      "step_title": "TOUR.dealRoom.title",
+      "selector_used": "[data-tour=\"deal-room\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "buildDemoTourSteps",
+      "step_title": "TOUR.attribution[persona].title",
+      "selector_used": "[data-tour=\"payout\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "buildDemoTourSteps",
+      "step_title": "TOUR.compliance.title",
+      "selector_used": "[data-tour=\"verification\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "buildDemoTourSteps",
+      "step_title": "TOUR.close.cta.title",
+      "selector_used": "[data-tour=\"apply\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "tourDefinitions",
+      "step_title": "Welcome to ANAVI",
+      "selector_used": "[data-tour-id='welcome']",
+      "exists_in_dom": true,
+      "dom_element_file": "DashboardLayout.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "tourDefinitions",
+      "step_title": "Trust Score",
+      "selector_used": "[data-tour-id='trust-score']",
+      "exists_in_dom": false,
+      "dom_element_file": "DashboardLayout.tsx",
+      "issue": "The target selector '[data-tour-id='trust-score']' does not exist in DashboardLayout.tsx. Dashboard.tsx has 'data-tour=\"trust-score\"' for the Trust Score widget, indicating attribute system confusion.",
+      "fix": "Add data-tour-id=\"trust-score\" to the TrustScoreChip wrapper in DashboardLayout.tsx."
+    },
+    {
+      "tour": "tourDefinitions",
+      "step_title": "Relationships",
+      "selector_used": "[data-tour-id='nav-relationships']",
+      "exists_in_dom": true,
+      "dom_element_file": "DashboardLayout.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "tourDefinitions",
+      "step_title": "Deal Matching",
+      "selector_used": "[data-tour-id='nav-deal-matching']",
+      "exists_in_dom": true,
+      "dom_element_file": "DashboardLayout.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "tourDefinitions",
+      "step_title": "Deal Rooms",
+      "selector_used": "[data-tour-id='nav-deal-rooms']",
+      "exists_in_dom": true,
+      "dom_element_file": "DashboardLayout.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "tourDefinitions",
+      "step_title": "Global Search",
+      "selector_used": "[data-tour-id='tour-search']",
+      "exists_in_dom": true,
+      "dom_element_file": "DashboardLayout.tsx",
+      "issue": "None",
+      "fix": "correct as-is"
+    },
+    {
+      "tour": "tourDefinitions",
+      "step_title": "You're all set",
+      "selector_used": "",
+      "exists_in_dom": true,
+      "dom_element_file": "NOT_APPLICABLE",
+      "issue": "This is an intentional empty target for a final modal/completion step.",
+      "fix": "correct as-is"
+    }
+  ],
+  "dead_exports": [
+    {
+      "export_name": "onboardingTour",
+      "file": "client/src/lib/tourDefinitions.ts",
+      "evidence": "grep -r \"onboardingTour\" client/src/ | grep -v \"tourDefinitions.ts\" shows no imports or usage outside its definition."
+    },
+    {
+      "export_name": "demoTour",
+      "file": "client/src/lib/tourDefinitions.ts",
+      "evidence": "grep -r \"demoTour\" client/src/ | grep -v \"tourDefinitions.ts\" shows no imports or usage outside its definition. The demo experience uses buildDemoTourSteps."
+    }
+  ],
+  "attribute_system_confusion": [
+    {
+      "description": "The 'tourDefinitions' (main app tour) in client/src/tour/definitions.ts uses the 'data-tour-id' convention, but its 'Trust Score' step targets '[data-tour-id='trust-score']' which is missing in DashboardLayout.tsx. The Dashboard.tsx component, which uses the 'data-tour' convention, has 'data-tour=\"trust-score\"' for the Trust Score widget. This indicates a mix-up in which tour system should target which component and attribute type."
+    },
+    {
+      "description": "The comments in client/src/lib/tourDefinitions.ts are misleading. It states 'onboardingTour' is for 'Live-app onboarding tour' and uses 'data-tour' attributes in 'Dashboard', but the actual live app tour is 'tourDefinitions' in client/src/tour/definitions.ts, which uses 'data-tour-id' and targets DashboardLayout.tsx. This creates semantic confusion about the purpose and usage of 'onboardingTour'."
+    }
+  ],
+  "tourId_nav_alignment": [
+    {
+      "nav_item": "Payouts",
+      "tourId": "nav-payouts",
+      "tour_target": "[data-tour-id='nav-payouts']",
+      "exists_in_layout": true,
+      "issue": "Payouts nav item in DashboardLayout.tsx has tourId=\"nav-payouts\" but there is no corresponding step in tourDefinitions in client/src/tour/definitions.ts.",
+      "fix": "Add a tour step with id=\"payouts\" and target=\"[data-tour-id='nav-payouts']\" to client/src/tour/definitions.ts."
+    },
+    {
+      "nav_item": "Dashboard",
+      "tourId": "undefined",
+      "tour_target": "N/A",
+      "exists_in_layout": true,
+      "issue": "Dashboard nav item in DashboardLayout.tsx does not have a tourId. The main app tour (tourDefinitions) has a 'welcome' step targeting the main content area, but no specific nav item for Dashboard.",
+      "fix": "Consider adding tourId=\"nav-dashboard\" to the Dashboard nav item if a specific tour step for the nav item is desired in the main app tour."
+    }
+  ],
+  "patches": [
+    {
+      "file": "client/src/components/DashboardLayout.tsx",
+      "description": "Add data-tour-id=\"trust-score\" to the TrustScoreChip wrapper to enable targeting by the main app tour (tourDefinitions).",
+      "line_approx": 287,
+      "old_value": "<div className=\"hidden md:block\">",
+      "new_value": "<div data-tour-id=\"trust-score\" className=\"hidden md:block\">"
+    },
+    {
+      "file": "client/src/tour/definitions.ts",
+      "description": "Add a tour step for 'Payouts' to align with the 'nav-payouts' tourId defined in DashboardLayout.tsx, ensuring the main app tour covers this navigation item.",
+      "line_approx": 35,
+      "old_value": "(no step for payouts)",
+      "new_value": "{\n    \"id\": \"payouts\",\n    \"target\": \"[data-tour-id='nav-payouts']\",\n    \"title\": \"Automated Payouts\",\n    \"body\": \"Track all your deal economics and automated payouts here.\",\n    \"placement\": \"right\"\n}"
+    }
+  ],
+  "summary": "The ANAVI tour system audit revealed several critical issues. The primary concern is the existence of two distinct tour attribute systems (`data-tour` for demo, `data-tour-id` for live app) which are causing confusion and selector drift. Specifically, the `tourDefinitions` (main app tour) attempts to target a `Trust Score` element using `data-tour-id='trust-score'`, but this attribute is missing in `DashboardLayout.tsx`, while `Dashboard.tsx` incorrectly uses `data-tour=\"trust-score\"` for a similar element. This highlights a need for strict adherence to the `data-tour-id` convention for the main app tour.\n\nFurthermore, `onboardingTour` and `demoTour` in `client/src/lib/tourDefinitions.ts` are identified as dead code, as they are not imported or used by any active components, despite misleading comments suggesting `onboardingTour` is for live app onboarding. This indicates a need for codebase cleanup.\n\nFinally, there's an inconsistency in `tourId` alignment: the `Payouts` navigation item in `DashboardLayout.tsx` has a `tourId=\"nav-payouts\"`, but no corresponding step exists in the `tourDefinitions` for the main app tour. This suggests an incomplete tour experience.\n\nThe proposed patches address these issues by adding the missing `data-tour-id` attribute to the Trust Score in `DashboardLayout.tsx` and introducing a `Payouts` step to the main app tour definitions, alongside recommending removal of dead code and clarification of documentation."
+}

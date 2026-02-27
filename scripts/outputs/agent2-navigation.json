@@ -1,0 +1,149 @@
+{
+  "current_nav_issues": [
+    {
+      "section": "Deals",
+      "item": "Intents",
+      "path": "/intents",
+      "issue": "Core 'Blind Matching' component (Intents) is missing from the 'Deals' section, leading to an incomplete user journey for deal creation."
+    },
+    {
+      "section": "Deals",
+      "item": "Matches",
+      "path": "/matches",
+      "issue": "Core 'Blind Matching' component (Matches) is missing from the 'Deals' section, hindering visibility of matched opportunities."
+    },
+    {
+      "section": "Finance",
+      "item": "Fee Management",
+      "path": "/fee-management",
+      "issue": "Key 'Economics Engine' component (Fee Management) is missing from the 'Finance' section, making the economics module incomplete."
+    },
+    {
+      "section": "Compliance",
+      "item": "Section Label",
+      "path": "N/A",
+      "issue": "The section label 'Compliance' does not fully encompass the 'Trust & Identity' module vision, which includes Verification and Audit Logs beyond just compliance."
+    },
+    {
+      "section": "Network",
+      "item": "Section Label",
+      "path": "N/A",
+      "issue": "The section label 'Network' does not align with the 'Relationships' module vision, which emphasizes relationship custody and management."
+    },
+    {
+      "section": "Finance",
+      "item": "Section Label",
+      "path": "N/A",
+      "issue": "The section label 'Finance' does not align with the 'Economics' module vision, which covers broader automated payouts and attribution."
+    },
+    {
+      "section": "AI & Intel",
+      "item": "Section Label",
+      "path": "N/A",
+      "issue": "The section label 'AI & Intel' should be simplified to 'Intelligence' for consistency with the proposed module name."
+    }
+  ],
+  "route_wrapper_issues": [
+    {
+      "path": "/manifesto",
+      "current_wrapper": "ShellRoute",
+      "correct_wrapper": "ProtectedPage",
+      "reason": "The manifesto is likely a static content page for authenticated members. It does not require the full DashboardLayout, which is typically for interactive dashboards and feature pages. ProtectedPage provides authentication without the layout overhead."
+    },
+    {
+      "path": "/operator-intake",
+      "current_wrapper": "ShellRoute",
+      "correct_wrapper": "ProtectedPage",
+      "reason": "This is an 'admin/internal' tool. It should be protected but likely does not fit within the standard user DashboardLayout. A dedicated admin layout or no layout (ProtectedPage) would be more appropriate."
+    }
+  ],
+  "missing_from_nav": [
+    {
+      "page": "Intents.tsx",
+      "path": "/intents",
+      "proposed_section": "DEALS",
+      "reason": "This page is a core component of the 'Blind Matching' module, allowing users to express buy/sell/invest intents. It's crucial for the deal origination journey and should be easily accessible."
+    },
+    {
+      "page": "Matches.tsx",
+      "path": "/matches",
+      "proposed_section": "DEALS",
+      "reason": "This page displays the results of the 'Blind Matching' process. It's essential for users to see their compatible matches and progress deals, making it a vital part of the deal flow."
+    },
+    {
+      "page": "FeeManagement.tsx",
+      "path": "/fee-management",
+      "proposed_section": "ECONOMICS",
+      "reason": "As part of the 'Economics Engine' module, transparent and automated fee management is critical. This page provides visibility and control over deal economics and payouts."
+    }
+  ],
+  "should_be_hidden": [
+    {
+      "path": "/demo",
+      "reason": "This is a legacy demo route and should not be part of the main application navigation for active users."
+    },
+    {
+      "path": "/welcome",
+      "reason": "These are onboarding flows, meant for initial user setup and not for ongoing navigation once completed."
+    },
+    {
+      "path": "/onboarding",
+      "reason": "These are onboarding flows, meant for initial user setup and not for ongoing navigation once completed."
+    },
+    {
+      "path": "/deal-rooms/:id",
+      "reason": "This is a detail page for a specific deal room, accessed from the '/deal-rooms' list page, not a top-level navigation item."
+    },
+    {
+      "path": "/manifesto",
+      "reason": "This is a static content page, typically linked from a footer or settings, not a primary navigation item for daily workflow."
+    },
+    {
+      "path": "/operator-intake",
+      "reason": "This is an admin/internal tool, not intended for general user access via the main sidebar navigation."
+    },
+    {
+      "path": "/knowledge-graph",
+      "reason": "This is an advanced feature, intended to be accessible from within the 'Intelligence' section (e.g., as a button or link on the Intelligence page), not as a top-level sidebar item, aligning with progressive disclosure."
+    },
+    {
+      "path": "/spv-generator",
+      "reason": "This is a specific tool, likely accessed from within 'Deal Rooms' or a 'Deals' workflow, not a primary navigation item."
+    },
+    {
+      "path": "/trading",
+      "reason": "This is a Phase 2 vertical, not part of the current core offering. It should be hidden from the main navigation to maintain focus on current features."
+    },
+    {
+      "path": "/crypto-assets",
+      "reason": "This is a Phase 2 vertical, not part of the current core offering. It should be hidden from the main navigation to maintain focus on current features."
+    },
+    {
+      "path": "/commodities",
+      "reason": "This is a Phase 2 vertical, not part of the current core offering. It should be hidden from the main navigation to maintain focus on current features."
+    },
+    {
+      "path": "/transaction-matching",
+      "reason": "This is a Phase 2 vertical, not part of the current core offering. It should be hidden from the main navigation to maintain focus on current features."
+    },
+    {
+      "path": "/member-onboarding",
+      "reason": "This is a Phase 2 vertical, not part of the current core offering. It should be hidden from the main navigation to maintain focus on current features."
+    },
+    {
+      "path": "/real-estate",
+      "reason": "This is a Phase 2 vertical, not part of the current core offering. It should be hidden from the main navigation to maintain focus on current features."
+    },
+    {
+      "path": "/capital-management",
+      "reason": "This is a Phase 2 vertical, not part of the current core offering. It should be hidden from the main navigation to maintain focus on current features."
+    }
+  ],
+  "proposed_navSections": "const navSections: NavSection[] = [\n  { label: \"OVERVIEW\", items: [\n    { icon: Home, label: \"Dashboard\", path: \"/dashboard\" },\n    { icon: BarChart3, label: \"Analytics\", path: \"/analytics\" }\n  ]},\n  { label: \"TRUST & IDENTITY\", items: [\n    { icon: Shield, label: \"Verification\", path: \"/verification\" },\n    { icon: CheckCircle, label: \"Compliance\", path: \"/compliance\" },\n    { icon: FileSearch, label: \"Audit Logs\", path: \"/audit-logs\" }\n  ]},\n  { label: \"RELATIONSHIPS\", items: [\n    { icon: Users, label: \"Relationships\", path: \"/relationships\", tourId: \"nav-relationships\" },\n    { icon: Building2, label: \"Family Offices\", path: \"/family-offices\" },\n    { icon: Crosshair, label: \"Targeting\", path: \"/targeting\" },\n    { icon: Network, label: \"Network Graph\", path: \"/network\" }\n  ]},\n  { label: \"DEALS\", items: [\n    { icon: Target, label: \"Deal Matching\", path: \"/deal-matching\", tourId: \"nav-deal-matching\" },\n    { icon: Handshake, label: \"Intents\", path: \"/intents\" },\n    { icon: CheckCircle2, label: \"Matches\", path: \"/matches\" },\n    { icon: FolderOpen, label: \"Deal Rooms\", path: \"/deal-rooms\", tourId: \"nav-deal-rooms\" },\n    { icon: Briefcase, label: \"Deals\", path: \"/deals\" },\n    { icon: Lightbulb, label: \"Deal Intelligence\", path: \"/deal-intelligence\" }\n  ]},\n  { label: \"ECONOMICS\", items: [\n    { icon: Wallet, label: \"Payouts\", path: \"/payouts\", tourId: \"nav-payouts\" },\n    { icon: PieChart, label: \"LP Portal\", path: \"/lp-portal\" },\n    { icon: DollarSign, label: \"Fee Management\", path: \"/fee-management\" }\n  ]},\n  { label: \"INTELLIGENCE\", items: [\n    { icon: Brain, label: \"AI Brain\", path: \"/ai-brain\" },\n    { icon: TrendingUp, label: \"Intelligence\", path: \"/intelligence\" }\n  ]},\n  { label: \"SETTINGS\", items: [\n    { icon: CalendarIcon, label: \"Calendar\", path: \"/calendar\" },\n    { icon: Settings, label: \"Settings\", path: \"/settings\" }\n  ]}\n];",
+  "nav_improvements": [
+    "Consolidate 'Intents' and 'Matches' into the 'Deal Matching' page or a sub-navigation structure (e.g., a dropdown or tabs within /deal-matching) to better reflect 'Deal Matching (Intent + Blind Matches)' as a unified module entry point, rather than separate top-level items.",
+    "Ensure `tourIds` are consistently applied to all primary navigation items, especially newly added ones, to provide a comprehensive guided tour experience.",
+    "Review and update the `mobileNavItems` array in `DashboardLayout.tsx` to reflect the new navigation structure and priorities, ensuring critical paths are easily accessible on smaller screens.",
+    "Consider adding 'Coming Soon' labels or a dedicated 'Phase 2' section for the hidden verticals if the intention is to signal future development and manage user expectations, rather than complete obscurity. This aligns with progressive disclosure by making advanced/future features known but not intrusive."
+  ]
+}

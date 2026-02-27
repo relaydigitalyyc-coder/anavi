@@ -1,0 +1,1190 @@
+You are a TypeScript expert auditing the ANAVI codebase for type errors, unsafe patterns, and missing type declarations. Be hyper-meticulous.
+
+
+ANAVI WHITEPAPER VISION (condensed):
+- "The Private Market Operating System" — "If Bloomberg runs public markets, ANAVI will run private ones."
+- Positioning: neutral trust infrastructure for the $13+ trillion private markets ecosystem
+- Eliminates: broker chains (5-15 per deal), relationship leakage, due diligence duplication, fraud
+
+6 CORE MODULES:
+1. Identity/KYC — Trust Score (dynamic, compound), verification tiers: Basic/Enhanced/Institutional, KYB
+2. Relationship Custody — Cryptographic timestamps, blind until consent, forever attribution (originators get 40-60%)
+3. Blind Matching — Intent-based (Buy/Sell/Invest intents), anonymized until mutual consent, compatibility scoring
+4. Deal Rooms — NDA-gated, document versioning, e-signature, immutable audit trail, escrow milestones
+5. Compliance/Escrow — AML/KYC rails, OFAC screening, per-deal compliance, milestone-triggered fund release
+6. Economics Engine — Automated payouts on deal close, lifetime attribution for follow-on deals, trajectory tracking
+
+TARGET PERSONAS:
+- Deal Originator/Broker: "My introductions close deals I never get credit for." → custody + lifetime attribution
+- Investor/Family Office: "I can't tell which deals are real." → verified counterparties + blind matching
+- Project Developer/Asset Owner: "Raising capital means exposing my thesis." → anonymous until consent
+
+UX PRINCIPLES (from Webaroo spec):
+- Navy/blue palette, luxury aesthetic, institutional-grade
+- "Simplicity as design principle. Progressive disclosure — advanced features available but not in the way."
+- The platform should feel like Bloomberg Terminal meets private club
+
+THE TRANSFORMATION:
+Before: 5-15 broker chains → After: Direct verified counterparty access
+Before: Manual costly due diligence → After: Pre-verified participant network
+Before: Relationship leakage + circumvention → After: Custodied relationships with lifetime attribution
+Before: Opaque, negotiated fees → After: Transparent, automated economics
+Before: High fraud risk → After: Trust-scored network with blacklist controls
+Before: One-time transaction relationships → After: Compounding relationship value over time
+
+CODEBASE ARCHITECTURE:
+- Client: React 19, Vite, wouter, tRPC React Query, Tailwind 4, shadcn/ui, framer-motion
+- Server: Node, Express, tRPC v11, Drizzle ORM (MySQL/TiDB)
+- Working dir: anavi/
+- Key paths: client/src/pages/ (40+ pages), client/src/components/, client/src/lib/, client/src/contexts/
+- Route wrappers: ShellRoute (auth + DashboardLayout + PageTransition), ProtectedPage (auth only), Bare (public)
+
+
+# PNPM CHECK OUTPUT (current TypeScript errors)
+```
+
+> anavi@1.0.0 check /home/ariel/Documents/anavi-main/anavi
+> tsc --noEmit
+
+server/_core/llmFactory.ts(3,24): error TS2307: Cannot find module 'openai' or its corresponding type declarations.
+ ELIFECYCLE  Command failed with exit code 1.
+
+```
+
+# LLMFACTORY SOURCE (main file with error)
+```ts
+import { GoogleGenAI } from '@google/genai';
+import Anthropic from '@anthropic-ai/sdk';
+import { OpenAI } from 'openai';
+import { ENV } from './env';
+
+export type LLMProvider = 'openai' | 'anthropic' | 'gemini';
+
+export interface LLMConfig {
+    provider: LLMProvider;
+    model: string;
+}
+
+const defaultProvider: LLMProvider = 'openai';
+
+class LLMFactory {
+    private openaiClient?: OpenAI;
+    private anthropicClient?: Anthropic;
+    private geminiClient?: GoogleGenAI;
+
+    constructor() {
+        // Initialize clients eagerly if keys are available
+        if (process.env.OPENAI_API_KEY) {
+            this.openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        }
+
+        if (process.env.ANTHROPIC_API_KEY) {
+            this.anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        }
+
+        if (process.env.GEMINI_API_KEY) {
+            this.geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        }
+    }
+
+    async generateEmbedding(text: string, provider: LLMProvider = defaultProvider): Promise<number[]> {
+        if (provider === 'openai' && this.openaiClient) {
+            const response = await this.openaiClient.embeddings.create({
+                model: "text-embedding-3-small",
+                input: text,
+            });
+            return response.data[0].embedding;
+        }
+
+        if (provider === 'gemini' && this.geminiClient) {
+            const response = await this.geminiClient.models.embedContent({
+                model: 'text-embedding-004',
+                contents: text,
+            });
+            return response.embeddings?.[0]?.values || [];
+        }
+
+        // Anthropic doesn't have a native embeddings API yet, fallback to OpenAI if not supported
+        throw new Error(`Embedding generation not supported or configured for provider: ${provider}`);
+    }
+
+    // Common Text Generation wrapper
+    async generateText(prompt: string, provider: LLMProvider = defaultProvider): Promise<string> {
+        if (provider === 'openai' && this.openaiClient) {
+            const res = await this.openaiClient.chat.completions.create({
+                model: 'gpt-4-turbo',
+                messages: [{ role: 'user', content: prompt }]
+            });
+            return res.choices[0].message.content || '';
+        }
+
+        if (provider === 'anthropic' && this.anthropicClient) {
+            const res = await this.anthropicClient.messages.create({
+                model: 'claude-3-opus-20240229',
+                max_tokens: 1024,
+                messages: [{ role: 'user', content: prompt }]
+            });
+            if (res.content[0].type === 'text') {
+                return res.content[0].text;
+            }
+            return '';
+        }
+
+        if (provider === 'gemini' && this.geminiClient) {
+            const res = await this.geminiClient.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt
+            });
+            return res.text || '';
+        }
+
+        throw new Error(`Text generation not configured for provider: ${provider}`);
+    }
+}
+
+export const llmService = new LLMFactory();
+
+```
+
+# PACKAGE.JSON
+```json
+{
+  "name": "anavi",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
+    "build": "vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "db:seed": "tsx scripts/seed-demo-user.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@aws-sdk/client-s3": "^3.693.0",
+    "@aws-sdk/s3-request-presigner": "^3.693.0",
+    "@google/genai": "^1.43.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-aspect-ratio": "^1.1.7",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-checkbox": "^1.3.3",
+    "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-context-menu": "^2.2.16",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-menubar": "^1.1.16",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-radio-group": "^1.3.8",
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slider": "^1.3.6",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-toggle": "^1.1.10",
+    "@radix-ui/react-toggle-group": "^1.1.11",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "@tanstack/react-query": "^5.90.2",
+    "@trpc/client": "^11.6.0",
+    "@trpc/react-query": "^11.6.0",
+    "@trpc/server": "^11.6.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/d3": "^7.4.3",
+    "axios": "^1.12.0",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "cookie": "^1.0.2",
+    "d3": "^7.9.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.2.2",
+    "drizzle-orm": "^0.44.5",
+    "embla-carousel-react": "^8.6.0",
+    "express": "^4.21.2",
+    "fast-xml-parser": "^5.4.1",
+    "framer-motion": "^12.23.22",
+    "input-otp": "^1.4.2",
+    "jose": "6.1.0",
+    "lucide-react": "^0.453.0",
+    "mysql2": "^3.15.0",
+    "nanoid": "^5.1.5",
+    "next-themes": "^0.4.6",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.1",
+    "react-day-picker": "^9.11.1",
+    "react-dom": "^19.2.1",
+    "react-hook-form": "^7.64.0",
+    "react-resizable-panels": "^3.0.6",
+    "recharts": "^2.15.2",
+    "sonner": "^2.0.7",
+    "streamdown": "^1.4.0",
+    "stripe": "^20.3.1",
+    "superjson": "^1.13.3",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7",
+    "vaul": "^1.1.2",
+    "wouter": "^3.3.5",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/vite": "^4.1.3",
+    "@types/express": "4.17.21",
+    "@types/google.maps": "^3.58.1",
+    "@types/node": "^24.7.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.2.1",
+    "@types/react-dom": "^19.2.1",
+    "@types/supertest": "^6.0.3",
+    "@vitejs/plugin-react": "^5.0.4",
+    "add": "^2.0.6",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.31.4",
+    "esbuild": "^0.25.0",
+    "msw": "^2.12.10",
+    "pnpm": "^10.15.1",
+    "postcss": "^8.4.47",
+    "prettier": "^3.6.2",
+    "supertest": "^7.2.2",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.19.1",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "5.9.3",
+    "vite": "^7.1.7",
+    "vite-plugin-manus-runtime": "^0.0.57",
+    "vitest": "^2.1.4"
+  },
+  "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af",
+  "pnpm": {
+    "patchedDependencies": {
+      "wouter@3.7.1": "patches/wouter@3.7.1.patch"
+    },
+    "overrides": {
+      "tailwindcss>nanoid": "3.3.7"
+    }
+  }
+}
+
+```
+
+# DEMO CONTEXT (for type audit)
+```tsx
+// client/src/contexts/DemoContext.tsx
+// Whitepaper-aligned demo context. Zero API calls in demo mode.
+// Pages check useDemoFixtures() — if truthy, use fixture data; if null, use real tRPC.
+
+import { createContext, useContext, type ReactNode } from "react";
+import type { PersonaKey } from "@/lib/copy";
+import { DEMO_FIXTURES, type DemoFixtures } from "@/lib/demoFixtures";
+
+interface DemoContextValue {
+  isDemo: boolean;
+  persona: PersonaKey | null;
+  fixtures: DemoFixtures[PersonaKey] | null;
+}
+
+const DemoContext = createContext<DemoContextValue>({
+  isDemo: false,
+  persona: null,
+  fixtures: null,
+});
+
+export function DemoContextProvider({
+  persona,
+  children,
+}: {
+  persona: PersonaKey;
+  children: ReactNode;
+}) {
+  return (
+    <DemoContext.Provider
+      value={{
+        isDemo: true,
+        persona,
+        fixtures: DEMO_FIXTURES[persona],
+      }}
+    >
+      {children}
+    </DemoContext.Provider>
+  );
+}
+
+export function useDemoContext() {
+  return useContext(DemoContext);
+}
+
+/**
+ * Use in pages to get demo-mode data.
+ * Returns null when not in demo mode — page falls through to real tRPC.
+ *
+ * Example:
+ *   const demo = useDemoFixtures();
+ *   const { data: relationships } = trpc.relationship.list.useQuery(
+ *     undefined, { enabled: !demo }
+ *   );
+ *   const items = demo?.relationships ?? relationships ?? [];
+ */
+export function useDemoFixtures() {
+  const ctx = useContext(DemoContext);
+  return ctx.isDemo ? ctx.fixtures : null;
+}
+
+```
+
+# DEMO FIXTURES (for type audit)
+```tsx
+// client/src/lib/demoFixtures.ts
+// Whitepaper-aligned fixture data for the three demo personas.
+// These mirror the tRPC response shapes used by each page.
+// Keep in sync if real router output types change.
+
+import type { PersonaKey } from "@/lib/copy";
+
+export const DEMO_FIXTURES = {
+  originator: {
+    user: {
+      id: "demo-originator",
+      name: "Alex Mercer",
+      email: "alex@mercercapital.com",
+      trustScore: 78,
+      tier: "enhanced" as const,
+      kybStatus: "verified" as const,
+      onboardingCompleted: true,
+      relationshipCount: 4,
+    },
+    relationships: [
+      { id: 1, name: "Ahmad Al-Rashid", company: "Gulf Sovereign Wealth Fund", trustScore: 91, custodyAge: "14 months", attributionStatus: "active", hash: "0x7f3a...c12e", assetClass: "Infrastructure" },
+      { id: 2, name: "Sarah Chen", company: "Pacific Family Office", trustScore: 88, custodyAge: "8 months", attributionStatus: "active", hash: "0x2b9d...4f7a", assetClass: "Private Equity" },
+      { id: 3, name: "Meridian Group", company: "Private Equity", trustScore: 76, custodyAge: "3 months", attributionStatus: "pending", hash: "0x9e1c...8b3d", assetClass: "Real Estate" },
+      { id: 4, name: "Delta Capital", company: "Hedge Fund", trustScore: 62, custodyAge: "1 month", attributionStatus: "pending", hash: "0x4a7f...2e9c", assetClass: "Commodities" },
+    ],
+    matches: [
+      { id: 1, tag: "Qualified buyer for Gulf Coast refinery (EN590, 50,000 MT)", compatibilityScore: 94, sealed: true, assetClass: "Commodities", dealSize: "$12M", status: "pending_consent" },
+      { id: 2, tag: "Investor match for Riyadh Solar JV ($47M, Stage 2)", compatibilityScore: 88, sealed: true, assetClass: "Infrastructure", dealSize: "$47M", status: "pending_consent" },
+    ],
+    dealRooms: [
+      { id: 1, name: "Riyadh Solar JV", stage: "diligence", ndaStatus: "executed", escrowProgress: 40, escrowCurrent: 12000000, escrowTarget: 30000000, auditEvents: 47, documentCount: 3, counterparty: "Sealed — Institutional Allocator, Trust 91" },
+    ],
+    notifications: [
+      { id: 1, type: "match_found", message: "Match found: Ahmad Al-Rashid introduction has a qualified counterparty", time: "2 hours ago" },
+      { id: 2, type: "payout_received", message: "Attribution credit: $1.175M origination fee triggered on Riyadh Solar close", time: "Yesterday" },
+      { id: 3, type: "compliance_alert", message: "KYB verification upgrade available — unlock Tier 3 access", time: "3 days ago" },
+    ],
+    payouts: [
+      { id: 1, deal: "Riyadh Solar JV", amount: 1175000, status: "triggered", originatorShare: 2.5, closingDate: "2026-02-18" },
+      { id: 2, deal: "Gulf Coast Refinery", amount: 240000, status: "pending", originatorShare: 2.0, closingDate: null },
+    ],
+  },
+
+  investor: {
+    user: {
+      id: "demo-investor",
+      name: "Pacific Capital Partners",
+      email: "invest@pacificcapital.com",
+      trustScore: 91,
+      tier: "institutional" as const,
+      kybStatus: "verified" as const,
+      onboardingCompleted: true,
+      aum: "$340M",
+    },
+    relationships: [
+      { id: 1, name: "Verified Operator A", company: "[Sealed — Solar Infrastructure]", trustScore: 88, custodyAge: "Active", attributionStatus: "active", hash: "0x1a2b...3c4d", assetClass: "Infrastructure" },
+      { id: 2, name: "Verified Operator B", company: "[Sealed — Gulf Coast Commodity]", trustScore: 82, custodyAge: "Active", attributionStatus: "active", hash: "0x5e6f...7g8h", assetClass: "Commodities" },
+    ],
+    matches: [
+      { id: 1, tag: "Solar Infrastructure — $30M+ raise, Stage 2 ready", compatibilityScore: 96, sealed: true, assetClass: "Infrastructure", dealSize: "$47M", status: "pending_consent" },
+      { id: 2, tag: "Gulf Coast Commodity Play — EN590, 50,000 MT", compatibilityScore: 91, sealed: true, assetClass: "Commodities", dealSize: "$12M", status: "pending_consent" },
+      { id: 3, tag: "PropTech Series B — Enterprise SaaS", compatibilityScore: 84, sealed: true, assetClass: "Private Equity", dealSize: "$8M", status: "pending_consent" },
+      { id: 4, tag: "Infrastructure Debt — 7% yield, 5-year", compatibilityScore: 79, sealed: true, assetClass: "Infrastructure", dealSize: "$20M", status: "pending_consent" },
+    ],
+    dealRooms: [
+      { id: 1, name: "Solar Infrastructure SPV", stage: "closing", ndaStatus: "executed", escrowProgress: 65, escrowCurrent: 2100000, escrowTarget: 3000000, auditEvents: 31, documentCount: 8, counterparty: "Meridian Renewables · Trust 91" },
+    ],
+    notifications: [
+      { id: 1, type: "match_found", message: "4 new blind matches generated from your investment intent", time: "1 hour ago" },
+      { id: 2, type: "deal_update", message: "NDA consent required: Solar Infrastructure SPV — deal room ready", time: "4 hours ago" },
+      { id: 3, type: "payout_received", message: "Capital call: $450K due — Solar Infrastructure SPV", time: "2 days ago" },
+    ],
+    payouts: [
+      { id: 1, deal: "Infrastructure Alpha SPV", amount: 2100000, status: "deployed", irr: 18.5, vintage: "2025" },
+      { id: 2, deal: "Meridian Real Estate II", amount: 750000, status: "deployed", irr: 14.2, vintage: "2025" },
+    ],
+  },
+
+  developer: {
+    user: {
+      id: "demo-developer",
+      name: "Meridian Renewables",
+      email: "raise@meridianrenewables.com",
+      trustScore: 65,
+      tier: "basic" as const,
+      kybStatus: "verified" as const,
+      onboardingCompleted: true,
+      upgradePromptActive: true,
+    },
+    relationships: [
+      { id: 1, name: "[Sealed — Institutional Allocator]", company: "Identity Protected", trustScore: 91, custodyAge: "Pending consent", attributionStatus: "pending", hash: "0x3f4g...5h6i", assetClass: "Infrastructure" },
+      { id: 2, name: "[Sealed — Family Office]", company: "Identity Protected", trustScore: 85, custodyAge: "Pending consent", attributionStatus: "pending", hash: "0x7j8k...9l0m", assetClass: "Infrastructure" },
+    ],
+    matches: [
+      { id: 1, tag: "Institutional Allocator — $100M+ deployment mandate, solar focus", compatibilityScore: 94, sealed: true, assetClass: "Infrastructure", dealSize: "$47M", status: "pending_consent" },
+      { id: 2, tag: "Family Office — Direct deal mandate, renewable energy", compatibilityScore: 87, sealed: true, assetClass: "Infrastructure", dealSize: "$30M", status: "pending_consent" },
+      { id: 3, tag: "PE Fund — Infrastructure debt + equity hybrid", compatibilityScore: 78, sealed: true, assetClass: "Infrastructure", dealSize: "$15M", status: "pending_consent" },
+    ],
+    dealRooms: [
+      { id: 1, name: "Riyadh Solar JV — $30M Raise", stage: "fundraising", ndaStatus: "executed", escrowProgress: 40, escrowCurrent: 12000000, escrowTarget: 30000000, auditEvents: 47, documentCount: 5, counterparty: "3 qualified investors — identities sealed" },
+    ],
+    notifications: [
+      { id: 1, type: "match_found", message: "3 qualified investors matched to your Riyadh Solar JV raise", time: "30 minutes ago" },
+      { id: 2, type: "deal_update", message: "Escrow milestone reached: $12M of $30M committed", time: "Yesterday" },
+      { id: 3, type: "compliance_alert", message: "Upgrade to Tier 2 to unlock direct investor introductions", time: "3 days ago" },
+    ],
+    payouts: [
+      { id: 1, deal: "Riyadh Solar JV", amount: 30000000, status: "fundraising", escrowMilestone: 40, nextTrigger: "$18M committed" },
+    ],
+  },
+} as const;
+
+export type DemoFixtures = typeof DEMO_FIXTURES;
+export type PersonaFixtures = DemoFixtures[PersonaKey];
+
+```
+
+# DASHBOARD (for type audit — check tRPC query types)
+```tsx
+import { useAuth } from "@/_core/hooks/useAuth";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import { trpc } from "@/lib/trpc";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+import { formatDistanceToNow } from "date-fns";
+import {
+  FileText,
+  Lock,
+  Shield,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
+import { toast } from "sonner";
+
+const NOTIFICATION_STYLES: Record<
+  string,
+  { border: string; badge: string; label: string }
+> = {
+  match_found: {
+    border: "border-l-[#C4972A]",
+    badge: "bg-[#C4972A]/15 text-[#C4972A]",
+    label: "MATCH",
+  },
+  deal_update: {
+    border: "border-l-[#2563EB]",
+    badge: "bg-[#2563EB]/15 text-[#2563EB]",
+    label: "DEAL ROOM",
+  },
+  payout_received: {
+    border: "border-l-[#059669]",
+    badge: "bg-[#059669]/15 text-[#059669]",
+    label: "ATTRIBUTION",
+  },
+  compliance_alert: {
+    border: "border-l-[#1E3A5F]",
+    badge: "bg-[#1E3A5F]/15 text-[#1E3A5F]",
+    label: "VERIFICATION",
+  },
+};
+
+const DEFAULT_STYLE = {
+  border: "border-l-[#0A1628]",
+  badge: "bg-[#0A1628]/15 text-[#0A1628]",
+  label: "INTELLIGENCE",
+};
+
+const MARKET_DEPTH = [
+  { sector: "Solar", buyers: 47, sellers: 12 },
+  { sector: "Oil & Gas", buyers: 23, sellers: 8 },
+  { sector: "Real Estate", buyers: 34, sellers: 19 },
+  { sector: "Infrastructure", buyers: 15, sellers: 6 },
+];
+
+const PENDING_ACTIONS = [
+  { text: "Complete Tier 2 verification", Icon: Shield },
+  { text: "Review 3 new matches", Icon: Target },
+  { text: "Sign NDA for Deal Room #12", Icon: FileText },
+];
+
+function getScoreColor(score: number) {
+  if (score > 70) return "#059669";
+  if (score >= 40) return "#F59E0B";
+  return "#DC2626";
+}
+
+function TrustRing({ score }: { score: number }) {
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.min(Math.max(score, 0), 100);
+  const offset = circumference - (progress / 100) * circumference;
+  const color = getScoreColor(score);
+
+  return (
+    <svg width="140" height="140" viewBox="0 0 140 140" className="mx-auto">
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke="#0A1628"
+        strokeWidth="8"
+        opacity="0.12"
+      />
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform="rotate(-90 70 70)"
+        className="transition-all duration-700"
+      />
+    </svg>
+  );
+}
+
+function DashCard({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`card-elevated p-6 ${className}`}>
+      <h3 className="mb-4 data-label">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+// ── Welcome Banner (shown once after onboarding) ───────────────────────────
+const PERSONA_SUBTITLES: Record<string, string> = {
+  originator: "Your first relationship has been custodied. Deal matching is live.",
+  investor:   "Your investment intent is broadcasting to verified counterparties.",
+  developer:  "Your project is verified. Qualified capital matches are incoming.",
+  allocator:  "Your fund mandate is active. Institutional pipeline is open.",
+  acquirer:   "Your acquisition criteria are live. Confidential matches are sourcing.",
+};
+
+const PERSONA_LABELS: Record<string, string> = {
+  originator: "Deal Originator",
+  investor:   "Investor",
+  developer:  "Project Developer",
+  allocator:  "Institutional Allocator",
+  acquirer:   "Strategic Acquirer",
+};
+
+function WelcomeBanner({ name, persona, onDismiss }: { name: string; persona: string; onDismiss: () => void }) {
+  const subtitle = PERSONA_SUBTITLES[persona] ?? "Your profile is ready.";
+  const personaLabel = PERSONA_LABELS[persona] ?? persona;
+  return (
+    <div className="mb-6 card-elevated border-l-4 border-l-[#C4972A] p-4 flex items-start justify-between gap-4">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A]/15">
+          <svg className="h-4 w-4 text-[#C4972A]" viewBox="0 0 16 16" fill="currentColor">
+            <path fillRule="evenodd" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#0A1628]">
+            Welcome, {name}. Your {personaLabel} profile is ready.
+          </p>
+          <p className="mt-0.5 text-sm text-[#1E3A5F]/70">{subtitle}</p>
+        </div>
+      </div>
+      <button
+        onClick={onDismiss}
+        className="mt-0.5 shrink-0 rounded p-1 text-[#1E3A5F]/40 hover:bg-[#1E3A5F]/8 hover:text-[#1E3A5F]/70 transition-colors"
+        aria-label="Dismiss welcome banner"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+      <div className="space-y-6">
+        <div className="card-elevated p-6">
+          <div className="h-4 w-24 animate-shimmer rounded mb-4" />
+          <div className="mx-auto h-[140px] w-[140px] animate-shimmer rounded-full" />
+          <div className="mt-4 h-3 w-20 animate-shimmer rounded mx-auto" />
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-12 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="h-6 w-24 animate-shimmer rounded" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="card-elevated p-6">
+            <div className="h-4 w-32 animate-shimmer rounded mb-4" />
+            <div className="space-y-2">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-4 animate-shimmer rounded" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** In demo mode suppress navigation so clicking a card doesn't destroy demo context. */
+function MaybeLink({
+  href,
+  demo,
+  children,
+}: {
+  href: string;
+  demo: boolean;
+  children: React.ReactNode;
+}) {
+  if (demo) return <>{children}</>;
+  return <Link href={href}>{children}</Link>;
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function MarketDepthBar({ label, value, max, index = 0 }: { label: string; value: number; max: number; index?: number }) {
+  const pct = Math.round((value / max) * 100);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-8 text-right font-data-hud text-[10px] text-[#1E3A5F]/60">{value}</span>
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#0A1628]/6">
+        <motion.div
+          className="h-full rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+          style={{ background: label === "buyers" ? "#2563EB" : "#C4972A" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const demo = useDemoFixtures();
+  const { user: liveUser } = useAuth();
+  const [welcomePersona, setWelcomePersona] = useState<string | null>(() => {
+    try {
+      const raw = localStorage.getItem("anavi_onboarding");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const welcomed = localStorage.getItem("anavi_welcomed");
+      if (welcomed) return null;
+      return parsed.persona ?? null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleDismissWelcome = useCallback(() => {
+    localStorage.setItem("anavi_welcomed", "true");
+    setWelcomePersona(null);
+  }, []);
+
+  const user = demo ? demo.user : liveUser;
+
+  const { data: stats, isLoading: statsLoading } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const { data: notificationsData, isLoading: notificationsLoading } = trpc.notification.list.useQuery(
+    { limit: 10 },
+    { enabled: !demo },
+  );
+  const { data: payouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
+
+  useEffect(() => { document.title = "Dashboard | ANAVI"; }, []);
+
+  const loading = demo ? false : (statsLoading || notificationsLoading);
+
+  // Demo notifications have a slightly different shape — normalize here.
+  // Map fixture time strings to approximate Date offsets so relative timestamps are accurate.
+  const FIXTURE_TIME_OFFSETS: Record<string, number> = {
+    "30 minutes ago": 30 * 60 * 1000,
+    "1 hour ago":     1 * 60 * 60 * 1000,
+    "2 hours ago":    2 * 60 * 60 * 1000,
+    "4 hours ago":    4 * 60 * 60 * 1000,
+    "Yesterday":      24 * 60 * 60 * 1000,
+    "2 days ago":     2 * 24 * 60 * 60 * 1000,
+    "3 days ago":     3 * 24 * 60 * 60 * 1000,
+  };
+  const demoNotifications = demo?.notifications.map((n) => ({
+    id: String(n.id),
+    type: n.type,
+    title: n.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    message: n.message,
+    createdAt: new Date(Date.now() - (FIXTURE_TIME_OFFSETS[n.time] ?? 0)).toISOString(),
+  }));
+  const notifications = demoNotifications ?? notificationsData ?? [];
+
+  const rawScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
+  const trustScore = rawScore > 100 ? rawScore / 10 : rawScore;
+  const scoreColor = getScoreColor(trustScore);
+  const maxDepth = Math.max(...MARKET_DEPTH.map((m) => Math.max(m.buyers, m.sellers)));
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  return (
+    <>
+      {welcomePersona && (
+        <WelcomeBanner
+          name={user?.name?.split(" ")[0] ?? "there"}
+          persona={welcomePersona}
+          onDismiss={handleDismissWelcome}
+        />
+      )}
+      {/* E13: Personalized greeting */}
+      <FadeInView>
+        <div data-tour="dashboard" className="mb-6 flex items-baseline justify-between">
+          <div>
+            <h1 className="dash-heading text-3xl">
+              {getGreeting()}, {user?.name?.split(" ")[0] ?? "there"}
+            </h1>
+            <p className="mt-1 text-sm text-[#1E3A5F]/60">
+              {notifications.length > 0
+                ? `${notifications.length} new notification${notifications.length > 1 ? "s" : ""}`
+                : "You're all caught up"}{" "}
+              &middot; {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </p>
+          </div>
+        </div>
+      </FadeInView>
+
+      <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+        {/* ───────── Left Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* Trust Score Widget — E11: clickable */}
+          <StaggerItem>
+            <MaybeLink href="/verification" demo={!!demo}>
+              <div data-tour="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
+                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
+                  Trust Score
+                </h3>
+
+                <div className="relative mx-auto w-[140px] transition-transform duration-200 group-hover:scale-105">
+                  <TrustRing score={trustScore} />
+                  <span
+                    className="font-data-hud text-4xl font-bold absolute inset-0 flex items-center justify-center"
+                    style={{ color: scoreColor }}
+                  >
+                    <SmoothCounter value={Math.round(trustScore)} duration={1} />
+                  </span>
+                </div>
+
+                <p className="mt-3 text-xs text-[#1E3A5F]/60">
+                  <TrendingUp className="mr-1 inline h-3 w-3" style={{ color: "#059669" }} />
+                  <span style={{ color: "#059669" }}>+3</span> this month
+                </p>
+
+                {(demo?.user.tier ?? stats?.verificationLevel) && (
+                  <span className="mt-3 inline-block rounded-full bg-[#0A1628]/10 px-3 py-1 text-xs font-semibold text-[#0A1628]">
+                    {demo?.user.tier ?? stats?.verificationLevel}
+                  </span>
+                )}
+
+                {!demo && (
+                  <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1E3A5F]/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    Click to view breakdown →
+                  </p>
+                )}
+              </div>
+            </MaybeLink>
+          </StaggerItem>
+
+          {/* E12: Quick Actions with ElasticButton feel + toast */}
+          <StaggerItem>
+            <div className="space-y-2">
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button
+                  data-tour="create-intent"
+                  className="btn-gold w-full rounded-lg px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Deal Matching"); }}
+                >
+                  Create Intent
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/relationships" demo={!!demo}>
+                <button
+                  data-tour="relationships"
+                  className="w-full rounded-lg bg-[#C4972A] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#C4972A]/90 active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Relationships"); }}
+                >
+                  Protect Relationship
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button className="w-full rounded-lg border border-[#D1DCF0] bg-white px-4 py-3 text-sm font-semibold text-[#1E3A5F] transition-colors hover:bg-[#F3F7FC]">
+                  View Matches
+                </button>
+              </MaybeLink>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+
+        {/* ───────── Center Column ───────── */}
+        <FadeInView delay={0.1}>
+          {/* Blind Matches — always present so onboardingTour can target it.
+              Demo: shows fixture match cards. Live: shows tRPC data (wired when real matching lands). */}
+          <div data-tour="deal-matching" className="mb-6">
+            <h2 className="mb-3 dash-heading text-xl">Blind Matches</h2>
+            {demo && (demo.matches as unknown as unknown[]).length > 0 ? (
+              <StaggerContainer className="space-y-3">
+                {(demo.matches as unknown as ReadonlyArray<{ id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string }>).map((m, idx) => (
+                  <StaggerItem key={m.id}>
+                    <div
+                      data-tour={idx === 0 ? "match-card" : undefined}
+                      className="card-elevated border-l-4 border-l-[#C4972A] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <span className="rounded-full bg-[#C4972A]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C4972A]">
+                          MATCH
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Lock className="h-3 w-3 text-[#1E3A5F]/40" />
+                          <span className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/40">Sealed</span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628] mb-2">{m.tag}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.assetClass}</span>
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.dealSize}</span>
+                        <span
+                          className="ml-auto font-data-hud text-sm font-bold"
+                          style={{ color: m.compatibilityScore >= 90 ? "#059669" : "#C4972A" }}
+                        >
+                          {m.compatibilityScore}% match
+                        </span>
+                      </div>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : !demo ? (
+              <div className="card-elevated p-6">
+                <EmptyState {...EMPTY_STATES.matches} />
+              </div>
+            ) : null}
+          </div>
+
+          {/* Deal Rooms — demo only until live deal rooms are wired to this dashboard */}
+          {demo && (demo.dealRooms as unknown as unknown[]).length > 0 && (
+            <div className="mb-6">
+              <h2 className="mb-3 dash-heading text-xl">Deal Rooms</h2>
+              <StaggerContainer className="space-y-3">
+                {(demo.dealRooms as unknown as ReadonlyArray<{ id: number; name: string; stage: string; counterparty: string; escrowProgress: number }>).map((dr, idx) => (
+                  <StaggerItem key={dr.id}>
+                    <div
+                      data-tour={idx === 0 ? "deal-room" : undefined}
+                      className="card-elevated border-l-4 border-l-[#2563EB] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-[#0A1628]">{dr.name}</p>
+                        <span className="rounded-full bg-[#2563EB]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+                          {dr.stage}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#1E3A5F]/60 mb-3">{dr.counterparty}</p>
+                      <div className="mb-2">
+                        <div className="flex justify-between text-[10px] text-[#1E3A5F]/50 mb-1">
+                          <span>Escrow</span>
+                          <span>{dr.escrowProgress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#0A1628]/6">
+                          <div
+                            className="h-full rounded-full bg-[#059669]"
+                            style={{ width: `${dr.escrowProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <MaybeLink href="/deal-rooms" demo={!!demo}>
+                        <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:text-[#2563EB]/80 uppercase tracking-wider transition-colors">
+                          Enter Deal Room →
+                        </button>
+                      </MaybeLink>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          )}
+
+          <div data-tour="activity-feed">
+          <h2 className="mb-4 dash-heading text-2xl">Activity</h2>
+
+          {notifications.length > 0 ? (
+            <StaggerContainer className="space-y-3">
+              {notifications.map((n, idx) => {
+                const style = NOTIFICATION_STYLES[n.type] ?? DEFAULT_STYLE;
+                return (
+                  <StaggerItem key={n.id}>
+                    <div
+                      className={`card-elevated border-l-4 p-4 hover:translate-y-[-2px] ${style.border}`}
+                    >
+                      <div className="mb-1 flex items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge}`}
+                        >
+                          {style.label}
+                        </span>
+                        {/* E9: pulse dot on newest */}
+                        {idx === 0 && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C4972A] opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C4972A]" />
+                          </span>
+                        )}
+                        <span className="font-data-mono text-[#1E3A5F]/50">
+                          {formatDistanceToNow(new Date(n.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628]">
+                        {n.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-[#1E3A5F]/70">
+                        {n.message}
+                      </p>
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          ) : (
+            <div className="card-elevated p-6">
+              <EmptyState {...EMPTY_STATES.notifications} />
+            </div>
+          )}
+          </div>{/* /data-tour="activity-feed" */}
+        </FadeInView>
+
+        {/* ───────── Right Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* E10: Market Depth — horizontal bar chart */}
+          <StaggerItem>
+            <DashCard title="Market Depth">
+              <div className="space-y-4">
+                {MARKET_DEPTH.map((m, i) => (
+                  <div key={m.sector}>
+                    <p className="mb-1.5 text-xs font-semibold text-[#0A1628]">{m.sector}</p>
+                    <MarketDepthBar label="buyers" value={m.buyers} max={maxDepth} index={i * 2} />
+                    <MarketDepthBar label="sellers" value={m.sellers} max={maxDepth} index={i * 2 + 1} />
+                  </div>
+                ))}
+                <div className="flex items-center gap-4 border-t border-[#D1DCF0] pt-2 text-[10px] text-[#1E3A5F]/60">
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#2563EB]" /> Buyers</span>
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#C4972A]" /> Sellers</span>
+                </div>
+              </div>
+            </DashCard>
+          </StaggerItem>
+
+          {/* E14: Pending Actions with badges */}
+          <StaggerItem>
+            <div data-tour="verification">
+            <DashCard title="Pending Actions">
+              <div className="space-y-3">
+                {PENDING_ACTIONS.map((a) => (
+                  <div key={a.text} className="flex items-center gap-3 text-sm">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/5">
+                      <a.Icon className="h-4 w-4 text-[#1E3A5F]/60" />
+                    </span>
+                    <span className="flex-1 text-[#0A1628]">{a.text}</span>
+                    <span className="rounded-full bg-[#F59E0B]/15 px-2 py-0.5 text-[10px] font-bold uppercase text-[#F59E0B]">
+                      action
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </DashCard>
+            </div>
+          </StaggerItem>
+
+          {/* Recent Payouts */}
+          <StaggerItem>
+            <div data-tour="payout">
+            <DashCard title="Recent Payouts">
+              <p className="mb-3 text-lg font-bold text-[#0A1628]">
+                Next Payout:{" "}
+                <span className="text-[#059669]">
+                  $<SmoothCounter value={92000} prefix="" duration={1.2} />
+                </span>
+              </p>
+              {demo ? (
+                (demo.payouts as unknown as unknown[]).length > 0 ? (
+                  <div className="space-y-2">
+                    {(demo.payouts as unknown as ReadonlyArray<{ id: number; deal: string; amount: number; status: string }>).map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                      >
+                        <div>
+                          <span className="font-semibold text-[#0A1628]">
+                            ${p.amount.toLocaleString()}
+                          </span>
+                          <span className="ml-2 text-xs text-[#1E3A5F]/60">{p.deal}</span>
+                        </div>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            p.status === "triggered" || p.status === "deployed"
+                              ? "bg-[#059669]/15 text-[#059669]"
+                              : p.status === "pending" || p.status === "fundraising"
+                                ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                                : "bg-[#2563EB]/15 text-[#2563EB]"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState {...EMPTY_STATES.payouts} />
+                )
+              ) : payouts && payouts.length > 0 ? (
+                <div className="space-y-2">
+                  {payouts.slice(0, 3).map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                    >
+                      <div>
+                        <span className="font-semibold text-[#0A1628]">
+                          ${parseFloat(p.amount).toLocaleString()}
+                        </span>
+                        <span className="ml-2 text-xs text-[#1E3A5F]/60">
+                          {p.payoutType.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          p.status === "completed"
+                            ? "bg-[#059669]/15 text-[#059669]"
+                            : p.status === "pending"
+                              ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                              : "bg-[#2563EB]/15 text-[#2563EB]"
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState {...EMPTY_STATES.payouts} />
+              )}
+            </DashCard>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+      </div>
+
+      {/* Apply CTA — onboardingTour "completion" target + demo "apply" target */}
+      <FadeInView delay={0.3}>
+        <div data-tour="completion" className="mt-8">
+          <div data-tour="apply" className="flex justify-center">
+            <Link href="/onboarding">
+              <motion.button
+                className="px-8 py-3 border border-[#C4972A]/40 text-[#C4972A] text-sm uppercase tracking-widest font-semibold hover:bg-[#C4972A]/5 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Request Full Access
+              </motion.button>
+            </Link>
+          </div>
+        </div>
+      </FadeInView>
+    </>
+  );
+}
+
+```
+
+# AUDIT TASK
+1. Analyze every TypeScript error in the pnpm check output
+2. Propose minimal, targeted fixes (don't over-engineer)
+3. Identify any unsafe patterns (any casts, non-null assertions used dangerously, implicit any)
+4. Check that demoFixtures types align with what Dashboard.tsx expects
+5. Check DemoContextValue type is used correctly everywhere
+
+For the openai error specifically: is openai in package.json? If not, the fix is `pnpm add openai`. If yes, is it a type-only import issue?
+
+Return EXACTLY this JSON (no markdown, pure JSON):
+{
+  "typescript_errors": [
+    {
+      "file": "server/_core/llmFactory.ts",
+      "line": 3,
+      "error_code": "TS2307",
+      "error_text": "Cannot find module 'openai'",
+      "root_cause": "openai package not installed",
+      "fix_command": "pnpm add openai",
+      "fix_code": null
+    }
+  ],
+  "unsafe_patterns": [
+    {"file": "path", "line_approx": 0, "pattern": "any cast", "description": "description", "severity": "high|medium|low"}
+  ],
+  "demo_type_issues": [
+    {"description": "type mismatch between fixtures and Dashboard expectations"}
+  ],
+  "patches": [
+    {"file": "path", "description": "what to change", "old_code": "...", "new_code": "..."}
+  ],
+  "summary": "summary of all TypeScript health issues"
+}

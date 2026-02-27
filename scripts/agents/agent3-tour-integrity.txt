@@ -1,0 +1,1699 @@
+You are a senior frontend engineer auditing the ANAVI tour system for selector drift, dead code, and semantic inconsistencies. Be hyper-meticulous.
+
+
+ANAVI WHITEPAPER VISION (condensed):
+- "The Private Market Operating System" — "If Bloomberg runs public markets, ANAVI will run private ones."
+- Positioning: neutral trust infrastructure for the $13+ trillion private markets ecosystem
+- Eliminates: broker chains (5-15 per deal), relationship leakage, due diligence duplication, fraud
+
+6 CORE MODULES:
+1. Identity/KYC — Trust Score (dynamic, compound), verification tiers: Basic/Enhanced/Institutional, KYB
+2. Relationship Custody — Cryptographic timestamps, blind until consent, forever attribution (originators get 40-60%)
+3. Blind Matching — Intent-based (Buy/Sell/Invest intents), anonymized until mutual consent, compatibility scoring
+4. Deal Rooms — NDA-gated, document versioning, e-signature, immutable audit trail, escrow milestones
+5. Compliance/Escrow — AML/KYC rails, OFAC screening, per-deal compliance, milestone-triggered fund release
+6. Economics Engine — Automated payouts on deal close, lifetime attribution for follow-on deals, trajectory tracking
+
+TARGET PERSONAS:
+- Deal Originator/Broker: "My introductions close deals I never get credit for." → custody + lifetime attribution
+- Investor/Family Office: "I can't tell which deals are real." → verified counterparties + blind matching
+- Project Developer/Asset Owner: "Raising capital means exposing my thesis." → anonymous until consent
+
+UX PRINCIPLES (from Webaroo spec):
+- Navy/blue palette, luxury aesthetic, institutional-grade
+- "Simplicity as design principle. Progressive disclosure — advanced features available but not in the way."
+- The platform should feel like Bloomberg Terminal meets private club
+
+THE TRANSFORMATION:
+Before: 5-15 broker chains → After: Direct verified counterparty access
+Before: Manual costly due diligence → After: Pre-verified participant network
+Before: Relationship leakage + circumvention → After: Custodied relationships with lifetime attribution
+Before: Opaque, negotiated fees → After: Transparent, automated economics
+Before: High fraud risk → After: Trust-scored network with blacklist controls
+Before: One-time transaction relationships → After: Compounding relationship value over time
+
+CODEBASE ARCHITECTURE:
+- Client: React 19, Vite, wouter, tRPC React Query, Tailwind 4, shadcn/ui, framer-motion
+- Server: Node, Express, tRPC v11, Drizzle ORM (MySQL/TiDB)
+- Working dir: anavi/
+- Key paths: client/src/pages/ (40+ pages), client/src/components/, client/src/lib/, client/src/contexts/
+- Route wrappers: ShellRoute (auth + DashboardLayout + PageTransition), ProtectedPage (auth only), Bare (public)
+
+
+# TOUR DEFINITIONS (client/src/lib/tourDefinitions.ts)
+```ts
+/**
+ * Tour step definitions for GuidedTour (demo flow) and TourOverlay (live app onboarding).
+ * Main app tour: @/tour/definitions.ts (TourOverlay, useTour)
+ */
+export interface TourStep {
+  targetSelector: string;
+  title: string;
+  content: string;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  /** When true, user can click the highlighted area; show "Try it" hint */
+  interactive?: boolean;
+  /** Optional hint for interactive steps (e.g. "Click Enter Deal Room below") */
+  actionHint?: string;
+}
+
+/**
+ * Live-app onboarding tour — runs after a user completes onboarding.
+ * Each targetSelector must correspond to a data-tour attribute in Dashboard.
+ * This is the vision spec — add data-tour attributes to Dashboard as sections mature.
+ */
+export const onboardingTour: TourStep[] = [
+  {
+    targetSelector: '[data-tour="dashboard"]',
+    title: 'Dashboard Overview',
+    content:
+      'This is your command center. Every deal, relationship, and payout starts here. Let us show you where everything lives.',
+  },
+  {
+    targetSelector: '[data-tour="trust-score"]',
+    title: 'Your Trust Score',
+    content:
+      'This is your Trust Score — the number that determines your access and matching priority. Click it anytime to see your full breakdown and how to improve it.',
+  },
+  {
+    targetSelector: '[data-tour="relationships"]',
+    title: 'Your Custodied Relationships',
+    content:
+      'This is where your protected relationships live. The timestamp you see is your legal priority claim. Each relationship now has lifetime value.',
+  },
+  {
+    targetSelector: '[data-tour="deal-matching"]',
+    title: 'Deal Matching',
+    content:
+      'This is where your matches appear. Once your intent is active, you will get notified here every time a qualified counterparty is found.',
+  },
+  {
+    targetSelector: '[data-tour="activity-feed"]',
+    title: 'Activity Feed',
+    content:
+      'Your activity feed is your deal nervous system — every match, update, attribution, and verification event appears here in real time.',
+  },
+  {
+    targetSelector: '[data-tour="create-intent"]',
+    title: 'Create Intent',
+    content:
+      'This button is your fastest path to your next deal. Create an intent anytime — it takes 3 minutes and starts matching immediately.',
+  },
+  {
+    targetSelector: '[data-tour="completion"]',
+    title: 'You Are Ready',
+    content:
+      'Your relationships are protected. Your profile is active. The network is waiting. Create your first intent to start matching.',
+  },
+];
+
+import type { PersonaKey } from "@/lib/copy";
+import { TOUR } from "@/lib/copy";
+
+/** Legacy tour used by /demo route (Demo.tsx). Retained for backwards compatibility. */
+export const demoTour: TourStep[] = [
+  {
+    targetSelector: '[data-tour="demo-nav"]',
+    title: 'Navigate Freely',
+    content:
+      'Use the sidebar to jump to any section — or click Next to follow the guided path. You can explore on your own anytime.',
+    interactive: true,
+    actionHint: 'Click any sidebar item, or Next to continue.',
+  },
+  {
+    targetSelector: '[data-tour="dashboard"]',
+    title: 'The Problem Solved',
+    content:
+      'This is ANAVI — the operating system for private markets. Your dashboard shows protected relationships, AI matches, deal rooms, and attribution. Let us walk you through each piece.',
+  },
+  {
+    targetSelector: '[data-tour="relationships"]',
+    title: 'Custodied Relationships',
+    content:
+      'These are your custodied relationships — each one is timestamped, encrypted, and protected. The custody hash proves when you introduced the parties. Someone in our network is ready to deal.',
+  },
+  {
+    targetSelector: '[data-tour="match-card"]',
+    title: 'The Match',
+    content:
+      'This is what a match looks like. A verified counterparty with a high compatibility score. Identity stays hidden until you both consent. No exposure. No wasted time.',
+  },
+  {
+    targetSelector: '[data-tour="deal-room"]',
+    title: 'The Deal Room',
+    content:
+      'Each active deal has an "Enter Deal Room" button. Click it now to explore the interior — NDA signed, documents shared, compliance verified, escrow staged. Everything you need to close, in one secure workspace.',
+    interactive: true,
+    actionHint: 'Click "Enter Deal Room" below, then Next when done exploring.',
+  },
+  {
+    targetSelector: '[data-tour="payout"]',
+    title: 'The Payout',
+    content:
+      'When a deal closes, your payout triggers automatically. Agreed upfront, executes automatically. No chasing. No negotiating after the fact.',
+  },
+  {
+    targetSelector: '[data-tour="verification"]',
+    title: 'Verification & Trust',
+    content:
+      'Your Trust Score and compliance passport unlock deal access and matching priority. Tier 2 gives you institutional-grade verification and counterparty confidence.',
+  },
+  {
+    targetSelector: '[data-tour="apply"]',
+    title: 'Apply for Access',
+    content:
+      'You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?',
+  },
+];
+
+/** Whitepaper-aligned persona-aware tour steps for the demo experience. */
+export function buildDemoTourSteps(persona: PersonaKey): TourStep[] {
+  return [
+    {
+      targetSelector: '[data-tour="trust-score"]',
+      title: TOUR.trustScore.title,
+      content: TOUR.trustScore.body,
+      position: "bottom",
+    },
+    {
+      targetSelector: '[data-tour="relationships"]',
+      title: TOUR.relationships[persona].title,
+      content: TOUR.relationships[persona].body,
+      position: "right",
+    },
+    {
+      targetSelector: '[data-tour="match-card"]',
+      title: TOUR.blindMatch.title,
+      content: TOUR.blindMatch.body,
+      position: "bottom",
+    },
+    {
+      targetSelector: '[data-tour="deal-room"]',
+      title: TOUR.dealRoom.title,
+      content: TOUR.dealRoom.body,
+      position: "top",
+      interactive: true,
+      actionHint: "Explore the deal room details above.",
+    },
+    {
+      targetSelector: '[data-tour="payout"]',
+      title: TOUR.attribution[persona].title,
+      content: TOUR.attribution[persona].body,
+      position: "top",
+    },
+    {
+      targetSelector: '[data-tour="verification"]',
+      title: TOUR.compliance.title,
+      content: TOUR.compliance.body,
+      position: "right",
+    },
+    {
+      targetSelector: '[data-tour="apply"]',
+      title: TOUR.close.cta.title,
+      content: TOUR.close.cta.body,
+      position: "top",
+    },
+  ];
+}
+
+```
+
+# LIVE APP TOUR (client/src/tour/definitions.ts)
+```ts
+/**
+ * Main app tour (DashboardLayout, TourOverlay, useTour).
+ * Demo tour: @/lib/tourDefinitions.ts (GuidedTour, Demo page)
+ */
+export type TourPlacement = "top" | "bottom" | "left" | "right" | "center";
+
+export interface TourStep {
+  id: string;
+  target: string;
+  title: string;
+  body: string;
+  placement: TourPlacement;
+}
+
+export const TOUR_STORAGE_KEY = "anavi_tour_completed";
+export const TOUR_SESSION_KEY = "anavi_tour_step";
+
+export const tourDefinitions: TourStep[] = [
+  {
+    id: "welcome",
+    target: "[data-tour-id='welcome']",
+    title: "Welcome to ANAVI",
+    body: "Your deal flow partner for private markets. This quick tour shows you the essentials.",
+    placement: "center",
+  },
+  {
+    id: "trust-score",
+    target: "[data-tour-id='trust-score']",
+    title: "Trust Score",
+    body: "Your verification tier and trust score help counterparties know you're credible. Click to see the breakdown.",
+    placement: "right",
+  },
+  {
+    id: "relationships",
+    target: "[data-tour-id='nav-relationships']",
+    title: "Relationships",
+    body: "Custody your deal relationships here. Verified counterparties appear in your network.",
+    placement: "right",
+  },
+  {
+    id: "deal-matching",
+    target: "[data-tour-id='nav-deal-matching']",
+    title: "Deal Matching",
+    body: "Create intents (buy, sell, invest) and get matched with verified counterparties.",
+    placement: "right",
+  },
+  {
+    id: "deal-rooms",
+    target: "[data-tour-id='nav-deal-rooms']",
+    title: "Deal Rooms",
+    body: "Secure spaces for active deals. Share documents, track stages, and close with confidence.",
+    placement: "right",
+  },
+  {
+    id: "search",
+    target: "[data-tour-id='tour-search']",
+    title: "Global Search",
+    body: "Press Cmd+K (or Ctrl+K) anytime to search deals, contacts, and matches.",
+    placement: "bottom",
+  },
+  {
+    id: "done",
+    target: "",
+    title: "You're all set",
+    body: "Explore the platform. Use 'Restart Tour' in Settings or Help when you need a refresher.",
+    placement: "center",
+  },
+];
+
+```
+
+# GUIDED TOUR OVERLAY (client/src/components/GuidedTourOverlay.tsx)
+```tsx
+// client/src/components/GuidedTourOverlay.tsx
+// Wraps GuidedTour with persona-aware whitepaper steps + full-screen close moment.
+
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import GuidedTour, { isTourCompleted } from "@/components/GuidedTour";
+import { buildDemoTourSteps } from "@/lib/tourDefinitions";
+import { TOUR, PERSONAS, type PersonaKey } from "@/lib/copy";
+import { AuroraBackground } from "@/components/PremiumAnimations";
+import { Link } from "wouter";
+
+interface GuidedTourOverlayProps {
+  persona: PersonaKey;
+  onExitDemo: () => void;
+}
+
+export function GuidedTourOverlay({ persona, onExitDemo }: GuidedTourOverlayProps) {
+  const tourId = `demo-${persona}`;
+  const [showClose, setShowClose] = useState(false);
+  const [tourDismissed, setTourDismissed] = useState(isTourCompleted(tourId));
+
+  const handleComplete = useCallback(() => setShowClose(true), []);
+  const handleSkip = useCallback(() => setTourDismissed(true), []);
+
+  // After "Continue Exploring", keep a floating exit affordance so user isn't trapped.
+  if (tourDismissed && !showClose) {
+    return (
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        onClick={onExitDemo}
+        className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 rounded-full border border-white/20 bg-[#060A12]/90 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white/50 shadow-lg backdrop-blur-sm transition-colors hover:border-white/40 hover:text-white/80 cursor-pointer"
+        aria-label="Exit demo"
+      >
+        ← Exit Demo
+      </motion.button>
+    );
+  }
+
+  const steps = buildDemoTourSteps(persona);
+  const personaCopy = PERSONAS[persona];
+
+  return (
+    <>
+      {!tourDismissed && (
+        <GuidedTour
+          tourId={tourId}
+          steps={steps}
+          onComplete={handleComplete}
+          onSkip={handleSkip}
+        />
+      )}
+
+      {/* Full-screen close moment — fires after all 7 tour steps complete */}
+      <AnimatePresence>
+        {showClose && (
+          <motion.div
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#060A12] overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <AuroraBackground className="opacity-40" />
+            <div className="relative z-10 text-center max-w-3xl mx-4">
+              <motion.p
+                className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {personaCopy.role}
+              </motion.p>
+              <motion.h2
+                className="text-5xl md:text-7xl font-serif text-white mb-8 leading-[0.95]"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+              >
+                {TOUR.close.headline}
+              </motion.h2>
+              <motion.p
+                className="text-lg md:text-xl text-white/60 mb-6 leading-relaxed max-w-2xl mx-auto"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+              >
+                {TOUR.close.subhead}
+              </motion.p>
+              <motion.p
+                className="text-base text-[#22D4F5]/80 italic mb-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.9 }}
+              >
+                {personaCopy.tourPitch}
+              </motion.p>
+              <motion.div
+                className="flex flex-col sm:flex-row items-center justify-center gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1 }}
+              >
+                <Link href="/onboarding">
+                  <motion.button
+                    className="bg-[#C4972A] text-[#060A12] px-10 py-4 text-sm font-semibold uppercase tracking-widest cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    Request Access
+                  </motion.button>
+                </Link>
+                <motion.button
+                  onClick={() => {
+                    setShowClose(false);
+                    setTourDismissed(true);
+                  }}
+                  className="text-sm text-white/40 hover:text-white/70 uppercase tracking-widest transition-colors cursor-pointer"
+                >
+                  Continue Exploring
+                </motion.button>
+                <motion.button
+                  onClick={onExitDemo}
+                  className="text-sm text-white/25 hover:text-white/50 uppercase tracking-widest transition-colors cursor-pointer"
+                >
+                  Exit Demo
+                </motion.button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+```
+
+# DASHBOARD (to verify data-tour attributes)
+```tsx
+import { useAuth } from "@/_core/hooks/useAuth";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import { trpc } from "@/lib/trpc";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+import { formatDistanceToNow } from "date-fns";
+import {
+  FileText,
+  Lock,
+  Shield,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
+import { toast } from "sonner";
+
+const NOTIFICATION_STYLES: Record<
+  string,
+  { border: string; badge: string; label: string }
+> = {
+  match_found: {
+    border: "border-l-[#C4972A]",
+    badge: "bg-[#C4972A]/15 text-[#C4972A]",
+    label: "MATCH",
+  },
+  deal_update: {
+    border: "border-l-[#2563EB]",
+    badge: "bg-[#2563EB]/15 text-[#2563EB]",
+    label: "DEAL ROOM",
+  },
+  payout_received: {
+    border: "border-l-[#059669]",
+    badge: "bg-[#059669]/15 text-[#059669]",
+    label: "ATTRIBUTION",
+  },
+  compliance_alert: {
+    border: "border-l-[#1E3A5F]",
+    badge: "bg-[#1E3A5F]/15 text-[#1E3A5F]",
+    label: "VERIFICATION",
+  },
+};
+
+const DEFAULT_STYLE = {
+  border: "border-l-[#0A1628]",
+  badge: "bg-[#0A1628]/15 text-[#0A1628]",
+  label: "INTELLIGENCE",
+};
+
+const MARKET_DEPTH = [
+  { sector: "Solar", buyers: 47, sellers: 12 },
+  { sector: "Oil & Gas", buyers: 23, sellers: 8 },
+  { sector: "Real Estate", buyers: 34, sellers: 19 },
+  { sector: "Infrastructure", buyers: 15, sellers: 6 },
+];
+
+const PENDING_ACTIONS = [
+  { text: "Complete Tier 2 verification", Icon: Shield },
+  { text: "Review 3 new matches", Icon: Target },
+  { text: "Sign NDA for Deal Room #12", Icon: FileText },
+];
+
+function getScoreColor(score: number) {
+  if (score > 70) return "#059669";
+  if (score >= 40) return "#F59E0B";
+  return "#DC2626";
+}
+
+function TrustRing({ score }: { score: number }) {
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.min(Math.max(score, 0), 100);
+  const offset = circumference - (progress / 100) * circumference;
+  const color = getScoreColor(score);
+
+  return (
+    <svg width="140" height="140" viewBox="0 0 140 140" className="mx-auto">
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke="#0A1628"
+        strokeWidth="8"
+        opacity="0.12"
+      />
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform="rotate(-90 70 70)"
+        className="transition-all duration-700"
+      />
+    </svg>
+  );
+}
+
+function DashCard({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`card-elevated p-6 ${className}`}>
+      <h3 className="mb-4 data-label">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+// ── Welcome Banner (shown once after onboarding) ───────────────────────────
+const PERSONA_SUBTITLES: Record<string, string> = {
+  originator: "Your first relationship has been custodied. Deal matching is live.",
+  investor:   "Your investment intent is broadcasting to verified counterparties.",
+  developer:  "Your project is verified. Qualified capital matches are incoming.",
+  allocator:  "Your fund mandate is active. Institutional pipeline is open.",
+  acquirer:   "Your acquisition criteria are live. Confidential matches are sourcing.",
+};
+
+const PERSONA_LABELS: Record<string, string> = {
+  originator: "Deal Originator",
+  investor:   "Investor",
+  developer:  "Project Developer",
+  allocator:  "Institutional Allocator",
+  acquirer:   "Strategic Acquirer",
+};
+
+function WelcomeBanner({ name, persona, onDismiss }: { name: string; persona: string; onDismiss: () => void }) {
+  const subtitle = PERSONA_SUBTITLES[persona] ?? "Your profile is ready.";
+  const personaLabel = PERSONA_LABELS[persona] ?? persona;
+  return (
+    <div className="mb-6 card-elevated border-l-4 border-l-[#C4972A] p-4 flex items-start justify-between gap-4">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A]/15">
+          <svg className="h-4 w-4 text-[#C4972A]" viewBox="0 0 16 16" fill="currentColor">
+            <path fillRule="evenodd" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#0A1628]">
+            Welcome, {name}. Your {personaLabel} profile is ready.
+          </p>
+          <p className="mt-0.5 text-sm text-[#1E3A5F]/70">{subtitle}</p>
+        </div>
+      </div>
+      <button
+        onClick={onDismiss}
+        className="mt-0.5 shrink-0 rounded p-1 text-[#1E3A5F]/40 hover:bg-[#1E3A5F]/8 hover:text-[#1E3A5F]/70 transition-colors"
+        aria-label="Dismiss welcome banner"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+      <div className="space-y-6">
+        <div className="card-elevated p-6">
+          <div className="h-4 w-24 animate-shimmer rounded mb-4" />
+          <div className="mx-auto h-[140px] w-[140px] animate-shimmer rounded-full" />
+          <div className="mt-4 h-3 w-20 animate-shimmer rounded mx-auto" />
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-12 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="h-6 w-24 animate-shimmer rounded" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="card-elevated p-6">
+            <div className="h-4 w-32 animate-shimmer rounded mb-4" />
+            <div className="space-y-2">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-4 animate-shimmer rounded" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** In demo mode suppress navigation so clicking a card doesn't destroy demo context. */
+function MaybeLink({
+  href,
+  demo,
+  children,
+}: {
+  href: string;
+  demo: boolean;
+  children: React.ReactNode;
+}) {
+  if (demo) return <>{children}</>;
+  return <Link href={href}>{children}</Link>;
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function MarketDepthBar({ label, value, max, index = 0 }: { label: string; value: number; max: number; index?: number }) {
+  const pct = Math.round((value / max) * 100);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-8 text-right font-data-hud text-[10px] text-[#1E3A5F]/60">{value}</span>
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#0A1628]/6">
+        <motion.div
+          className="h-full rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+          style={{ background: label === "buyers" ? "#2563EB" : "#C4972A" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const demo = useDemoFixtures();
+  const { user: liveUser } = useAuth();
+  const [welcomePersona, setWelcomePersona] = useState<string | null>(() => {
+    try {
+      const raw = localStorage.getItem("anavi_onboarding");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const welcomed = localStorage.getItem("anavi_welcomed");
+      if (welcomed) return null;
+      return parsed.persona ?? null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleDismissWelcome = useCallback(() => {
+    localStorage.setItem("anavi_welcomed", "true");
+    setWelcomePersona(null);
+  }, []);
+
+  const user = demo ? demo.user : liveUser;
+
+  const { data: stats, isLoading: statsLoading } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const { data: notificationsData, isLoading: notificationsLoading } = trpc.notification.list.useQuery(
+    { limit: 10 },
+    { enabled: !demo },
+  );
+  const { data: payouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
+
+  useEffect(() => { document.title = "Dashboard | ANAVI"; }, []);
+
+  const loading = demo ? false : (statsLoading || notificationsLoading);
+
+  // Demo notifications have a slightly different shape — normalize here.
+  // Map fixture time strings to approximate Date offsets so relative timestamps are accurate.
+  const FIXTURE_TIME_OFFSETS: Record<string, number> = {
+    "30 minutes ago": 30 * 60 * 1000,
+    "1 hour ago":     1 * 60 * 60 * 1000,
+    "2 hours ago":    2 * 60 * 60 * 1000,
+    "4 hours ago":    4 * 60 * 60 * 1000,
+    "Yesterday":      24 * 60 * 60 * 1000,
+    "2 days ago":     2 * 24 * 60 * 60 * 1000,
+    "3 days ago":     3 * 24 * 60 * 60 * 1000,
+  };
+  const demoNotifications = demo?.notifications.map((n) => ({
+    id: String(n.id),
+    type: n.type,
+    title: n.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    message: n.message,
+    createdAt: new Date(Date.now() - (FIXTURE_TIME_OFFSETS[n.time] ?? 0)).toISOString(),
+  }));
+  const notifications = demoNotifications ?? notificationsData ?? [];
+
+  const rawScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
+  const trustScore = rawScore > 100 ? rawScore / 10 : rawScore;
+  const scoreColor = getScoreColor(trustScore);
+  const maxDepth = Math.max(...MARKET_DEPTH.map((m) => Math.max(m.buyers, m.sellers)));
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  return (
+    <>
+      {welcomePersona && (
+        <WelcomeBanner
+          name={user?.name?.split(" ")[0] ?? "there"}
+          persona={welcomePersona}
+          onDismiss={handleDismissWelcome}
+        />
+      )}
+      {/* E13: Personalized greeting */}
+      <FadeInView>
+        <div data-tour="dashboard" className="mb-6 flex items-baseline justify-between">
+          <div>
+            <h1 className="dash-heading text-3xl">
+              {getGreeting()}, {user?.name?.split(" ")[0] ?? "there"}
+            </h1>
+            <p className="mt-1 text-sm text-[#1E3A5F]/60">
+              {notifications.length > 0
+                ? `${notifications.length} new notification${notifications.length > 1 ? "s" : ""}`
+                : "You're all caught up"}{" "}
+              &middot; {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </p>
+          </div>
+        </div>
+      </FadeInView>
+
+      <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+        {/* ───────── Left Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* Trust Score Widget — E11: clickable */}
+          <StaggerItem>
+            <MaybeLink href="/verification" demo={!!demo}>
+              <div data-tour="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
+                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
+                  Trust Score
+                </h3>
+
+                <div className="relative mx-auto w-[140px] transition-transform duration-200 group-hover:scale-105">
+                  <TrustRing score={trustScore} />
+                  <span
+                    className="font-data-hud text-4xl font-bold absolute inset-0 flex items-center justify-center"
+                    style={{ color: scoreColor }}
+                  >
+                    <SmoothCounter value={Math.round(trustScore)} duration={1} />
+                  </span>
+                </div>
+
+                <p className="mt-3 text-xs text-[#1E3A5F]/60">
+                  <TrendingUp className="mr-1 inline h-3 w-3" style={{ color: "#059669" }} />
+                  <span style={{ color: "#059669" }}>+3</span> this month
+                </p>
+
+                {(demo?.user.tier ?? stats?.verificationLevel) && (
+                  <span className="mt-3 inline-block rounded-full bg-[#0A1628]/10 px-3 py-1 text-xs font-semibold text-[#0A1628]">
+                    {demo?.user.tier ?? stats?.verificationLevel}
+                  </span>
+                )}
+
+                {!demo && (
+                  <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1E3A5F]/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    Click to view breakdown →
+                  </p>
+                )}
+              </div>
+            </MaybeLink>
+          </StaggerItem>
+
+          {/* E12: Quick Actions with ElasticButton feel + toast */}
+          <StaggerItem>
+            <div className="space-y-2">
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button
+                  data-tour="create-intent"
+                  className="btn-gold w-full rounded-lg px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Deal Matching"); }}
+                >
+                  Create Intent
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/relationships" demo={!!demo}>
+                <button
+                  data-tour="relationships"
+                  className="w-full rounded-lg bg-[#C4972A] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#C4972A]/90 active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Relationships"); }}
+                >
+                  Protect Relationship
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button className="w-full rounded-lg border border-[#D1DCF0] bg-white px-4 py-3 text-sm font-semibold text-[#1E3A5F] transition-colors hover:bg-[#F3F7FC]">
+                  View Matches
+                </button>
+              </MaybeLink>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+
+        {/* ───────── Center Column ───────── */}
+        <FadeInView delay={0.1}>
+          {/* Blind Matches — always present so onboardingTour can target it.
+              Demo: shows fixture match cards. Live: shows tRPC data (wired when real matching lands). */}
+          <div data-tour="deal-matching" className="mb-6">
+            <h2 className="mb-3 dash-heading text-xl">Blind Matches</h2>
+            {demo && (demo.matches as unknown as unknown[]).length > 0 ? (
+              <StaggerContainer className="space-y-3">
+                {(demo.matches as unknown as ReadonlyArray<{ id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string }>).map((m, idx) => (
+                  <StaggerItem key={m.id}>
+                    <div
+                      data-tour={idx === 0 ? "match-card" : undefined}
+                      className="card-elevated border-l-4 border-l-[#C4972A] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <span className="rounded-full bg-[#C4972A]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C4972A]">
+                          MATCH
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Lock className="h-3 w-3 text-[#1E3A5F]/40" />
+                          <span className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/40">Sealed</span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628] mb-2">{m.tag}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.assetClass}</span>
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.dealSize}</span>
+                        <span
+                          className="ml-auto font-data-hud text-sm font-bold"
+                          style={{ color: m.compatibilityScore >= 90 ? "#059669" : "#C4972A" }}
+                        >
+                          {m.compatibilityScore}% match
+                        </span>
+                      </div>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : !demo ? (
+              <div className="card-elevated p-6">
+                <EmptyState {...EMPTY_STATES.matches} />
+              </div>
+            ) : null}
+          </div>
+
+          {/* Deal Rooms — demo only until live deal rooms are wired to this dashboard */}
+          {demo && (demo.dealRooms as unknown as unknown[]).length > 0 && (
+            <div className="mb-6">
+              <h2 className="mb-3 dash-heading text-xl">Deal Rooms</h2>
+              <StaggerContainer className="space-y-3">
+                {(demo.dealRooms as unknown as ReadonlyArray<{ id: number; name: string; stage: string; counterparty: string; escrowProgress: number }>).map((dr, idx) => (
+                  <StaggerItem key={dr.id}>
+                    <div
+                      data-tour={idx === 0 ? "deal-room" : undefined}
+                      className="card-elevated border-l-4 border-l-[#2563EB] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-[#0A1628]">{dr.name}</p>
+                        <span className="rounded-full bg-[#2563EB]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+                          {dr.stage}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#1E3A5F]/60 mb-3">{dr.counterparty}</p>
+                      <div className="mb-2">
+                        <div className="flex justify-between text-[10px] text-[#1E3A5F]/50 mb-1">
+                          <span>Escrow</span>
+                          <span>{dr.escrowProgress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#0A1628]/6">
+                          <div
+                            className="h-full rounded-full bg-[#059669]"
+                            style={{ width: `${dr.escrowProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <MaybeLink href="/deal-rooms" demo={!!demo}>
+                        <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:text-[#2563EB]/80 uppercase tracking-wider transition-colors">
+                          Enter Deal Room →
+                        </button>
+                      </MaybeLink>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          )}
+
+          <div data-tour="activity-feed">
+          <h2 className="mb-4 dash-heading text-2xl">Activity</h2>
+
+          {notifications.length > 0 ? (
+            <StaggerContainer className="space-y-3">
+              {notifications.map((n, idx) => {
+                const style = NOTIFICATION_STYLES[n.type] ?? DEFAULT_STYLE;
+                return (
+                  <StaggerItem key={n.id}>
+                    <div
+                      className={`card-elevated border-l-4 p-4 hover:translate-y-[-2px] ${style.border}`}
+                    >
+                      <div className="mb-1 flex items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge}`}
+                        >
+                          {style.label}
+                        </span>
+                        {/* E9: pulse dot on newest */}
+                        {idx === 0 && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C4972A] opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C4972A]" />
+                          </span>
+                        )}
+                        <span className="font-data-mono text-[#1E3A5F]/50">
+                          {formatDistanceToNow(new Date(n.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628]">
+                        {n.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-[#1E3A5F]/70">
+                        {n.message}
+                      </p>
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          ) : (
+            <div className="card-elevated p-6">
+              <EmptyState {...EMPTY_STATES.notifications} />
+            </div>
+          )}
+          </div>{/* /data-tour="activity-feed" */}
+        </FadeInView>
+
+        {/* ───────── Right Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* E10: Market Depth — horizontal bar chart */}
+          <StaggerItem>
+            <DashCard title="Market Depth">
+              <div className="space-y-4">
+                {MARKET_DEPTH.map((m, i) => (
+                  <div key={m.sector}>
+                    <p className="mb-1.5 text-xs font-semibold text-[#0A1628]">{m.sector}</p>
+                    <MarketDepthBar label="buyers" value={m.buyers} max={maxDepth} index={i * 2} />
+                    <MarketDepthBar label="sellers" value={m.sellers} max={maxDepth} index={i * 2 + 1} />
+                  </div>
+                ))}
+                <div className="flex items-center gap-4 border-t border-[#D1DCF0] pt-2 text-[10px] text-[#1E3A5F]/60">
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#2563EB]" /> Buyers</span>
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#C4972A]" /> Sellers</span>
+                </div>
+              </div>
+            </DashCard>
+          </StaggerItem>
+
+          {/* E14: Pending Actions with badges */}
+          <StaggerItem>
+            <div data-tour="verification">
+            <DashCard title="Pending Actions">
+              <div className="space-y-3">
+                {PENDING_ACTIONS.map((a) => (
+                  <div key={a.text} className="flex items-center gap-3 text-sm">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/5">
+                      <a.Icon className="h-4 w-4 text-[#1E3A5F]/60" />
+                    </span>
+                    <span className="flex-1 text-[#0A1628]">{a.text}</span>
+                    <span className="rounded-full bg-[#F59E0B]/15 px-2 py-0.5 text-[10px] font-bold uppercase text-[#F59E0B]">
+                      action
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </DashCard>
+            </div>
+          </StaggerItem>
+
+          {/* Recent Payouts */}
+          <StaggerItem>
+            <div data-tour="payout">
+            <DashCard title="Recent Payouts">
+              <p className="mb-3 text-lg font-bold text-[#0A1628]">
+                Next Payout:{" "}
+                <span className="text-[#059669]">
+                  $<SmoothCounter value={92000} prefix="" duration={1.2} />
+                </span>
+              </p>
+              {demo ? (
+                (demo.payouts as unknown as unknown[]).length > 0 ? (
+                  <div className="space-y-2">
+                    {(demo.payouts as unknown as ReadonlyArray<{ id: number; deal: string; amount: number; status: string }>).map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                      >
+                        <div>
+                          <span className="font-semibold text-[#0A1628]">
+                            ${p.amount.toLocaleString()}
+                          </span>
+                          <span className="ml-2 text-xs text-[#1E3A5F]/60">{p.deal}</span>
+                        </div>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            p.status === "triggered" || p.status === "deployed"
+                              ? "bg-[#059669]/15 text-[#059669]"
+                              : p.status === "pending" || p.status === "fundraising"
+                                ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                                : "bg-[#2563EB]/15 text-[#2563EB]"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState {...EMPTY_STATES.payouts} />
+                )
+              ) : payouts && payouts.length > 0 ? (
+                <div className="space-y-2">
+                  {payouts.slice(0, 3).map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                    >
+                      <div>
+                        <span className="font-semibold text-[#0A1628]">
+                          ${parseFloat(p.amount).toLocaleString()}
+                        </span>
+                        <span className="ml-2 text-xs text-[#1E3A5F]/60">
+                          {p.payoutType.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          p.status === "completed"
+                            ? "bg-[#059669]/15 text-[#059669]"
+                            : p.status === "pending"
+                              ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                              : "bg-[#2563EB]/15 text-[#2563EB]"
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState {...EMPTY_STATES.payouts} />
+              )}
+            </DashCard>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+      </div>
+
+      {/* Apply CTA — onboardingTour "completion" target + demo "apply" target */}
+      <FadeInView delay={0.3}>
+        <div data-tour="completion" className="mt-8">
+          <div data-tour="apply" className="flex justify-center">
+            <Link href="/onboarding">
+              <motion.button
+                className="px-8 py-3 border border-[#C4972A]/40 text-[#C4972A] text-sm uppercase tracking-widest font-semibold hover:bg-[#C4972A]/5 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Request Full Access
+              </motion.button>
+            </Link>
+          </div>
+        </div>
+      </FadeInView>
+    </>
+  );
+}
+
+```
+
+# DASHBOARDLAYOUT (to verify data-tour-id attributes)
+```tsx
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useDemoContext } from "@/contexts/DemoContext";
+import {
+  BarChart3,
+  Bell,
+  Brain,
+  Building2,
+  Calendar as CalendarIcon,
+  CheckCircle,
+  Crosshair,
+  FolderOpen,
+  Home,
+  Lightbulb,
+  LogOut,
+  Menu,
+  Network,
+  PieChart,
+  Search,
+  Settings,
+  Shield,
+  FileSearch,
+  Briefcase,
+  Target,
+  TrendingUp,
+  User,
+  Users,
+  Wallet,
+  X,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronDown,
+  Info,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { GlobalSearchModal } from "./GlobalSearchModal";
+import { RestartTourBanner } from "./RestartTourBanner";
+import { TourOverlay } from "./TourOverlay";
+import { useTourContext } from "@/contexts/TourContext";
+import React, { useEffect, useState, useCallback } from "react";
+import { Link, useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { formatDistanceToNow } from "date-fns";
+
+interface NavItem { icon: LucideIcon; label: string; path: string; tourId?: string }
+interface NavSection { label: string; items: NavItem[] }
+
+const navSections: NavSection[] = [
+  { label: "Overview", items: [
+    { icon: Home, label: "Dashboard", path: "/dashboard" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+  ]},
+  { label: "Deals", items: [
+    { icon: Target, label: "Deal Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
+    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
+    { icon: Briefcase, label: "Deals", path: "/deals" },
+    { icon: Lightbulb, label: "Deal Intelligence", path: "/deal-intelligence" },
+  ]},
+  { label: "Network", items: [
+    { icon: Users, label: "Relationships", path: "/relationships", tourId: "nav-relationships" },
+    { icon: Building2, label: "Family Offices", path: "/family-offices" },
+    { icon: Crosshair, label: "Targeting", path: "/targeting" },
+    { icon: Network, label: "Network Graph", path: "/network" },
+  ]},
+  { label: "Compliance", items: [
+    { icon: Shield, label: "Verification", path: "/verification" },
+    { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
+    { icon: CheckCircle, label: "Compliance", path: "/compliance" },
+  ]},
+  { label: "Finance", items: [
+    { icon: Wallet, label: "Payouts", path: "/payouts", tourId: "nav-payouts" },
+    { icon: PieChart, label: "LP Portal", path: "/lp-portal" },
+  ]},
+  { label: "AI & Intel", items: [
+    { icon: Brain, label: "AI Brain", path: "/ai-brain" },
+    { icon: TrendingUp, label: "Intelligence", path: "/intelligence" },
+  ]},
+  { label: "Settings", items: [
+    { icon: CalendarIcon, label: "Calendar", path: "/calendar" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+  ]},
+];
+
+const allNavItems = navSections.flatMap(s => s.items);
+
+const pageTitles: Record<string, string> = Object.fromEntries(
+  allNavItems.map((item) => [item.path, item.label])
+);
+
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function TrustScoreChip({ score }: { score: number }) {
+  const bg =
+    score > 70
+      ? "bg-[#059669]/15 text-[#059669]"
+      : score >= 40
+        ? "bg-orange-500/15 text-orange-600"
+        : "bg-red-500/15 text-red-600";
+
+  return (
+    <div
+      className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${bg}`}
+      aria-label={`Trust score ${score} out of 100, Tier 2 Enhanced verification`}
+    >
+      <span className="font-mono">{score}</span>
+      <span className="text-[10px] opacity-60">/ 100</span>
+    </div>
+  );
+}
+
+const mobileNavItems = [
+  { icon: Home, label: "Dashboard", path: "/dashboard" },
+  { icon: Target, label: "Matches", path: "/deal-matching" },
+  { icon: Users, label: "Relationships", path: "/relationships" },
+  { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms" },
+  { icon: User, label: "Profile", path: "/settings" },
+] as const;
+
+const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: string }> = {
+  match_found: { Icon: Target, color: "#22D4F5" },
+  deal_update: { Icon: FolderOpen, color: "#2563EB" },
+  document_shared: { Icon: Info, color: "#059669" },
+  signature_requested: { Icon: AlertTriangle, color: "#C4972A" },
+  payout_received: { Icon: CheckCircle2, color: "#059669" },
+  compliance_alert: { Icon: Shield, color: "#DC2626" },
+  relationship_request: { Icon: Users, color: "#2563EB" },
+  system: { Icon: Info, color: "#6B7280" },
+};
+
+const TOUR_BANNER_DISMISSED_KEY = "anavi_tour_banner_dismissed";
+
+export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [location, setLocation] = useLocation();
+  const { user, logout } = useAuth();
+  const { isDemo, fixtures: demoFixtures } = useDemoContext();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const tour = useTourContext();
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(TOUR_BANNER_DISMISSED_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const handleRestartTour = useCallback(() => {
+    tour.restart();
+  }, [tour]);
+
+  const handleDismissBanner = useCallback(() => {
+    try {
+      localStorage.setItem(TOUR_BANNER_DISMISSED_KEY, "true");
+    } catch {
+      /* ignore */
+    }
+    setBannerDismissed(true);
+  }, []);
+  const { data: notificationsData, refetch: refetchNotifications } = trpc.notification.list.useQuery(
+    { limit: 20 },
+    { enabled: !!user }
+  );
+  const markAllReadMutation = trpc.notification.markAllRead.useMutation({ onSuccess: () => refetchNotifications() });
+  const markReadMutation = trpc.notification.markRead.useMutation({ onSuccess: () => refetchNotifications() });
+
+  const notifications = (notificationsData ?? []).map((n) => {
+    const { Icon, color } = NOTIFICATION_ICONS[n.type] ?? NOTIFICATION_ICONS.system;
+    return {
+      id: n.id,
+      icon: Icon,
+      iconColor: color,
+      title: n.title,
+      message: n.message ?? "",
+      time: formatDistanceToNow(new Date(n.createdAt), { addSuffix: true }),
+      read: n.isRead,
+      actionUrl: n.actionUrl,
+    };
+  });
+
+  const pageTitle = isDemo ? "Dashboard" : (pageTitles[location] ?? "ANAVI");
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    const title = pageTitles[location];
+    if (title) document.title = `${title} | ANAVI`;
+  }, [location]);
+
+  // E51: Scroll restoration
+  useEffect(() => {
+    const mainEl = document.querySelector('main[role="main"]');
+    if (!mainEl) return;
+
+    const savedPos = sessionStorage.getItem(`scroll_${location}`);
+    if (savedPos) {
+      mainEl.scrollTop = parseInt(savedPos, 10);
+    } else {
+      mainEl.scrollTop = 0;
+    }
+
+    const handleScroll = () => {
+      sessionStorage.setItem(`scroll_${location}`, String(mainEl.scrollTop));
+    };
+
+    mainEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => mainEl.removeEventListener("scroll", handleScroll);
+  }, [location]);
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      setSearchOpen((o) => !o);
+    }
+    if (e.key === "Escape") {
+      setNotifOpen(false);
+      setSearchOpen(false);
+      setSidebarOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  const markAllRead = () => markAllReadMutation.mutate();
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = useCallback((label: string) => {
+    setCollapsedSections(prev => ({ ...prev, [label]: !prev[label] }));
+  }, []);
+
+  const SidebarNav = () => (
+    <>
+      <nav data-tour="demo-nav" aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {navSections.map((section) => {
+          const isCollapsed = collapsedSections[section.label];
+          const hasActive = section.items.some(item => location === item.path);
+          return (
+            <div key={section.label} className="mb-1">
+              <button
+                onClick={() => toggleSection(section.label)}
+                className="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/30 hover:text-white/50 transition-colors"
+              >
+                <span>{section.label}</span>
+                <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+              </button>
+              {!isCollapsed && section.items.map((item) => {
+                const isActive = location === item.path;
+                return (
+                  <Link key={item.path} href={item.path}>
+                    <a
+                      data-tour-id={item.tourId}
+                      className={`group flex min-h-[40px] cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
+                        isActive
+                          ? "bg-white/8 text-white"
+                          : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
+                      }`}
+                      style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
+                      aria-current={isActive ? "page" : undefined}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <item.icon className="h-[18px] w-[18px] shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                    </a>
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        })}
+      </nav>
+      <div className="border-t border-white/10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A] text-xs font-semibold text-white">
+            {getInitials(isDemo ? demoFixtures?.user.name : user?.name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-white">
+              {isDemo ? (demoFixtures?.user.name ?? "Demo User") : (user?.name ?? "User")}
+            </p>
+          </div>
+          <button
+            onClick={() => logout()}
+            aria-label="Log out"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded p-2 text-[11px] text-white/50 hover:bg-white/10 hover:text-white/70"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex min-h-screen overflow-x-hidden">
+      {/* Sidebar — hidden on mobile, visible lg+ */}
+      <aside
+        className="hidden w-[240px] shrink-0 flex-col lg:flex"
+        style={{ backgroundColor: "#060A12" }}
+      >
+        <div className="flex h-14 items-center px-5">
+          <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
+        </div>
+        <SidebarNav />
+      </aside>
+
+      {/* Mobile sidebar drawer */}
+      {sidebarOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+          <aside
+            className="fixed left-0 top-0 z-50 flex h-full w-[280px] max-w-[85vw] flex-col bg-[#060A12] shadow-2xl lg:hidden animate-in slide-in-from-left duration-200"
+            role="dialog"
+            aria-label="Navigation menu"
+          >
+            <div className="flex h-14 shrink-0 items-center justify-between px-5">
+              <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-white/60 hover:bg-white/10 hover:text-white"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <SidebarNav />
+          </aside>
+        </>
+      )}
+
+      {/* Right side */}
+      <div className="flex flex-1 flex-col">
+        {/* Top bar */}
+        <header
+          role="banner"
+          className="flex h-14 shrink-0 items-center justify-between glass-light px-4 md:px-6 sticky top-0 z-30"
+        >
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC] lg:hidden"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            <h1 className="text-base font-semibold" style={{ color: "#1E3A5F" }}>
+              {pageTitle}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              data-tour-id="tour-search"
+              onClick={() => setSearchOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC]"
+              aria-label="Search (Cmd+K)"
+              title="Search (Cmd+K)"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+            <div className="hidden md:block">
+              <TrustScoreChip score={isDemo ? (demoFixtures?.user.trustScore ?? 84) : 84} />
+            </div>
+
+            {/* E43: Notification bell with drawer */}
+            <button
+              onClick={() => setNotifOpen(o => !o)}
+              className="relative flex h-10 w-10 items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC]"
+              aria-label={`Notifications, ${unreadCount} unread`}
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setLocation("/deal-matching")}
+              className="hidden rounded-lg px-4 py-2 text-sm font-semibold text-white sm:block btn-gold"
+              aria-label="Create new deal intent"
+            >
+              Create Intent
+            </button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main
+          role="main"
+          data-tour-id="welcome"
+          className="flex-1 overflow-y-auto pb-20 scrollbar-premium lg:pb-0 relative"
+          style={{ backgroundColor: "#F3F7FC" }}
+        >
+          {/* Subtle ambient depth — very faint, non-animated for performance */}
+          <div
+            className="pointer-events-none absolute top-0 right-0 w-[600px] h-[400px]"
+            style={{
+              background: "radial-gradient(ellipse at top right, rgb(196 151 42 / 0.04) 0%, transparent 60%)",
+            }}
+            aria-hidden="true"
+          />
+          <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
+            {!tour.hasCompletedTour() && !bannerDismissed && (
+              <RestartTourBanner
+                onRestart={handleRestartTour}
+                onDismiss={handleDismissBanner}
+              />
+            )}
+            <div className={!tour.hasCompletedTour() && !bannerDismissed ? "mt-4" : ""}>
+              {children}
+            </div>
+          </div>
+        </main>
+
+        {tour.isActive && tour.step && (
+          <TourOverlay
+            step={tour.step}
+            currentStep={tour.currentStep}
+            totalSteps={tour.totalSteps}
+            onNext={tour.next}
+            onSkip={tour.skip}
+          />
+        )}
+      </div>
+
+      {/* E43: Notification Drawer */}
+      {notifOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setNotifOpen(false)} />
+          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-sm bg-[#0A1628] shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <h2 className="text-lg font-semibold text-white">Notifications</h2>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} className="text-xs font-medium text-[#2563EB] hover:underline">
+                    Mark All Read
+                  </button>
+                )}
+                <button
+                  onClick={() => setNotifOpen(false)}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-white/10"
+                  aria-label="Close notifications"
+                >
+                  <X className="h-5 w-5 text-white/40" />
+                </button>
+              </div>
+            </div>
+            <div className="overflow-y-auto scrollbar-premium" style={{ height: "calc(100% - 65px)" }}>
+              {notifications.length === 0 ? (
+                <div className="px-5 py-12 text-center text-white/50 text-sm">No new notifications.</div>
+              ) : (
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors cursor-pointer hover:bg-white/5 ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
+                  onClick={() => {
+                    if (!n.read) markReadMutation.mutate({ id: n.id });
+                    if (n.actionUrl) { setNotifOpen(false); setLocation(n.actionUrl); }
+                  }}
+                >
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${n.iconColor}15` }}>
+                    <n.icon className="h-4 w-4" style={{ color: n.iconColor }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white">{n.title}</p>
+                    <p className="mt-0.5 text-xs text-white/60">{n.message}</p>
+                    <p className="mt-1 text-[10px] text-white/40">{n.time}</p>
+                  </div>
+                  {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2563EB]" />}
+                </div>
+              ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+
+      {/* Mobile bottom navigation — 44px tap targets */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed inset-x-0 bottom-0 z-50 flex h-16 min-h-[56px] items-center justify-around border-t border-white/10 bg-[#060A12] lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        {mobileNavItems.map((item) => {
+          const isActive = location === item.path;
+          return (
+            <Link key={item.path} href={item.path}>
+              <a
+                className={`flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-2 text-[10px] font-medium transition-colors ${
+                  isActive ? "text-[#22D4F5]" : "text-white/40"
+                }`}
+                aria-current={isActive ? "page" : undefined}
+                aria-label={item.label}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span>{item.label}</span>
+              </a>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+export default DashboardLayout;
+
+```
+
+# AUDIT TASK
+There are TWO tour systems in ANAVI that use different attribute conventions:
+1. GuidedTour (demo experience) — uses `data-tour="value"` selectors → `[data-tour="value"]`
+2. TourOverlay (live app onboarding) — uses `data-tour-id="value"` selectors → `[data-tour-id='value']`
+
+These two systems should NOT be confused. Audit every step in every tour definition.
+
+For each `targetSelector` in every tour (onboardingTour, demoTour, buildDemoTourSteps, tourDefinitions):
+1. Does the selector exist in the DOM? (check Dashboard.tsx and DashboardLayout.tsx)
+2. Is it using the correct attribute (`data-tour` vs `data-tour-id`)?
+3. Is the step title/content still accurate?
+
+Also check:
+- Are there any exported symbols that are never imported anywhere?
+- Is there semantic overlap between demoTour (legacy) and buildDemoTourSteps (current)?
+- Does `tourId` naming in DashboardLayout.tsx navItems match `target` in tour/definitions.ts?
+
+Return EXACTLY this JSON (no markdown, pure JSON):
+{
+  "selector_drift": [
+    {
+      "tour": "demoTour|onboardingTour|buildDemoTourSteps|tourDefinitions",
+      "step_title": "exact step title",
+      "selector_used": "[data-tour=\"value\"]",
+      "exists_in_dom": true,
+      "dom_element_file": "Dashboard.tsx|DashboardLayout.tsx|NOT_FOUND",
+      "issue": "description of problem if any",
+      "fix": "corrected selector or 'correct as-is'"
+    }
+  ],
+  "dead_exports": [
+    {"export_name": "onboardingTour", "file": "tourDefinitions.ts", "evidence": "grep shows no imports"}
+  ],
+  "attribute_system_confusion": [
+    {"description": "any place where data-tour and data-tour-id are mixed up"}
+  ],
+  "tourId_nav_alignment": [
+    {"nav_item": "Deal Matching", "tourId": "nav-deal-matching", "tour_target": "[data-tour-id='nav-deal-matching']", "exists_in_layout": true}
+  ],
+  "patches": [
+    {"file": "client/src/lib/tourDefinitions.ts", "description": "Change payouts to payout", "line_approx": 107, "old_value": "payouts", "new_value": "payout"}
+  ],
+  "summary": "human readable summary of all tour system issues"
+}

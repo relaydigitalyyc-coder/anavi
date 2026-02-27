@@ -1,6 +1,10 @@
 /**
  * Tour step definitions for GuidedTour (demo flow) and TourOverlay (live app onboarding).
  * Main app tour: @/tour/definitions.ts (TourOverlay, useTour)
+ *
+ * Two attribute systems (intentionally separate):
+ *   data-tour="value"    → GuidedTour (demo experience — PersonaPicker → Dashboard)
+ *   data-tour-id="value" → TourOverlay (live app onboarding — tour/definitions.ts)
  */
 export interface TourStep {
   targetSelector: string;
@@ -12,56 +16,6 @@ export interface TourStep {
   /** Optional hint for interactive steps (e.g. "Click Enter Deal Room below") */
   actionHint?: string;
 }
-
-/**
- * Live-app onboarding tour — runs after a user completes onboarding.
- * Each targetSelector must correspond to a data-tour attribute in Dashboard.
- * This is the vision spec — add data-tour attributes to Dashboard as sections mature.
- */
-export const onboardingTour: TourStep[] = [
-  {
-    targetSelector: '[data-tour="dashboard"]',
-    title: 'Dashboard Overview',
-    content:
-      'This is your command center. Every deal, relationship, and payout starts here. Let us show you where everything lives.',
-  },
-  {
-    targetSelector: '[data-tour="trust-score"]',
-    title: 'Your Trust Score',
-    content:
-      'This is your Trust Score — the number that determines your access and matching priority. Click it anytime to see your full breakdown and how to improve it.',
-  },
-  {
-    targetSelector: '[data-tour="relationships"]',
-    title: 'Your Custodied Relationships',
-    content:
-      'This is where your protected relationships live. The timestamp you see is your legal priority claim. Each relationship now has lifetime value.',
-  },
-  {
-    targetSelector: '[data-tour="deal-matching"]',
-    title: 'Deal Matching',
-    content:
-      'This is where your matches appear. Once your intent is active, you will get notified here every time a qualified counterparty is found.',
-  },
-  {
-    targetSelector: '[data-tour="activity-feed"]',
-    title: 'Activity Feed',
-    content:
-      'Your activity feed is your deal nervous system — every match, update, attribution, and verification event appears here in real time.',
-  },
-  {
-    targetSelector: '[data-tour="create-intent"]',
-    title: 'Create Intent',
-    content:
-      'This button is your fastest path to your next deal. Create an intent anytime — it takes 3 minutes and starts matching immediately.',
-  },
-  {
-    targetSelector: '[data-tour="completion"]',
-    title: 'You Are Ready',
-    content:
-      'Your relationships are protected. Your profile is active. The network is waiting. Create your first intent to start matching.',
-  },
-];
 
 import type { PersonaKey } from "@/lib/copy";
 import { TOUR } from "@/lib/copy";

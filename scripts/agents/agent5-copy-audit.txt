@@ -1,0 +1,2588 @@
+You are a senior product copywriter auditing the ANAVI platform for whitepaper terminology alignment. Be hyper-meticulous.
+
+
+ANAVI WHITEPAPER VISION (condensed):
+- "The Private Market Operating System" — "If Bloomberg runs public markets, ANAVI will run private ones."
+- Positioning: neutral trust infrastructure for the $13+ trillion private markets ecosystem
+- Eliminates: broker chains (5-15 per deal), relationship leakage, due diligence duplication, fraud
+
+6 CORE MODULES:
+1. Identity/KYC — Trust Score (dynamic, compound), verification tiers: Basic/Enhanced/Institutional, KYB
+2. Relationship Custody — Cryptographic timestamps, blind until consent, forever attribution (originators get 40-60%)
+3. Blind Matching — Intent-based (Buy/Sell/Invest intents), anonymized until mutual consent, compatibility scoring
+4. Deal Rooms — NDA-gated, document versioning, e-signature, immutable audit trail, escrow milestones
+5. Compliance/Escrow — AML/KYC rails, OFAC screening, per-deal compliance, milestone-triggered fund release
+6. Economics Engine — Automated payouts on deal close, lifetime attribution for follow-on deals, trajectory tracking
+
+TARGET PERSONAS:
+- Deal Originator/Broker: "My introductions close deals I never get credit for." → custody + lifetime attribution
+- Investor/Family Office: "I can't tell which deals are real." → verified counterparties + blind matching
+- Project Developer/Asset Owner: "Raising capital means exposing my thesis." → anonymous until consent
+
+UX PRINCIPLES (from Webaroo spec):
+- Navy/blue palette, luxury aesthetic, institutional-grade
+- "Simplicity as design principle. Progressive disclosure — advanced features available but not in the way."
+- The platform should feel like Bloomberg Terminal meets private club
+
+THE TRANSFORMATION:
+Before: 5-15 broker chains → After: Direct verified counterparty access
+Before: Manual costly due diligence → After: Pre-verified participant network
+Before: Relationship leakage + circumvention → After: Custodied relationships with lifetime attribution
+Before: Opaque, negotiated fees → After: Transparent, automated economics
+Before: High fraud risk → After: Trust-scored network with blacklist controls
+Before: One-time transaction relationships → After: Compounding relationship value over time
+
+CODEBASE ARCHITECTURE:
+- Client: React 19, Vite, wouter, tRPC React Query, Tailwind 4, shadcn/ui, framer-motion
+- Server: Node, Express, tRPC v11, Drizzle ORM (MySQL/TiDB)
+- Working dir: anavi/
+- Key paths: client/src/pages/ (40+ pages), client/src/components/, client/src/lib/, client/src/contexts/
+- Route wrappers: ShellRoute (auth + DashboardLayout + PageTransition), ProtectedPage (auth only), Bare (public)
+
+
+# COPY TOKENS (client/src/lib/copy.ts — the source of truth)
+```ts
+// client/src/lib/copy.ts
+// Single source of truth for all whitepaper-aligned platform language.
+// Import from here — never write custody/attribution/trust copy inline.
+
+export const PLATFORM = {
+  tagline: "The Private Market Operating System",
+  thesis: "If Bloomberg runs public markets, ANAVI will run private ones.",
+  market: "$13 trillion private market",
+} as const;
+
+export const PROBLEMS = {
+  brokerChain: {
+    stat: "5–15",
+    headline: "Intermediaries Per Deal",
+    body: "5 to 15 intermediaries per deal. Each extracting 1–5%. The originator — the person whose relationship made the deal possible — receives no attribution, no compounding value, and no protection if they're cut out.",
+  },
+  fraud: {
+    stat: "$40B",
+    headline: "Annual Fraud Losses",
+    body: "$10 to $40 billion in annual US investment fraud losses. Because identity verification across private markets is fragmented, unshared, and trivially forged. Everyone runs their own checks. No one shares the results.",
+  },
+  dueDiligence: {
+    stat: "$500K",
+    headline: "Duplicated Per Deal",
+    body: "$50,000 to $500,000 per deal in duplicated compliance costs. Every investor in the chain runs the same KYC, the same OFAC screen, the same accreditation check — independently, expensively, and without coordination.",
+  },
+} as const;
+
+export const PERSONAS = {
+  originator: {
+    label: "Deal Originator / Broker",
+    role: "Relationship Holder",
+    problem: "My introductions close deals I never get credit for.",
+    answer: "Custody your relationships. Timestamp your introductions. Collect your attribution.",
+    tourPitch: "You made 847 introductions last year. ANAVI would have attributed every one.",
+  },
+  investor: {
+    label: "Investor / Family Office",
+    role: "Capital Deployer",
+    problem: "I can't tell which deals are real or who's already seen them.",
+    answer: "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
+    tourPitch: "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
+  },
+  developer: {
+    label: "Developer / Asset Owner",
+    role: "Capital Seeker",
+    problem: "Raising capital means exposing my thesis before anyone commits.",
+    answer: "Anonymous until you consent. NDA-gated rooms. Escrow-backed milestones.",
+    tourPitch: "You raised $30M. ANAVI would have protected your thesis until the moment you chose to disclose it.",
+  },
+} as const;
+
+export type PersonaKey = keyof typeof PERSONAS;
+
+export const TOUR = {
+  trustScore: {
+    title: "Your Trust Score",
+    body: "A dynamic credential built from KYB verification depth, transaction history, dispute resolution outcomes, and peer attestations. It determines your access tier, your whitelist status, and whether counterparties transact with you.",
+  },
+  relationships: {
+    originator: {
+      title: "Custody Your Relationship",
+      body: "Click to timestamp this introduction with a cryptographic custody hash — immutable proof of when you made it. If this relationship produces a deal in three years, this record is your attribution claim.",
+    },
+    investor: {
+      title: "Protect Your Counterparty",
+      body: "Click to custody a counterparty relationship. Every counterparty you protect has passed KYB verification, OFAC screening, and accreditation confirmation — and every disclosure is logged permanently.",
+    },
+    developer: {
+      title: "Seal Your Register",
+      body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
+    },
+  },
+  blindMatch: {
+    title: "Blind Match",
+    body: "A qualified counterparty has been matched to your intent. Their identity, firm, and terms remain sealed. ANAVI's matching engine operates on anonymized attributes — the platform cannot see unencrypted details until both parties authorize disclosure.",
+  },
+  dealRoom: {
+    title: "Deal Room",
+    body: "NDA executed. Immutable audit trail initiated. Every document access, version change, and signature event is cryptographically logged. This record is the basis for originator attribution, payout calculation, and regulatory compliance.",
+  },
+  attribution: {
+    originator: {
+      title: "Attribution & Payout",
+      body: "Your introduction. $47M Riyadh Solar JV. Originator share: 2.5% — $1.175M — calculated automatically from the closing ledger. Triggered on milestone. No negotiation. No intermediary.",
+    },
+    investor: {
+      title: "Attribution & Payout",
+      body: "Your capital deployed across 3 verified SPVs. Every subsequent deal from this relationship credits your participation — compounding attribution over time.",
+    },
+    developer: {
+      title: "Escrow Milestone",
+      body: "Milestone reached: $12M of $30M committed. Funds release triggered automatically. Your operator economics, protected and automated.",
+    },
+  },
+  compliance: {
+    title: "Compliance Passport",
+    body: "This counterparty's compliance passport — KYB verified, OFAC clean, accredited status confirmed — travels with every transaction they execute on ANAVI. You access their verification record. You don't duplicate it. $500,000 in due diligence costs, shared.",
+  },
+  close: {
+    headline: "The Private Market Operating System.",
+    subhead: "Every relationship custodied. Every introduction attributed. Every deal closed on infrastructure purpose-built for the $13 trillion private market.",
+    cta: {
+      title: "Apply for Access",
+      body: "You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?",
+    },
+  },
+} as const;
+
+export const CUSTODY_RECEIPT = {
+  title: "Introduction Custodied.",
+  body: "This introduction is now timestamped, cryptographically signed, and permanently attributed to you. If this relationship produces a deal — today or in five years — this record is your claim.",
+  cta: "View Your Custody Register",
+} as const;
+
+```
+
+# DASHBOARD (primary user-facing page)
+```tsx
+import { useAuth } from "@/_core/hooks/useAuth";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import { trpc } from "@/lib/trpc";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+import { formatDistanceToNow } from "date-fns";
+import {
+  FileText,
+  Lock,
+  Shield,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
+import { toast } from "sonner";
+
+const NOTIFICATION_STYLES: Record<
+  string,
+  { border: string; badge: string; label: string }
+> = {
+  match_found: {
+    border: "border-l-[#C4972A]",
+    badge: "bg-[#C4972A]/15 text-[#C4972A]",
+    label: "MATCH",
+  },
+  deal_update: {
+    border: "border-l-[#2563EB]",
+    badge: "bg-[#2563EB]/15 text-[#2563EB]",
+    label: "DEAL ROOM",
+  },
+  payout_received: {
+    border: "border-l-[#059669]",
+    badge: "bg-[#059669]/15 text-[#059669]",
+    label: "ATTRIBUTION",
+  },
+  compliance_alert: {
+    border: "border-l-[#1E3A5F]",
+    badge: "bg-[#1E3A5F]/15 text-[#1E3A5F]",
+    label: "VERIFICATION",
+  },
+};
+
+const DEFAULT_STYLE = {
+  border: "border-l-[#0A1628]",
+  badge: "bg-[#0A1628]/15 text-[#0A1628]",
+  label: "INTELLIGENCE",
+};
+
+const MARKET_DEPTH = [
+  { sector: "Solar", buyers: 47, sellers: 12 },
+  { sector: "Oil & Gas", buyers: 23, sellers: 8 },
+  { sector: "Real Estate", buyers: 34, sellers: 19 },
+  { sector: "Infrastructure", buyers: 15, sellers: 6 },
+];
+
+const PENDING_ACTIONS = [
+  { text: "Complete Tier 2 verification", Icon: Shield },
+  { text: "Review 3 new matches", Icon: Target },
+  { text: "Sign NDA for Deal Room #12", Icon: FileText },
+];
+
+function getScoreColor(score: number) {
+  if (score > 70) return "#059669";
+  if (score >= 40) return "#F59E0B";
+  return "#DC2626";
+}
+
+function TrustRing({ score }: { score: number }) {
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.min(Math.max(score, 0), 100);
+  const offset = circumference - (progress / 100) * circumference;
+  const color = getScoreColor(score);
+
+  return (
+    <svg width="140" height="140" viewBox="0 0 140 140" className="mx-auto">
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke="#0A1628"
+        strokeWidth="8"
+        opacity="0.12"
+      />
+      <circle
+        cx="70"
+        cy="70"
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform="rotate(-90 70 70)"
+        className="transition-all duration-700"
+      />
+    </svg>
+  );
+}
+
+function DashCard({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`card-elevated p-6 ${className}`}>
+      <h3 className="mb-4 data-label">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+// ── Welcome Banner (shown once after onboarding) ───────────────────────────
+const PERSONA_SUBTITLES: Record<string, string> = {
+  originator: "Your first relationship has been custodied. Deal matching is live.",
+  investor:   "Your investment intent is broadcasting to verified counterparties.",
+  developer:  "Your project is verified. Qualified capital matches are incoming.",
+  allocator:  "Your fund mandate is active. Institutional pipeline is open.",
+  acquirer:   "Your acquisition criteria are live. Confidential matches are sourcing.",
+};
+
+const PERSONA_LABELS: Record<string, string> = {
+  originator: "Deal Originator",
+  investor:   "Investor",
+  developer:  "Project Developer",
+  allocator:  "Institutional Allocator",
+  acquirer:   "Strategic Acquirer",
+};
+
+function WelcomeBanner({ name, persona, onDismiss }: { name: string; persona: string; onDismiss: () => void }) {
+  const subtitle = PERSONA_SUBTITLES[persona] ?? "Your profile is ready.";
+  const personaLabel = PERSONA_LABELS[persona] ?? persona;
+  return (
+    <div className="mb-6 card-elevated border-l-4 border-l-[#C4972A] p-4 flex items-start justify-between gap-4">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A]/15">
+          <svg className="h-4 w-4 text-[#C4972A]" viewBox="0 0 16 16" fill="currentColor">
+            <path fillRule="evenodd" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#0A1628]">
+            Welcome, {name}. Your {personaLabel} profile is ready.
+          </p>
+          <p className="mt-0.5 text-sm text-[#1E3A5F]/70">{subtitle}</p>
+        </div>
+      </div>
+      <button
+        onClick={onDismiss}
+        className="mt-0.5 shrink-0 rounded p-1 text-[#1E3A5F]/40 hover:bg-[#1E3A5F]/8 hover:text-[#1E3A5F]/70 transition-colors"
+        aria-label="Dismiss welcome banner"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+      <div className="space-y-6">
+        <div className="card-elevated p-6">
+          <div className="h-4 w-24 animate-shimmer rounded mb-4" />
+          <div className="mx-auto h-[140px] w-[140px] animate-shimmer rounded-full" />
+          <div className="mt-4 h-3 w-20 animate-shimmer rounded mx-auto" />
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-12 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="h-6 w-24 animate-shimmer rounded" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 animate-shimmer rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="card-elevated p-6">
+            <div className="h-4 w-32 animate-shimmer rounded mb-4" />
+            <div className="space-y-2">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-4 animate-shimmer rounded" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** In demo mode suppress navigation so clicking a card doesn't destroy demo context. */
+function MaybeLink({
+  href,
+  demo,
+  children,
+}: {
+  href: string;
+  demo: boolean;
+  children: React.ReactNode;
+}) {
+  if (demo) return <>{children}</>;
+  return <Link href={href}>{children}</Link>;
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function MarketDepthBar({ label, value, max, index = 0 }: { label: string; value: number; max: number; index?: number }) {
+  const pct = Math.round((value / max) * 100);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-8 text-right font-data-hud text-[10px] text-[#1E3A5F]/60">{value}</span>
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#0A1628]/6">
+        <motion.div
+          className="h-full rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+          style={{ background: label === "buyers" ? "#2563EB" : "#C4972A" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const demo = useDemoFixtures();
+  const { user: liveUser } = useAuth();
+  const [welcomePersona, setWelcomePersona] = useState<string | null>(() => {
+    try {
+      const raw = localStorage.getItem("anavi_onboarding");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const welcomed = localStorage.getItem("anavi_welcomed");
+      if (welcomed) return null;
+      return parsed.persona ?? null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleDismissWelcome = useCallback(() => {
+    localStorage.setItem("anavi_welcomed", "true");
+    setWelcomePersona(null);
+  }, []);
+
+  const user = demo ? demo.user : liveUser;
+
+  const { data: stats, isLoading: statsLoading } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const { data: notificationsData, isLoading: notificationsLoading } = trpc.notification.list.useQuery(
+    { limit: 10 },
+    { enabled: !demo },
+  );
+  const { data: payouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
+
+  useEffect(() => { document.title = "Dashboard | ANAVI"; }, []);
+
+  const loading = demo ? false : (statsLoading || notificationsLoading);
+
+  // Demo notifications have a slightly different shape — normalize here.
+  // Map fixture time strings to approximate Date offsets so relative timestamps are accurate.
+  const FIXTURE_TIME_OFFSETS: Record<string, number> = {
+    "30 minutes ago": 30 * 60 * 1000,
+    "1 hour ago":     1 * 60 * 60 * 1000,
+    "2 hours ago":    2 * 60 * 60 * 1000,
+    "4 hours ago":    4 * 60 * 60 * 1000,
+    "Yesterday":      24 * 60 * 60 * 1000,
+    "2 days ago":     2 * 24 * 60 * 60 * 1000,
+    "3 days ago":     3 * 24 * 60 * 60 * 1000,
+  };
+  const demoNotifications = demo?.notifications.map((n) => ({
+    id: String(n.id),
+    type: n.type,
+    title: n.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    message: n.message,
+    createdAt: new Date(Date.now() - (FIXTURE_TIME_OFFSETS[n.time] ?? 0)).toISOString(),
+  }));
+  const notifications = demoNotifications ?? notificationsData ?? [];
+
+  const rawScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
+  const trustScore = rawScore > 100 ? rawScore / 10 : rawScore;
+  const scoreColor = getScoreColor(trustScore);
+  const maxDepth = Math.max(...MARKET_DEPTH.map((m) => Math.max(m.buyers, m.sellers)));
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  return (
+    <>
+      {welcomePersona && (
+        <WelcomeBanner
+          name={user?.name?.split(" ")[0] ?? "there"}
+          persona={welcomePersona}
+          onDismiss={handleDismissWelcome}
+        />
+      )}
+      {/* E13: Personalized greeting */}
+      <FadeInView>
+        <div data-tour="dashboard" className="mb-6 flex items-baseline justify-between">
+          <div>
+            <h1 className="dash-heading text-3xl">
+              {getGreeting()}, {user?.name?.split(" ")[0] ?? "there"}
+            </h1>
+            <p className="mt-1 text-sm text-[#1E3A5F]/60">
+              {notifications.length > 0
+                ? `${notifications.length} new notification${notifications.length > 1 ? "s" : ""}`
+                : "You're all caught up"}{" "}
+              &middot; {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </p>
+          </div>
+        </div>
+      </FadeInView>
+
+      <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
+        {/* ───────── Left Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* Trust Score Widget — E11: clickable */}
+          <StaggerItem>
+            <MaybeLink href="/verification" demo={!!demo}>
+              <div data-tour="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
+                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
+                  Trust Score
+                </h3>
+
+                <div className="relative mx-auto w-[140px] transition-transform duration-200 group-hover:scale-105">
+                  <TrustRing score={trustScore} />
+                  <span
+                    className="font-data-hud text-4xl font-bold absolute inset-0 flex items-center justify-center"
+                    style={{ color: scoreColor }}
+                  >
+                    <SmoothCounter value={Math.round(trustScore)} duration={1} />
+                  </span>
+                </div>
+
+                <p className="mt-3 text-xs text-[#1E3A5F]/60">
+                  <TrendingUp className="mr-1 inline h-3 w-3" style={{ color: "#059669" }} />
+                  <span style={{ color: "#059669" }}>+3</span> this month
+                </p>
+
+                {(demo?.user.tier ?? stats?.verificationLevel) && (
+                  <span className="mt-3 inline-block rounded-full bg-[#0A1628]/10 px-3 py-1 text-xs font-semibold text-[#0A1628]">
+                    {demo?.user.tier ?? stats?.verificationLevel}
+                  </span>
+                )}
+
+                {!demo && (
+                  <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1E3A5F]/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    Click to view breakdown →
+                  </p>
+                )}
+              </div>
+            </MaybeLink>
+          </StaggerItem>
+
+          {/* E12: Quick Actions with ElasticButton feel + toast */}
+          <StaggerItem>
+            <div className="space-y-2">
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button
+                  data-tour="create-intent"
+                  className="btn-gold w-full rounded-lg px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Deal Matching"); }}
+                >
+                  Create Intent
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/relationships" demo={!!demo}>
+                <button
+                  data-tour="relationships"
+                  className="w-full rounded-lg bg-[#C4972A] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#C4972A]/90 active:scale-[0.97]"
+                  onClick={() => { if (!demo) toast.success("Navigating to Relationships"); }}
+                >
+                  Protect Relationship
+                </button>
+              </MaybeLink>
+              <MaybeLink href="/deal-matching" demo={!!demo}>
+                <button className="w-full rounded-lg border border-[#D1DCF0] bg-white px-4 py-3 text-sm font-semibold text-[#1E3A5F] transition-colors hover:bg-[#F3F7FC]">
+                  View Matches
+                </button>
+              </MaybeLink>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+
+        {/* ───────── Center Column ───────── */}
+        <FadeInView delay={0.1}>
+          {/* Blind Matches — always present so onboardingTour can target it.
+              Demo: shows fixture match cards. Live: shows tRPC data (wired when real matching lands). */}
+          <div data-tour="deal-matching" className="mb-6">
+            <h2 className="mb-3 dash-heading text-xl">Blind Matches</h2>
+            {demo && (demo.matches as unknown as unknown[]).length > 0 ? (
+              <StaggerContainer className="space-y-3">
+                {(demo.matches as unknown as ReadonlyArray<{ id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string }>).map((m, idx) => (
+                  <StaggerItem key={m.id}>
+                    <div
+                      data-tour={idx === 0 ? "match-card" : undefined}
+                      className="card-elevated border-l-4 border-l-[#C4972A] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <span className="rounded-full bg-[#C4972A]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C4972A]">
+                          MATCH
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Lock className="h-3 w-3 text-[#1E3A5F]/40" />
+                          <span className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/40">Sealed</span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628] mb-2">{m.tag}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.assetClass}</span>
+                        <span className="text-xs text-[#1E3A5F]/60 bg-[#1E3A5F]/5 rounded px-2 py-0.5">{m.dealSize}</span>
+                        <span
+                          className="ml-auto font-data-hud text-sm font-bold"
+                          style={{ color: m.compatibilityScore >= 90 ? "#059669" : "#C4972A" }}
+                        >
+                          {m.compatibilityScore}% match
+                        </span>
+                      </div>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : !demo ? (
+              <div className="card-elevated p-6">
+                <EmptyState {...EMPTY_STATES.matches} />
+              </div>
+            ) : null}
+          </div>
+
+          {/* Deal Rooms — demo only until live deal rooms are wired to this dashboard */}
+          {demo && (demo.dealRooms as unknown as unknown[]).length > 0 && (
+            <div className="mb-6">
+              <h2 className="mb-3 dash-heading text-xl">Deal Rooms</h2>
+              <StaggerContainer className="space-y-3">
+                {(demo.dealRooms as unknown as ReadonlyArray<{ id: number; name: string; stage: string; counterparty: string; escrowProgress: number }>).map((dr, idx) => (
+                  <StaggerItem key={dr.id}>
+                    <div
+                      data-tour={idx === 0 ? "deal-room" : undefined}
+                      className="card-elevated border-l-4 border-l-[#2563EB] p-4 hover:translate-y-[-2px]"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-[#0A1628]">{dr.name}</p>
+                        <span className="rounded-full bg-[#2563EB]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+                          {dr.stage}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#1E3A5F]/60 mb-3">{dr.counterparty}</p>
+                      <div className="mb-2">
+                        <div className="flex justify-between text-[10px] text-[#1E3A5F]/50 mb-1">
+                          <span>Escrow</span>
+                          <span>{dr.escrowProgress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#0A1628]/6">
+                          <div
+                            className="h-full rounded-full bg-[#059669]"
+                            style={{ width: `${dr.escrowProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <MaybeLink href="/deal-rooms" demo={!!demo}>
+                        <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:text-[#2563EB]/80 uppercase tracking-wider transition-colors">
+                          Enter Deal Room →
+                        </button>
+                      </MaybeLink>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          )}
+
+          <div data-tour="activity-feed">
+          <h2 className="mb-4 dash-heading text-2xl">Activity</h2>
+
+          {notifications.length > 0 ? (
+            <StaggerContainer className="space-y-3">
+              {notifications.map((n, idx) => {
+                const style = NOTIFICATION_STYLES[n.type] ?? DEFAULT_STYLE;
+                return (
+                  <StaggerItem key={n.id}>
+                    <div
+                      className={`card-elevated border-l-4 p-4 hover:translate-y-[-2px] ${style.border}`}
+                    >
+                      <div className="mb-1 flex items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge}`}
+                        >
+                          {style.label}
+                        </span>
+                        {/* E9: pulse dot on newest */}
+                        {idx === 0 && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C4972A] opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C4972A]" />
+                          </span>
+                        )}
+                        <span className="font-data-mono text-[#1E3A5F]/50">
+                          {formatDistanceToNow(new Date(n.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-[#0A1628]">
+                        {n.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-[#1E3A5F]/70">
+                        {n.message}
+                      </p>
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          ) : (
+            <div className="card-elevated p-6">
+              <EmptyState {...EMPTY_STATES.notifications} />
+            </div>
+          )}
+          </div>{/* /data-tour="activity-feed" */}
+        </FadeInView>
+
+        {/* ───────── Right Column ───────── */}
+        <StaggerContainer className="space-y-6">
+          {/* E10: Market Depth — horizontal bar chart */}
+          <StaggerItem>
+            <DashCard title="Market Depth">
+              <div className="space-y-4">
+                {MARKET_DEPTH.map((m, i) => (
+                  <div key={m.sector}>
+                    <p className="mb-1.5 text-xs font-semibold text-[#0A1628]">{m.sector}</p>
+                    <MarketDepthBar label="buyers" value={m.buyers} max={maxDepth} index={i * 2} />
+                    <MarketDepthBar label="sellers" value={m.sellers} max={maxDepth} index={i * 2 + 1} />
+                  </div>
+                ))}
+                <div className="flex items-center gap-4 border-t border-[#D1DCF0] pt-2 text-[10px] text-[#1E3A5F]/60">
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#2563EB]" /> Buyers</span>
+                  <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-[#C4972A]" /> Sellers</span>
+                </div>
+              </div>
+            </DashCard>
+          </StaggerItem>
+
+          {/* E14: Pending Actions with badges */}
+          <StaggerItem>
+            <div data-tour="verification">
+            <DashCard title="Pending Actions">
+              <div className="space-y-3">
+                {PENDING_ACTIONS.map((a) => (
+                  <div key={a.text} className="flex items-center gap-3 text-sm">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/5">
+                      <a.Icon className="h-4 w-4 text-[#1E3A5F]/60" />
+                    </span>
+                    <span className="flex-1 text-[#0A1628]">{a.text}</span>
+                    <span className="rounded-full bg-[#F59E0B]/15 px-2 py-0.5 text-[10px] font-bold uppercase text-[#F59E0B]">
+                      action
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </DashCard>
+            </div>
+          </StaggerItem>
+
+          {/* Recent Payouts */}
+          <StaggerItem>
+            <div data-tour="payout">
+            <DashCard title="Recent Payouts">
+              <p className="mb-3 text-lg font-bold text-[#0A1628]">
+                Next Payout:{" "}
+                <span className="text-[#059669]">
+                  $<SmoothCounter value={92000} prefix="" duration={1.2} />
+                </span>
+              </p>
+              {demo ? (
+                (demo.payouts as unknown as unknown[]).length > 0 ? (
+                  <div className="space-y-2">
+                    {(demo.payouts as unknown as ReadonlyArray<{ id: number; deal: string; amount: number; status: string }>).map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                      >
+                        <div>
+                          <span className="font-semibold text-[#0A1628]">
+                            ${p.amount.toLocaleString()}
+                          </span>
+                          <span className="ml-2 text-xs text-[#1E3A5F]/60">{p.deal}</span>
+                        </div>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            p.status === "triggered" || p.status === "deployed"
+                              ? "bg-[#059669]/15 text-[#059669]"
+                              : p.status === "pending" || p.status === "fundraising"
+                                ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                                : "bg-[#2563EB]/15 text-[#2563EB]"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState {...EMPTY_STATES.payouts} />
+                )
+              ) : payouts && payouts.length > 0 ? (
+                <div className="space-y-2">
+                  {payouts.slice(0, 3).map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between card-elevated px-3 py-2.5 text-sm hover:translate-y-[-1px]"
+                    >
+                      <div>
+                        <span className="font-semibold text-[#0A1628]">
+                          ${parseFloat(p.amount).toLocaleString()}
+                        </span>
+                        <span className="ml-2 text-xs text-[#1E3A5F]/60">
+                          {p.payoutType.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          p.status === "completed"
+                            ? "bg-[#059669]/15 text-[#059669]"
+                            : p.status === "pending"
+                              ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                              : "bg-[#2563EB]/15 text-[#2563EB]"
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState {...EMPTY_STATES.payouts} />
+              )}
+            </DashCard>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
+      </div>
+
+      {/* Apply CTA — onboardingTour "completion" target + demo "apply" target */}
+      <FadeInView delay={0.3}>
+        <div data-tour="completion" className="mt-8">
+          <div data-tour="apply" className="flex justify-center">
+            <Link href="/onboarding">
+              <motion.button
+                className="px-8 py-3 border border-[#C4972A]/40 text-[#C4972A] text-sm uppercase tracking-widest font-semibold hover:bg-[#C4972A]/5 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Request Full Access
+              </motion.button>
+            </Link>
+          </div>
+        </div>
+      </FadeInView>
+    </>
+  );
+}
+
+```
+
+# DASHBOARDLAYOUT (sidebar labels, page titles)
+```tsx
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useDemoContext } from "@/contexts/DemoContext";
+import {
+  BarChart3,
+  Bell,
+  Brain,
+  Building2,
+  Calendar as CalendarIcon,
+  CheckCircle,
+  Crosshair,
+  FolderOpen,
+  Home,
+  Lightbulb,
+  LogOut,
+  Menu,
+  Network,
+  PieChart,
+  Search,
+  Settings,
+  Shield,
+  FileSearch,
+  Briefcase,
+  Target,
+  TrendingUp,
+  User,
+  Users,
+  Wallet,
+  X,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronDown,
+  Info,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { GlobalSearchModal } from "./GlobalSearchModal";
+import { RestartTourBanner } from "./RestartTourBanner";
+import { TourOverlay } from "./TourOverlay";
+import { useTourContext } from "@/contexts/TourContext";
+import React, { useEffect, useState, useCallback } from "react";
+import { Link, useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { formatDistanceToNow } from "date-fns";
+
+interface NavItem { icon: LucideIcon; label: string; path: string; tourId?: string }
+interface NavSection { label: string; items: NavItem[] }
+
+const navSections: NavSection[] = [
+  { label: "Overview", items: [
+    { icon: Home, label: "Dashboard", path: "/dashboard" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+  ]},
+  { label: "Deals", items: [
+    { icon: Target, label: "Deal Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
+    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
+    { icon: Briefcase, label: "Deals", path: "/deals" },
+    { icon: Lightbulb, label: "Deal Intelligence", path: "/deal-intelligence" },
+  ]},
+  { label: "Network", items: [
+    { icon: Users, label: "Relationships", path: "/relationships", tourId: "nav-relationships" },
+    { icon: Building2, label: "Family Offices", path: "/family-offices" },
+    { icon: Crosshair, label: "Targeting", path: "/targeting" },
+    { icon: Network, label: "Network Graph", path: "/network" },
+  ]},
+  { label: "Compliance", items: [
+    { icon: Shield, label: "Verification", path: "/verification" },
+    { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
+    { icon: CheckCircle, label: "Compliance", path: "/compliance" },
+  ]},
+  { label: "Finance", items: [
+    { icon: Wallet, label: "Payouts", path: "/payouts", tourId: "nav-payouts" },
+    { icon: PieChart, label: "LP Portal", path: "/lp-portal" },
+  ]},
+  { label: "AI & Intel", items: [
+    { icon: Brain, label: "AI Brain", path: "/ai-brain" },
+    { icon: TrendingUp, label: "Intelligence", path: "/intelligence" },
+  ]},
+  { label: "Settings", items: [
+    { icon: CalendarIcon, label: "Calendar", path: "/calendar" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+  ]},
+];
+
+const allNavItems = navSections.flatMap(s => s.items);
+
+const pageTitles: Record<string, string> = Object.fromEntries(
+  allNavItems.map((item) => [item.path, item.label])
+);
+
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function TrustScoreChip({ score }: { score: number }) {
+  const bg =
+    score > 70
+      ? "bg-[#059669]/15 text-[#059669]"
+      : score >= 40
+        ? "bg-orange-500/15 text-orange-600"
+        : "bg-red-500/15 text-red-600";
+
+  return (
+    <div
+      className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${bg}`}
+      aria-label={`Trust score ${score} out of 100, Tier 2 Enhanced verification`}
+    >
+      <span className="font-mono">{score}</span>
+      <span className="text-[10px] opacity-60">/ 100</span>
+    </div>
+  );
+}
+
+const mobileNavItems = [
+  { icon: Home, label: "Dashboard", path: "/dashboard" },
+  { icon: Target, label: "Matches", path: "/deal-matching" },
+  { icon: Users, label: "Relationships", path: "/relationships" },
+  { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms" },
+  { icon: User, label: "Profile", path: "/settings" },
+] as const;
+
+const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: string }> = {
+  match_found: { Icon: Target, color: "#22D4F5" },
+  deal_update: { Icon: FolderOpen, color: "#2563EB" },
+  document_shared: { Icon: Info, color: "#059669" },
+  signature_requested: { Icon: AlertTriangle, color: "#C4972A" },
+  payout_received: { Icon: CheckCircle2, color: "#059669" },
+  compliance_alert: { Icon: Shield, color: "#DC2626" },
+  relationship_request: { Icon: Users, color: "#2563EB" },
+  system: { Icon: Info, color: "#6B7280" },
+};
+
+const TOUR_BANNER_DISMISSED_KEY = "anavi_tour_banner_dismissed";
+
+export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [location, setLocation] = useLocation();
+  const { user, logout } = useAuth();
+  const { isDemo, fixtures: demoFixtures } = useDemoContext();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const tour = useTourContext();
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(TOUR_BANNER_DISMISSED_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const handleRestartTour = useCallback(() => {
+    tour.restart();
+  }, [tour]);
+
+  const handleDismissBanner = useCallback(() => {
+    try {
+      localStorage.setItem(TOUR_BANNER_DISMISSED_KEY, "true");
+    } catch {
+      /* ignore */
+    }
+    setBannerDismissed(true);
+  }, []);
+  const { data: notificationsData, refetch: refetchNotifications } = trpc.notification.list.useQuery(
+    { limit: 20 },
+    { enabled: !!user }
+  );
+  const markAllReadMutation = trpc.notification.markAllRead.useMutation({ onSuccess: () => refetchNotifications() });
+  const markReadMutation = trpc.notification.markRead.useMutation({ onSuccess: () => refetchNotifications() });
+
+  const notifications = (notificationsData ?? []).map((n) => {
+    const { Icon, color } = NOTIFICATION_ICONS[n.type] ?? NOTIFICATION_ICONS.system;
+    return {
+      id: n.id,
+      icon: Icon,
+      iconColor: color,
+      title: n.title,
+      message: n.message ?? "",
+      time: formatDistanceToNow(new Date(n.createdAt), { addSuffix: true }),
+      read: n.isRead,
+      actionUrl: n.actionUrl,
+    };
+  });
+
+  const pageTitle = isDemo ? "Dashboard" : (pageTitles[location] ?? "ANAVI");
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    const title = pageTitles[location];
+    if (title) document.title = `${title} | ANAVI`;
+  }, [location]);
+
+  // E51: Scroll restoration
+  useEffect(() => {
+    const mainEl = document.querySelector('main[role="main"]');
+    if (!mainEl) return;
+
+    const savedPos = sessionStorage.getItem(`scroll_${location}`);
+    if (savedPos) {
+      mainEl.scrollTop = parseInt(savedPos, 10);
+    } else {
+      mainEl.scrollTop = 0;
+    }
+
+    const handleScroll = () => {
+      sessionStorage.setItem(`scroll_${location}`, String(mainEl.scrollTop));
+    };
+
+    mainEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => mainEl.removeEventListener("scroll", handleScroll);
+  }, [location]);
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      setSearchOpen((o) => !o);
+    }
+    if (e.key === "Escape") {
+      setNotifOpen(false);
+      setSearchOpen(false);
+      setSidebarOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  const markAllRead = () => markAllReadMutation.mutate();
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = useCallback((label: string) => {
+    setCollapsedSections(prev => ({ ...prev, [label]: !prev[label] }));
+  }, []);
+
+  const SidebarNav = () => (
+    <>
+      <nav data-tour="demo-nav" aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {navSections.map((section) => {
+          const isCollapsed = collapsedSections[section.label];
+          const hasActive = section.items.some(item => location === item.path);
+          return (
+            <div key={section.label} className="mb-1">
+              <button
+                onClick={() => toggleSection(section.label)}
+                className="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/30 hover:text-white/50 transition-colors"
+              >
+                <span>{section.label}</span>
+                <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+              </button>
+              {!isCollapsed && section.items.map((item) => {
+                const isActive = location === item.path;
+                return (
+                  <Link key={item.path} href={item.path}>
+                    <a
+                      data-tour-id={item.tourId}
+                      className={`group flex min-h-[40px] cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
+                        isActive
+                          ? "bg-white/8 text-white"
+                          : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
+                      }`}
+                      style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
+                      aria-current={isActive ? "page" : undefined}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <item.icon className="h-[18px] w-[18px] shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                    </a>
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        })}
+      </nav>
+      <div className="border-t border-white/10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A] text-xs font-semibold text-white">
+            {getInitials(isDemo ? demoFixtures?.user.name : user?.name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-white">
+              {isDemo ? (demoFixtures?.user.name ?? "Demo User") : (user?.name ?? "User")}
+            </p>
+          </div>
+          <button
+            onClick={() => logout()}
+            aria-label="Log out"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded p-2 text-[11px] text-white/50 hover:bg-white/10 hover:text-white/70"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex min-h-screen overflow-x-hidden">
+      {/* Sidebar — hidden on mobile, visible lg+ */}
+      <aside
+        className="hidden w-[240px] shrink-0 flex-col lg:flex"
+        style={{ backgroundColor: "#060A12" }}
+      >
+        <div className="flex h-14 items-center px-5">
+          <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
+        </div>
+        <SidebarNav />
+      </aside>
+
+      {/* Mobile sidebar drawer */}
+      {sidebarOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+          <aside
+            className="fixed left-0 top-0 z-50 flex h-full w-[280px] max-w-[85vw] flex-col bg-[#060A12] shadow-2xl lg:hidden animate-in slide-in-from-left duration-200"
+            role="dialog"
+            aria-label="Navigation menu"
+          >
+            <div className="flex h-14 shrink-0 items-center justify-between px-5">
+              <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-white/60 hover:bg-white/10 hover:text-white"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <SidebarNav />
+          </aside>
+        </>
+      )}
+
+      {/* Right side */}
+      <div className="flex flex-1 flex-col">
+        {/* Top bar */}
+        <header
+          role="banner"
+          className="flex h-14 shrink-0 items-center justify-between glass-light px-4 md:px-6 sticky top-0 z-30"
+        >
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC] lg:hidden"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            <h1 className="text-base font-semibold" style={{ color: "#1E3A5F" }}>
+              {pageTitle}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              data-tour-id="tour-search"
+              onClick={() => setSearchOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC]"
+              aria-label="Search (Cmd+K)"
+              title="Search (Cmd+K)"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+            <div className="hidden md:block">
+              <TrustScoreChip score={isDemo ? (demoFixtures?.user.trustScore ?? 84) : 84} />
+            </div>
+
+            {/* E43: Notification bell with drawer */}
+            <button
+              onClick={() => setNotifOpen(o => !o)}
+              className="relative flex h-10 w-10 items-center justify-center rounded-md text-[#1E3A5F]/60 hover:bg-[#F3F7FC]"
+              aria-label={`Notifications, ${unreadCount} unread`}
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setLocation("/deal-matching")}
+              className="hidden rounded-lg px-4 py-2 text-sm font-semibold text-white sm:block btn-gold"
+              aria-label="Create new deal intent"
+            >
+              Create Intent
+            </button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main
+          role="main"
+          data-tour-id="welcome"
+          className="flex-1 overflow-y-auto pb-20 scrollbar-premium lg:pb-0 relative"
+          style={{ backgroundColor: "#F3F7FC" }}
+        >
+          {/* Subtle ambient depth — very faint, non-animated for performance */}
+          <div
+            className="pointer-events-none absolute top-0 right-0 w-[600px] h-[400px]"
+            style={{
+              background: "radial-gradient(ellipse at top right, rgb(196 151 42 / 0.04) 0%, transparent 60%)",
+            }}
+            aria-hidden="true"
+          />
+          <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
+            {!tour.hasCompletedTour() && !bannerDismissed && (
+              <RestartTourBanner
+                onRestart={handleRestartTour}
+                onDismiss={handleDismissBanner}
+              />
+            )}
+            <div className={!tour.hasCompletedTour() && !bannerDismissed ? "mt-4" : ""}>
+              {children}
+            </div>
+          </div>
+        </main>
+
+        {tour.isActive && tour.step && (
+          <TourOverlay
+            step={tour.step}
+            currentStep={tour.currentStep}
+            totalSteps={tour.totalSteps}
+            onNext={tour.next}
+            onSkip={tour.skip}
+          />
+        )}
+      </div>
+
+      {/* E43: Notification Drawer */}
+      {notifOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setNotifOpen(false)} />
+          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-sm bg-[#0A1628] shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <h2 className="text-lg font-semibold text-white">Notifications</h2>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} className="text-xs font-medium text-[#2563EB] hover:underline">
+                    Mark All Read
+                  </button>
+                )}
+                <button
+                  onClick={() => setNotifOpen(false)}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-white/10"
+                  aria-label="Close notifications"
+                >
+                  <X className="h-5 w-5 text-white/40" />
+                </button>
+              </div>
+            </div>
+            <div className="overflow-y-auto scrollbar-premium" style={{ height: "calc(100% - 65px)" }}>
+              {notifications.length === 0 ? (
+                <div className="px-5 py-12 text-center text-white/50 text-sm">No new notifications.</div>
+              ) : (
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors cursor-pointer hover:bg-white/5 ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
+                  onClick={() => {
+                    if (!n.read) markReadMutation.mutate({ id: n.id });
+                    if (n.actionUrl) { setNotifOpen(false); setLocation(n.actionUrl); }
+                  }}
+                >
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${n.iconColor}15` }}>
+                    <n.icon className="h-4 w-4" style={{ color: n.iconColor }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white">{n.title}</p>
+                    <p className="mt-0.5 text-xs text-white/60">{n.message}</p>
+                    <p className="mt-1 text-[10px] text-white/40">{n.time}</p>
+                  </div>
+                  {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2563EB]" />}
+                </div>
+              ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+
+      {/* Mobile bottom navigation — 44px tap targets */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed inset-x-0 bottom-0 z-50 flex h-16 min-h-[56px] items-center justify-around border-t border-white/10 bg-[#060A12] lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        {mobileNavItems.map((item) => {
+          const isActive = location === item.path;
+          return (
+            <Link key={item.path} href={item.path}>
+              <a
+                className={`flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-2 text-[10px] font-medium transition-colors ${
+                  isActive ? "text-[#22D4F5]" : "text-white/40"
+                }`}
+                aria-current={isActive ? "page" : undefined}
+                aria-label={item.label}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span>{item.label}</span>
+              </a>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+export default DashboardLayout;
+
+```
+
+# ONBOARDINGFLOW (user-facing copy)
+```tsx
+import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Handshake,
+  TrendingUp,
+  Building2,
+  Landmark,
+  Target,
+  Lock,
+  Check,
+  Upload,
+  ArrowRight,
+  ArrowLeft,
+  Shield,
+  BarChart3,
+  Eye,
+} from "lucide-react";
+import FVMCelebration from "@/components/FVMCelebration";
+import { CustodyReceipt as CustodyReceiptModal } from "@/components/CustodyReceipt";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type Persona =
+  | "originator"
+  | "investor"
+  | "developer"
+  | "allocator"
+  | "acquirer";
+
+interface PersonaTile {
+  id: Persona;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+}
+
+interface StepDef {
+  name: string;
+  minutes: number;
+  benefit: string;
+}
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const STORAGE_KEY = "anavi_onboarding";
+
+const PERSONAS: PersonaTile[] = [
+  {
+    id: "originator",
+    label: "Deal Originator / Broker",
+    icon: Handshake,
+    description:
+      "I source deals and introduce buyers to sellers. I want my relationships protected.",
+  },
+  {
+    id: "investor",
+    label: "Investor / Family Office",
+    icon: TrendingUp,
+    description:
+      "I deploy capital into private deals. I want verified deal flow without public exposure.",
+  },
+  {
+    id: "developer",
+    label: "Project Developer",
+    icon: Building2,
+    description:
+      "I develop projects and need qualified capital without tipping off competitors.",
+  },
+  {
+    id: "allocator",
+    label: "Institutional Allocator",
+    icon: Landmark,
+    description:
+      "I manage a fund and deploy capital systematically at scale.",
+  },
+  {
+    id: "acquirer",
+    label: "Strategic Acquirer",
+    icon: Target,
+    description:
+      "I'm a corporate acquirer seeking acquisition targets confidentially.",
+  },
+];
+
+const STEPS: Record<Persona, StepDef[]> = {
+  originator: [
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Business Profile", minutes: 2, benefit: "Your deal profile enables AI matching against $13T in private market deal flow." },
+    { name: "First Relationship", minutes: 3, benefit: "Upload your first relationship. Receive a custody receipt — your timestamped, signed attribution claim." },
+    { name: "Upgrade Prompt", minutes: 2, benefit: "Tier 2 unlocks whitelist status: enhanced verification, priority matching, and institutional counterparty access." },
+    { name: "Dashboard Intro", minutes: 1, benefit: "Your operating system is ready. Every introduction you make from here is custodied." },
+  ],
+  investor: [
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Investment Profile", minutes: 4, benefit: "Defines your investment thesis. ANAVI's matching engine runs on this intent — anonymized, sealed, and matched against verified counterparties only." },
+    { name: "KYB / KYC", minutes: 4, benefit: "Your compliance passport. It travels with every deal you touch — so counterparties never have to run their own check on you." },
+    { name: "First Intent", minutes: 2, benefit: "Broadcast your investment intent to verified counterparties — anonymized until mutual consent." },
+    { name: "Market Depth", minutes: 1, benefit: "See the depth of opportunities waiting for your capital." },
+  ],
+  developer: [
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Project Profile", minutes: 4, benefit: "Your raise profile, sealed. Matched to qualified capital without disclosing your identity until you consent." },
+    { name: "Verification", minutes: 3, benefit: "KYB verified, OFAC clean, accredited confirmed — your compliance passport travels with every transaction." },
+    { name: "Capital Intent", minutes: 2, benefit: "Signal your raise to qualified investors — anonymous until you authorize disclosure." },
+    { name: "Blind Matching", minutes: 1, benefit: "Your thesis, protected until the moment you choose to disclose it." },
+  ],
+  allocator: [
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Fund Profile", minutes: 4, benefit: "Your fund mandate drives systematic deal matching against verified counterparties only." },
+    { name: "Compliance", minutes: 4, benefit: "Your compliance passport enables institutional-grade deal flow without duplicated due diligence." },
+    { name: "First Allocation", minutes: 2, benefit: "Define your first allocation target — matched against verified operators, blind until consent." },
+    { name: "Pipeline Preview", minutes: 1, benefit: "See the institutional pipeline awaiting your capital." },
+  ],
+  acquirer: [
+    { name: "Identity", minutes: 3, benefit: "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims." },
+    { name: "Acquisition Profile", minutes: 4, benefit: "Define your acquisition thesis for confidential matching — your intent stays sealed until mutual consent." },
+    { name: "Due Diligence", minutes: 3, benefit: "Pre-configure your compliance requirements. Share them once — access them everywhere on ANAVI." },
+    { name: "First Target Intent", minutes: 2, benefit: "Signal your acquisition interest to verified sellers — anonymized until both parties consent." },
+    { name: "Target Pipeline", minutes: 1, benefit: "Preview acquisition targets matching your criteria — every counterparty pre-verified." },
+  ],
+};
+
+const VERTICALS = ["Oil & Gas", "Gold / Mining", "Solar / Renewable", "Real Estate", "M&A", "Infrastructure", "Other"];
+const ASSET_TYPES = ["Real Estate", "Private Equity", "Private Credit", "Commodities", "Infrastructure", "Venture Capital", "Digital Assets"];
+const GEOGRAPHIES = ["North America", "Europe", "Middle East", "Asia Pacific", "Latin America", "Africa"];
+const DEAL_STAGES = ["RTB (Ready to Build)", "Development", "Operating"];
+const DEAL_SIZES = ["< $1M", "$1M - $5M", "$5M - $25M", "$25M - $100M", "$100M - $500M", "$500M+"];
+const BUSINESS_STRUCTURES = ["Sole Proprietor", "LLC", "Corporation", "Partnership", "Trust", "Other"];
+const PROJECT_TYPES = ["Solar Farm", "Wind Farm", "Real Estate Development", "Mining Operation", "Infrastructure", "Mixed Use", "Other"];
+const DEV_STAGES = ["Pre-Permit", "Permitted", "Shovel-Ready", "Under Construction", "Operational"];
+const DEAL_STRUCTURES = ["Equity", "Debt", "Joint Venture", "Hybrid"];
+const TIMELINES = ["< 6 months", "6-12 months", "1-2 years", "2-5 years", "5+ years"];
+const FUND_STRATEGIES = ["Value", "Growth", "Income", "Opportunistic", "Core", "Core-Plus"];
+const REVENUE_RANGES = ["< $5M", "$5M - $25M", "$25M - $100M", "$100M - $500M", "$500M+"];
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function loadProgress(): { persona: Persona | null; step: number; formData: Record<string, unknown> } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return { persona: null, step: 0, formData: {} };
+}
+
+function saveProgress(persona: Persona | null, step: number, formData: Record<string, unknown>) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ persona, step, formData }));
+}
+
+// ---------------------------------------------------------------------------
+// Reusable sub-components
+// ---------------------------------------------------------------------------
+
+function InputField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-white/90">
+        {label}
+        {required && <span className="text-red-400"> *</span>}
+      </span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-12 w-full rounded-lg border border-[#D1DCF0] bg-white px-4 text-sm text-[#0A1628] outline-none transition focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+      />
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-12 w-full rounded-lg border border-[#D1DCF0] bg-white px-4 text-sm text-[#0A1628] outline-none transition focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+      >
+        <option value="">{placeholder ?? "Select..."}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>{o}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function MultiSelectChips({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const toggle = (opt: string) => {
+    onChange(selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt]);
+  };
+  return (
+    <div>
+      <span className="mb-2 block text-sm font-medium text-white/90">{label}</span>
+      <div className="flex flex-wrap gap-2">
+        {options.map((opt) => {
+          const active = selected.includes(opt);
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => toggle(opt)}
+              className={`cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition ${
+                active
+                  ? "bg-[#2563EB] text-white"
+                  : "border border-[#D1DCF0] bg-white text-[#0A1628]/70 hover:border-[#2563EB]/40"
+              }`}
+            >
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TextArea({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        className="w-full rounded-lg border border-[#D1DCF0] bg-white px-4 py-3 text-sm text-[#0A1628] outline-none transition focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+      />
+    </label>
+  );
+}
+
+function RadioGroup({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <span className="mb-2 block text-sm font-medium text-white/90">{label}</span>
+      <div className="flex flex-wrap gap-3">
+        {options.map((opt) => (
+          <label
+            key={opt}
+            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 text-sm transition ${
+              value === opt
+                ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB]"
+                : "border-[#D1DCF0] bg-white text-[#0A1628]/70 hover:border-[#2563EB]/40"
+            }`}
+          >
+            <input
+              type="radio"
+              name={label}
+              checked={value === opt}
+              onChange={() => onChange(opt)}
+              className="sr-only"
+            />
+            <div
+              className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${
+                value === opt ? "border-[#2563EB]" : "border-[#D1DCF0]"
+              }`}
+            >
+              {value === opt && <div className="h-2 w-2 rounded-full bg-[#2563EB]" />}
+            </div>
+            {opt}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UploadZone({ label }: { label: string }) {
+  const [fileName, setFileName] = useState<string | null>(null);
+  return (
+    <div>
+      <span className="mb-1.5 block text-sm font-medium text-white/90">{label}</span>
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/30 bg-white/5 px-6 py-8 text-center transition hover:border-[#2563EB]/50">
+        <Upload className="h-6 w-6 text-[#2563EB]" />
+        {fileName ? (
+          <span className="text-sm font-medium text-[#059669]">{fileName}</span>
+        ) : (
+          <>
+            <span className="text-sm text-white/70">Drag & drop or click to upload</span>
+            <span className="text-xs text-white/50">PDF, JPG, PNG up to 10MB</span>
+          </>
+        )}
+        <input
+          type="file"
+          className="sr-only"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) setFileName(f.name);
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
+function BenefitCard({ text }: { text: string }) {
+  return (
+    <div className="mb-6 rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+      <p className="text-sm text-[#22D4F5]">{text}</p>
+    </div>
+  );
+}
+
+function CustodyReceipt() {
+  const id = `CUST-${Date.now().toString(36).toUpperCase()}`;
+  const ts = new Date().toISOString();
+  return (
+    <div className="rounded-xl border border-[#059669]/30 bg-[#059669]/5 p-6 text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#059669]/10">
+        <Lock className="h-6 w-6 text-[#059669]" />
+      </div>
+      <p className="text-lg font-bold text-white">Relationship Secured</p>
+      <p className="mt-1 text-xs text-white/60">Custody ID: {id}</p>
+      <p className="text-xs text-white/60">Timestamp: {ts}</p>
+      <p className="mt-3 text-sm font-medium text-[#059669]">
+        Your relationship is now protected. Forever.
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Progress bar
+// ---------------------------------------------------------------------------
+
+function ProgressBar({
+  steps,
+  current,
+}: {
+  steps: StepDef[];
+  current: number;
+}) {
+  const remaining = steps.slice(current).reduce((a, s) => a + s.minutes, 0);
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between gap-1">
+        {steps.map((s, i) => {
+          const completed = i < current;
+          const active = i === current;
+          return (
+            <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+              <div className="flex w-full items-center">
+                <div
+                  className={`flex h-3 w-3 shrink-0 rounded-full transition-all duration-500 ${
+                    completed
+                      ? "progress-node-complete"
+                      : active
+                        ? "progress-node-active"
+                        : "progress-node-pending"
+                  }`}
+                />
+                {i < steps.length - 1 && (
+                  <div
+                    className={`mx-1 h-0.5 flex-1 rounded transition ${
+                      completed ? "bg-[#C4972A]" : "bg-white/10"
+                    }`}
+                  />
+                )}
+              </div>
+              <span
+                className={`hidden text-[10px] font-medium sm:block ${
+                  active ? "text-[#22D4F5]" : completed ? "text-[#C4972A]" : "text-white/25"
+                }`}
+              >
+                {s.name}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-right font-data-hud text-[10px] text-white/40">
+        ~{remaining} min remaining
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Step content renderers per persona
+// ---------------------------------------------------------------------------
+
+function IdentityStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <InputField label="Full Name" value={(formData.fullName as string) ?? ""} onChange={(v) => set("fullName", v)} required placeholder="Jane Smith" />
+      <InputField label="Email Address" value={(formData.email as string) ?? ""} onChange={(v) => set("email", v)} type="email" required placeholder="jane@example.com" />
+      <div>
+        <InputField label="Phone Number" value={(formData.phone as string) ?? ""} onChange={(v) => set("phone", v)} type="tel" placeholder="+1 (555) 000-0000" />
+        <p className="mt-1 text-xs text-white/40">We may send a verification SMS</p>
+      </div>
+      <SelectField label="Country of Operation" value={(formData.country as string) ?? ""} onChange={(v) => set("country", v)} options={["United States", "United Kingdom", "Canada", "UAE", "Singapore", "Switzerland", "Australia", "Germany", "Other"]} />
+    </div>
+  );
+}
+
+// ---- ORIGINATOR STEPS ----
+
+function OriginatorBusinessStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <InputField label="Business Name" value={(formData.businessName as string) ?? ""} onChange={(v) => set("businessName", v)} required placeholder="Acme Brokerage LLC" />
+      <SelectField label="Business Structure" value={(formData.businessStructure as string) ?? ""} onChange={(v) => set("businessStructure", v)} options={BUSINESS_STRUCTURES} />
+      <MultiSelectChips label="Primary Deal Verticals" options={VERTICALS} selected={((formData.verticals as string[]) ?? [])} onChange={(v) => set("verticals", v)} />
+      <SelectField label="Typical Deal Size" value={(formData.dealSize as string) ?? ""} onChange={(v) => set("dealSize", v)} options={DEAL_SIZES} />
+      <InputField label="Years in Industry" value={(formData.yearsIndustry as string) ?? ""} onChange={(v) => set("yearsIndustry", v)} type="number" placeholder="10" />
+      <InputField label="LinkedIn URL (optional)" value={(formData.linkedin as string) ?? ""} onChange={(v) => set("linkedin", v)} placeholder="https://linkedin.com/in/..." />
+    </div>
+  );
+}
+
+function OriginatorRelationshipStep({
+  formData,
+  set,
+  showInlineReceipt,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+  showInlineReceipt: boolean;
+}) {
+  if (showInlineReceipt) return <CustodyReceipt />;
+  return (
+    <div className="space-y-5">
+      <RadioGroup label="Relationship Type" options={["Buyer", "Seller", "Investor", "Developer", "Other"]} value={(formData.relType as string) ?? ""} onChange={(v) => set("relType", v)} />
+      <SelectField label="Sector" value={(formData.relSector as string) ?? ""} onChange={(v) => set("relSector", v)} options={VERTICALS} />
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Min Deal Size" value={(formData.relMinSize as string) ?? ""} onChange={(v) => set("relMinSize", v)} placeholder="$1M" />
+        <InputField label="Max Deal Size" value={(formData.relMaxSize as string) ?? ""} onChange={(v) => set("relMaxSize", v)} placeholder="$50M" />
+      </div>
+      <MultiSelectChips label="Geographic Focus" options={GEOGRAPHIES} selected={((formData.relGeo as string[]) ?? [])} onChange={(v) => set("relGeo", v)} />
+      <TextArea label="Notes" value={(formData.relNotes as string) ?? ""} onChange={(v) => set("relNotes", v)} placeholder="Any relevant context about this relationship..." />
+    </div>
+  );
+}
+
+function OriginatorUpgradeStep() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-white/20 bg-white/5 p-5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Current — Tier 1</p>
+          <ul className="space-y-2 text-sm text-white/80">
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#059669]" /> Relationship custody</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#059669]" /> Basic AI matching</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#059669]" /> 5 relationships/month</li>
+          </ul>
+        </div>
+        <div className="rounded-xl border-2 border-[#C4972A] bg-[#C4972A]/10 p-5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#C4972A]">Upgrade — Tier 2</p>
+          <ul className="space-y-2 text-sm text-white/80">
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#C4972A]" /> Priority deal room access</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#C4972A]" /> Unlimited relationships</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#C4972A]" /> Advanced AI analytics</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#C4972A]" /> Commission tracking</li>
+          </ul>
+        </div>
+      </div>
+      <UploadZone label="Business Registration Document" />
+      <UploadZone label="Government-Issued ID" />
+      <p className="text-center text-xs text-white/40">You can skip this and complete verification later from Settings.</p>
+    </div>
+  );
+}
+
+function DashboardIntroStep({ onGo }: { onGo: () => void }) {
+  return (
+    <div className="text-center">
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#059669]/10">
+        <Check className="h-8 w-8 text-[#059669]" />
+      </div>
+      <h3 className="mb-2 text-2xl font-bold text-white">You&apos;re ready.</h3>
+      <ul className="mx-auto mb-8 max-w-sm space-y-3 text-left text-sm text-white/80">
+        <li className="flex items-start gap-2"><Shield className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" /> Your relationships are custodied and timestamped</li>
+        <li className="flex items-start gap-2"><BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" /> AI matching is already scanning for opportunities</li>
+        <li className="flex items-start gap-2"><Eye className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" /> Your dashboard tracks everything in real time</li>
+      </ul>
+      <button onClick={onGo} className="btn-gold cursor-pointer px-10 text-base">
+        Go to Dashboard
+      </button>
+    </div>
+  );
+}
+
+// ---- INVESTOR STEPS ----
+
+function InvestorProfileStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <MultiSelectChips label="Asset Types of Interest" options={ASSET_TYPES} selected={((formData.assetTypes as string[]) ?? [])} onChange={(v) => set("assetTypes", v)} />
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Min Ticket Size" value={(formData.ticketMin as string) ?? ""} onChange={(v) => set("ticketMin", v)} placeholder="$500K" />
+        <InputField label="Max Ticket Size" value={(formData.ticketMax as string) ?? ""} onChange={(v) => set("ticketMax", v)} placeholder="$25M" />
+      </div>
+      <SelectField label="Investment Timeline" value={(formData.investTimeline as string) ?? ""} onChange={(v) => set("investTimeline", v)} options={TIMELINES} />
+      <MultiSelectChips label="Geographic Preferences" options={GEOGRAPHIES} selected={((formData.geoPrefs as string[]) ?? [])} onChange={(v) => set("geoPrefs", v)} />
+      <InputField label="Target IRR (%)" value={(formData.targetIRR as string) ?? ""} onChange={(v) => set("targetIRR", v)} type="number" placeholder="15" />
+      <SelectField label="Deal Stage Preference" value={(formData.dealStage as string) ?? ""} onChange={(v) => set("dealStage", v)} options={DEAL_STAGES} />
+    </div>
+  );
+}
+
+function InvestorKYCStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  const questions = [
+    "Are you or any beneficial owners a Politically Exposed Person (PEP)?",
+    "Has your entity ever been subject to sanctions or regulatory action?",
+    "Do you have an existing AML/KYC program in place?",
+    "Are the funds sourced from legitimate, documented business activities?",
+  ];
+  return (
+    <div className="space-y-5">
+      {questions.map((q, i) => (
+        <RadioGroup key={i} label={q} options={["Yes", "No"]} value={(formData[`aml_${i}`] as string) ?? ""} onChange={(v) => set(`aml_${i}`, v)} />
+      ))}
+      <SelectField label="Source of Funds" value={(formData.sourceOfFunds as string) ?? ""} onChange={(v) => set("sourceOfFunds", v)} options={["Business Profits", "Investment Returns", "Inheritance", "Real Estate", "Salary / Employment", "Other"]} />
+      <RadioGroup label="Accredited Investor Status" options={["Accredited", "Qualified Purchaser", "Institutional", "Non-Accredited"]} value={(formData.accreditedStatus as string) ?? ""} onChange={(v) => set("accreditedStatus", v)} />
+      <UploadZone label="Supporting Documentation" />
+    </div>
+  );
+}
+
+function IntentCreationStep({
+  formData,
+  set,
+  intentType,
+  showResult,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+  intentType: string;
+  showResult: boolean;
+}) {
+  if (showResult) {
+    const matchCount = 3 + Math.floor(Math.random() * 13);
+    return (
+      <div className="rounded-xl border border-[#059669]/30 bg-[#059669]/5 p-6 text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB]/10">
+          <Target className="h-6 w-6 text-[#2563EB]" />
+        </div>
+        <p className="text-lg font-bold text-white">Intent Created</p>
+        <p className="mt-2 text-sm text-white/80">
+          Your intent matches <span className="font-bold text-[#2563EB]">{matchCount}</span> verified opportunities
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      <div className="rounded-lg bg-[#2563EB]/5 border border-[#2563EB]/15 px-4 py-2">
+        <span className="text-xs font-medium text-[#2563EB]">Intent type: {intentType}</span>
+      </div>
+      <InputField label="Title" value={(formData.intentTitle as string) ?? ""} onChange={(v) => set("intentTitle", v)} placeholder="e.g. Solar project equity investment" required />
+      <TextArea label="Description" value={(formData.intentDesc as string) ?? ""} onChange={(v) => set("intentDesc", v)} placeholder="Describe what you're looking for..." />
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Min Value" value={(formData.intentMin as string) ?? ""} onChange={(v) => set("intentMin", v)} placeholder="$1M" />
+        <InputField label="Max Value" value={(formData.intentMax as string) ?? ""} onChange={(v) => set("intentMax", v)} placeholder="$25M" />
+      </div>
+      <SelectField label="Target Timeline" value={(formData.intentTimeline as string) ?? ""} onChange={(v) => set("intentTimeline", v)} options={TIMELINES} />
+    </div>
+  );
+}
+
+function MarketDepthStep({ onGo }: { onGo: () => void }) {
+  const markets = [
+    { sector: "Solar / Renewable", buyers: 47, sellers: 12 },
+    { sector: "Oil & Gas", buyers: 23, sellers: 8 },
+    { sector: "Real Estate", buyers: 34, sellers: 19 },
+    { sector: "Infrastructure", buyers: 18, sellers: 6 },
+    { sector: "Gold / Mining", buyers: 14, sellers: 5 },
+  ];
+  return (
+    <div>
+      <p className="mb-4 text-sm text-white/80">Live market depth across key sectors:</p>
+      <div className="mb-8 grid gap-3">
+        {markets.map((m) => (
+          <div key={m.sector} className="flex items-center justify-between rounded-lg border border-white/20 bg-white/10 px-4 py-3">
+            <span className="text-sm font-medium text-white">{m.sector}</span>
+            <div className="flex gap-4 text-xs">
+              <span className="text-[#2563EB]">{m.buyers} buyers</span>
+              <span className="text-[#C4972A]">{m.sellers} sellers</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="text-center">
+        <button onClick={onGo} className="btn-gold cursor-pointer px-10 text-base">
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---- DEVELOPER STEPS ----
+
+function DeveloperProjectStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <SelectField label="Project Type" value={(formData.projectType as string) ?? ""} onChange={(v) => set("projectType", v)} options={PROJECT_TYPES} />
+      <SelectField label="Development Stage" value={(formData.devStage as string) ?? ""} onChange={(v) => set("devStage", v)} options={DEV_STAGES} />
+      <InputField label="Project Location" value={(formData.projectLocation as string) ?? ""} onChange={(v) => set("projectLocation", v)} placeholder="City, State / Country" />
+      <InputField label="Capital Requirement" value={(formData.capitalReq as string) ?? ""} onChange={(v) => set("capitalReq", v)} placeholder="$10M" />
+      <RadioGroup label="Preferred Deal Structure" options={DEAL_STRUCTURES} value={(formData.dealStructure as string) ?? ""} onChange={(v) => set("dealStructure", v)} />
+      <SelectField label="Timeline" value={(formData.projectTimeline as string) ?? ""} onChange={(v) => set("projectTimeline", v)} options={TIMELINES} />
+    </div>
+  );
+}
+
+function DeveloperVerificationStep() {
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-white/70">Upload project documentation to fast-track verification. Verified projects receive 3× more investor engagement.</p>
+      <UploadZone label="Permits / Interconnection Agreement" />
+      <UploadZone label="Financial Model" />
+      <UploadZone label="Legal Entity Documentation" />
+      <p className="text-center text-xs text-white/40">You can skip uploads and complete verification later.</p>
+    </div>
+  );
+}
+
+function BlindMatchingIntroStep({ onGo }: { onGo: () => void }) {
+  return (
+    <div className="text-center">
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#2563EB]/10">
+        <Eye className="h-8 w-8 text-[#2563EB]" />
+      </div>
+      <h3 className="mb-3 text-xl font-bold text-white">Blind Matching</h3>
+      <p className="mx-auto mb-6 max-w-md text-sm text-white/80">
+        ANAVI uses blind matching to protect your competitive position. Investors see your project parameters — sector, size, stage, returns — without identifying details until both parties opt in. Your project identity stays confidential until you choose to reveal it.
+      </p>
+      <div className="mx-auto mb-8 grid max-w-sm gap-3">
+        {["Your identity stays hidden", "Parameters are matched by AI", "Both parties must opt in to connect"].map((t) => (
+          <div key={t} className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-left text-sm text-white/80">
+            <Shield className="h-4 w-4 shrink-0 text-[#059669]" /> {t}
+          </div>
+        ))}
+      </div>
+      <button onClick={onGo} className="btn-gold cursor-pointer px-10 text-base">
+        Go to Dashboard
+      </button>
+    </div>
+  );
+}
+
+// ---- ALLOCATOR STEPS ----
+
+function AllocatorFundStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <InputField label="Fund Name" value={(formData.fundName as string) ?? ""} onChange={(v) => set("fundName", v)} placeholder="Alpha Capital Partners" required />
+      <InputField label="AUM (Assets Under Management)" value={(formData.aum as string) ?? ""} onChange={(v) => set("aum", v)} placeholder="$500M" />
+      <SelectField label="Investment Strategy" value={(formData.fundStrategy as string) ?? ""} onChange={(v) => set("fundStrategy", v)} options={FUND_STRATEGIES} />
+      <MultiSelectChips label="Mandate Sectors" options={VERTICALS} selected={((formData.mandateSectors as string[]) ?? [])} onChange={(v) => set("mandateSectors", v)} />
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Min Allocation" value={(formData.allocMin as string) ?? ""} onChange={(v) => set("allocMin", v)} placeholder="$5M" />
+        <InputField label="Max Allocation" value={(formData.allocMax as string) ?? ""} onChange={(v) => set("allocMax", v)} placeholder="$100M" />
+      </div>
+      <MultiSelectChips label="Geographic Targets" options={GEOGRAPHIES} selected={((formData.allocGeo as string[]) ?? [])} onChange={(v) => set("allocGeo", v)} />
+    </div>
+  );
+}
+
+function AllocatorComplianceStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <SelectField label="Regulatory Framework" value={(formData.regFramework as string) ?? ""} onChange={(v) => set("regFramework", v)} options={["SEC Registered", "CFTC Registered", "FCA Regulated", "MAS Licensed", "DFSA Regulated", "Exempt", "Other"]} />
+      <RadioGroup label="Do you require ESG compliance?" options={["Yes", "No", "Preferred"]} value={(formData.esgRequired as string) ?? ""} onChange={(v) => set("esgRequired", v)} />
+      <RadioGroup label="Do you require Shariah compliance?" options={["Yes", "No"]} value={(formData.shariahRequired as string) ?? ""} onChange={(v) => set("shariahRequired", v)} />
+      <UploadZone label="Fund Documentation / PPM" />
+      <UploadZone label="Regulatory License" />
+    </div>
+  );
+}
+
+function PipelinePreviewStep({ onGo, label }: { onGo: () => void; label: string }) {
+  const pipeline = [
+    { name: "Solar Infrastructure Fund", size: "$45M", status: "Active" },
+    { name: "Gulf Energy JV", size: "$120M", status: "Pre-Close" },
+    { name: "LATAM Real Estate Pool", size: "$28M", status: "Sourcing" },
+    { name: "Mining Royalties SPV", size: "$15M", status: "Active" },
+  ];
+  return (
+    <div>
+      <p className="mb-4 text-sm text-white/80">{label}</p>
+      <div className="mb-8 space-y-3">
+        {pipeline.map((p) => (
+          <div key={p.name} className="flex items-center justify-between rounded-lg border border-white/20 bg-white/10 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-white">{p.name}</p>
+              <p className="text-xs text-white/60">{p.size}</p>
+            </div>
+            <span className="rounded-full bg-[#2563EB]/10 px-3 py-1 text-xs font-medium text-[#2563EB]">{p.status}</span>
+          </div>
+        ))}
+      </div>
+      <div className="text-center">
+        <button onClick={onGo} className="btn-gold cursor-pointer px-10 text-base">
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---- ACQUIRER STEPS ----
+
+function AcquirerProfileStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <InputField label="Company Name" value={(formData.companyName as string) ?? ""} onChange={(v) => set("companyName", v)} placeholder="Acme Corp" required />
+      <MultiSelectChips label="Target Sectors" options={VERTICALS} selected={((formData.targetSectors as string[]) ?? [])} onChange={(v) => set("targetSectors", v)} />
+      <SelectField label="Target Revenue Range" value={(formData.revenueRange as string) ?? ""} onChange={(v) => set("revenueRange", v)} options={REVENUE_RANGES} />
+      <InputField label="EBITDA Threshold" value={(formData.ebitda as string) ?? ""} onChange={(v) => set("ebitda", v)} placeholder="$5M+" />
+      <MultiSelectChips label="Geographic Focus" options={GEOGRAPHIES} selected={((formData.acqGeo as string[]) ?? [])} onChange={(v) => set("acqGeo", v)} />
+      <SelectField label="Preferred Deal Structure" value={(formData.acqStructure as string) ?? ""} onChange={(v) => set("acqStructure", v)} options={["Full Acquisition", "Majority Stake", "Minority Stake", "Merger", "Asset Purchase"]} />
+    </div>
+  );
+}
+
+function AcquirerDDStep({
+  formData,
+  set,
+}: {
+  formData: Record<string, unknown>;
+  set: (k: string, v: unknown) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-white/70">Pre-configure your due diligence requirements to accelerate future deals.</p>
+      <MultiSelectChips label="Key DD Criteria" options={["Financial Audit", "Legal Review", "Environmental", "IP / Technology", "Management Assessment", "Market Analysis", "Tax Structure"]} selected={((formData.ddCriteria as string[]) ?? [])} onChange={(v) => set("ddCriteria", v)} />
+      <InputField label="Internal DD Team Size" value={(formData.ddTeamSize as string) ?? ""} onChange={(v) => set("ddTeamSize", v)} type="number" placeholder="5" />
+      <SelectField label="Typical DD Timeline" value={(formData.ddTimeline as string) ?? ""} onChange={(v) => set("ddTimeline", v)} options={["< 30 days", "30-60 days", "60-90 days", "90+ days"]} />
+      <UploadZone label="DD Checklist Template (optional)" />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+export default function OnboardingFlow() {
+  const [, navigate] = useLocation();
+  const [persona, setPersona] = useState<Persona | null>(null);
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [showFVM, setShowFVM] = useState(false);
+  // showInlineReceipt: drives the mini CustodyReceipt inside OriginatorRelationshipStep
+  // custodyReceiptPayload: drives the full-screen CustodyReceiptModal (fires after FVM dismisses)
+  const [showInlineReceipt, setShowInlineReceipt] = useState(false);
+  const [showIntentResult, setShowIntentResult] = useState(false);
+  const [custodyReceiptPayload, setCustodyReceiptPayload] = useState<{
+    relationshipName: string;
+    timestamp: string;
+    hash: string;
+    trustDelta: number;
+  } | null>(null);
+
+  useEffect(() => { document.title = "Onboarding | ANAVI"; }, []);
+
+  // Restore progress
+  useEffect(() => {
+    const saved = loadProgress();
+    if (saved.persona) {
+      setPersona(saved.persona);
+      setStep(saved.step);
+      setFormData(saved.formData);
+    }
+  }, []);
+
+  // Persist on change
+  useEffect(() => {
+    saveProgress(persona, step, formData);
+  }, [persona, step, formData]);
+
+  const set = useCallback(
+    (key: string, value: unknown) => setFormData((prev) => ({ ...prev, [key]: value })),
+    [],
+  );
+
+  const goToDashboard = useCallback(() => navigate("/dashboard"), [navigate]);
+
+  const steps = persona ? STEPS[persona] : [];
+  const isLastStep = step === steps.length - 1;
+
+  const handleNext = () => {
+    // FVM triggers
+    if (persona === "originator" && step === 2 && !showInlineReceipt) {
+      setShowInlineReceipt(true);
+      setCustodyReceiptPayload({
+        relationshipName: (formData.relType as string) ? `${formData.relType as string} Relationship` : "New Relationship",
+        timestamp: new Date().toISOString(),
+        hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
+        trustDelta: 12,
+      });
+      setShowFVM(true);
+      return;
+    }
+    if (
+      ((persona === "investor" || persona === "allocator") && step === 3 && !showIntentResult) ||
+      ((persona === "developer" || persona === "acquirer") && step === 3 && !showIntentResult)
+    ) {
+      setShowIntentResult(true);
+      return;
+    }
+
+    if (!isLastStep) {
+      setStep((s) => s + 1);
+      setShowInlineReceipt(false);
+      setShowIntentResult(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 0) {
+      setStep((s) => s - 1);
+      setShowInlineReceipt(false);
+      setShowIntentResult(false);
+    } else {
+      setPersona(null);
+      setStep(0);
+    }
+  };
+
+  // Render step content based on persona + step index
+  function renderStepContent(): ReactNode {
+    if (!persona) return null;
+
+    // Step 0 is always Identity
+    if (step === 0) return <IdentityStep formData={formData} set={set} />;
+
+    switch (persona) {
+      case "originator":
+        if (step === 1) return <OriginatorBusinessStep formData={formData} set={set} />;
+        if (step === 2) return <OriginatorRelationshipStep formData={formData} set={set} showInlineReceipt={showInlineReceipt} />;
+        if (step === 3) return <OriginatorUpgradeStep />;
+        if (step === 4) return <DashboardIntroStep onGo={goToDashboard} />;
+        break;
+      case "investor":
+        if (step === 1) return <InvestorProfileStep formData={formData} set={set} />;
+        if (step === 2) return <InvestorKYCStep formData={formData} set={set} />;
+        if (step === 3) return <IntentCreationStep formData={formData} set={set} intentType="invest" showResult={showIntentResult} />;
+        if (step === 4) return <MarketDepthStep onGo={goToDashboard} />;
+        break;
+      case "developer":
+        if (step === 1) return <DeveloperProjectStep formData={formData} set={set} />;
+        if (step === 2) return <DeveloperVerificationStep />;
+        if (step === 3) return <IntentCreationStep formData={formData} set={set} intentType="seek_investment" showResult={showIntentResult} />;
+        if (step === 4) return <BlindMatchingIntroStep onGo={goToDashboard} />;
+        break;
+      case "allocator":
+        if (step === 1) return <AllocatorFundStep formData={formData} set={set} />;
+        if (step === 2) return <AllocatorComplianceStep formData={formData} set={set} />;
+        if (step === 3) return <IntentCreationStep formData={formData} set={set} intentType="allocate" showResult={showIntentResult} />;
+        if (step === 4) return <PipelinePreviewStep onGo={goToDashboard} label="Institutional pipeline matching your mandate:" />;
+        break;
+      case "acquirer":
+        if (step === 1) return <AcquirerProfileStep formData={formData} set={set} />;
+        if (step === 2) return <AcquirerDDStep formData={formData} set={set} />;
+        if (step === 3) return <IntentCreationStep formData={formData} set={set} intentType="acquire" showResult={showIntentResult} />;
+        if (step === 4) return <PipelinePreviewStep onGo={goToDashboard} label="Acquisition targets matching your criteria:" />;
+        break;
+    }
+    return null;
+  }
+
+  // ---- PERSONA SELECTION (Step 0 / The Fork) ----
+  if (!persona) {
+    return (
+      <div className="min-h-screen bg-mesh">
+        {/* Navy header */}
+        <header className="glass-dark sticky top-0 z-20 px-6 py-6">
+          <div className="mx-auto max-w-4xl">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-white">@</span>
+              <span className="text-2xl font-bold text-white">navi</span>
+              <span className="ml-1 h-2 w-2 rounded-full bg-[#22D4F5] animate-glow-pulse" />
+            </div>
+            <p className="mt-1 text-sm text-white/50">Private Market Operating System</p>
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-4xl px-6 py-12">
+          <h1 className="mb-2 text-center text-3xl font-bold text-white">
+            My primary role is...
+          </h1>
+          <p className="mb-10 text-center text-sm text-white/50">
+            Select the role that best describes how you operate in private markets.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {PERSONAS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  setPersona(p.id);
+                  setStep(0);
+                  setFormData({});
+                  setShowInlineReceipt(false);
+                  setShowIntentResult(false);
+                }}
+                className="hover-lift group cursor-pointer glass-dark rounded-xl p-6 text-left border-0 hover:bg-white/[0.08] transition-all duration-200"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#22D4F5]/10 transition group-hover:bg-[#22D4F5]/15">
+                  <p.icon className="h-6 w-6 text-[#22D4F5]" />
+                </div>
+                <h3 className="mb-1.5 text-base font-bold text-white">{p.label}</h3>
+                <p className="text-sm leading-relaxed text-white/60">{p.description}</p>
+              </button>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ---- WIZARD ----
+  const currentStepDef = steps[step];
+  const showNavButtons = step < steps.length - 1 || (step === steps.length - 1 && !["originator"].includes(persona) && step !== 4);
+  const hideNextOnFinal = isLastStep;
+
+  return (
+    <div className="min-h-screen bg-canvas-void">
+      {/* Cinematic progress bar */}
+      <div className="fixed top-0 left-0 right-0 h-[2px] z-50 bg-white/5">
+        <motion.div
+          className="h-full bg-[#22D4F5]"
+          style={{ boxShadow: "0 0 8px oklch(0.75 0.18 200 / 0.60)" }}
+          animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
+          transition={{ type: "spring", stiffness: 200, damping: 25 }}
+        />
+      </div>
+
+      {/* FVM celebration overlay */}
+      {showFVM && (
+        <FVMCelebration
+          title="Relationship Custodied"
+          subtitle="Your first relationship is now cryptographically timestamped and protected on ANAVI."
+          ctaLabel="Continue Setup"
+          onCta={() => setShowFVM(false)}
+          icon={<Lock className="h-8 w-8 text-[#059669]" />}
+        />
+      )}
+
+      {/* Full-screen custody receipt — fires after FVM dismisses */}
+      <AnimatePresence>
+        {!showFVM && custodyReceiptPayload && (
+          <CustodyReceiptModal
+            {...custodyReceiptPayload}
+            onContinue={() => {
+              setCustodyReceiptPayload(null);
+              setStep((s) => s + 1);
+              setShowInlineReceipt(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Header */}
+      <header className="glass-dark sticky top-0 z-20 px-6 py-5">
+        <div className="mx-auto flex max-w-3xl items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-bold text-white">@</span>
+            <span className="text-xl font-bold text-white">navi</span>
+            <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#22D4F5] animate-glow-pulse" />
+          </div>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/70">
+            {PERSONAS.find((p) => p.id === persona)?.label}
+          </span>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-6 py-8">
+        <ProgressBar steps={steps} current={step} />
+
+        <div className="glass-dark rounded-2xl p-8">
+          <h2 className="mb-1 text-xl font-bold text-white">{currentStepDef.name}</h2>
+          <p className="mb-4 text-xs text-white/40">~{currentStepDef.minutes} min</p>
+
+          <BenefitCard text={currentStepDef.benefit} />
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${persona}-${step}`}
+              initial={{ opacity: 0, x: 20, filter: "blur(6px)" }}
+              animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, x: -20, filter: "blur(6px)" }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {renderStepContent()}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation */}
+          {!hideNextOnFinal && (
+            <div className="mt-8 flex items-center justify-between">
+              <button
+                onClick={handleBack}
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-white/50 transition hover:bg-white/10"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </button>
+              <button
+                onClick={handleNext}
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#C4972A] px-6 py-2.5 text-sm font-medium text-[#060A12] transition hover:bg-[#D4A73A]"
+              >
+                {persona === "originator" && step === 2 && !showInlineReceipt
+                  ? "Secure Relationship"
+                  : step === 3 && !showIntentResult && persona !== "originator"
+                    ? "Create Intent"
+                    : "Continue"}{" "}
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Back-only on final steps that have their own CTA */}
+          {hideNextOnFinal && (
+            <div className="mt-8">
+              <button
+                onClick={handleBack}
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-white/50 transition hover:bg-white/10"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </button>
+            </div>
+          )}
+
+          {/* Skip for originator upgrade step */}
+          {persona === "originator" && step === 3 && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={handleNext}
+                className="cursor-pointer text-sm text-white/30 underline transition hover:text-white/50"
+              >
+                Skip for now
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+```
+
+# AUDIT TASK
+The whitepaper establishes very specific terminology. Every user-facing string must use this vocabulary consistently:
+
+REQUIRED TERMINOLOGY:
+- "Trust Score" (not "score" or "rating")
+- "Relationship Custody" (not "contact management" or "CRM")
+- "Blind Matching" (not "matching" or "discovery")
+- "Deal Room" (not "data room" or "workspace")
+- "Originator Share" or "Attribution" (not "fee split" or "commission")
+- "Lifetime Attribution" (not just "attribution")
+- "Compliance Passport" (the concept of portable KYC/AML)
+- "Introduction Chain" (multi-hop referral chains)
+- "Intent" (buy/sell/invest intents — not "listing" or "request")
+- "Custody Hash" (cryptographic custody proof)
+- "Verification Tier" → Basic/Enhanced/Institutional (not "level 1/2/3")
+- "Mutual Consent" (for blind reveal — not "approval" or "accept")
+- "Escrow Milestone" (not just "milestone")
+
+Also check:
+- Are nav labels in DashboardLayout accurate and whitepaper-aligned?
+- Are page titles (pageTitles object) consistent with whitepaper module names?
+- Are button labels action-oriented and whitepaper-aligned?
+- Are status labels (pending/active/verified) consistent across pages?
+
+Return EXACTLY this JSON (no markdown, pure JSON):
+{
+  "terminology_violations": [
+    {"file": "Dashboard.tsx", "line_approx": 0, "found": "hardcoded text", "should_be": "whitepaper term", "severity": "high|medium|low"}
+  ],
+  "missing_copy_tokens": [
+    {"concept": "Compliance Passport", "appears_in": ["Dashboard.tsx line 571"], "token_needed": "COPY.compliance.passport.label", "suggested_value": "Compliance Passport"}
+  ],
+  "nav_label_issues": [
+    {"current": "Deal Matching", "page": "DealMatching.tsx", "whitepaper_module": "Blind Matching", "recommended": "Deal Matching (fine) or change to Intent Matching"}
+  ],
+  "copy_token_additions": "TypeScript additions to lib/copy.ts as a code string",
+  "label_patches": [
+    {"file": "path", "line_approx": 0, "old": "old text", "new": "whitepaper-aligned text"}
+  ],
+  "overall_copy_quality_score": 7,
+  "top_copy_improvements": ["improvement 1", "improvement 2", "improvement 3"]
+}

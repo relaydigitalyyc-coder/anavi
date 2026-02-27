@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
 import { trpc } from "@/lib/trpc";
 import { useDemoFixtures } from "@/contexts/DemoContext";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, intervalToDuration } from "date-fns";
 import {
   FileText,
   Lock,
@@ -21,7 +21,7 @@ import { motion } from "framer-motion";
 import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { SmoothCounter } from "@/components/PremiumAnimations";
 import { toast } from "sonner";
-import { DASHBOARD, NOTIFICATIONS, TOASTS } from "@/lib/copy";
+import { DASHBOARD, MODULES, NOTIFICATIONS, TOASTS, TOUR } from "@/lib/copy"; // Import new copy tokens
 
 // --- Assuming DEMO_FIXTURES in client/src/lib/demoFixtures.ts is updated as follows: ---
 // interface DemoMatch { id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string; intentType?: 'buy' | 'sell' | 'invest'; }
@@ -325,14 +325,14 @@ export default function Dashboard() {
   const scoreColor = getScoreColor(trustScore);
   const maxDepth = Math.max(...MARKET_DEPTH.map((m) => Math.max(m.buyers, m.sellers)));
 
-  // TODO: wire trustScoreDelta and nextPayoutAmount to stats when added to schema
-  const trustScoreDelta = 3;
-  const nextPayoutAmount = demo ? 92000 : 0;
+  // Placeholder for dynamic trust score change and next payout amount
+  const trustScoreDelta = demo ? 3 : (stats?.trustScoreDelta ?? 3); // Assuming stats will have trustScoreDelta
+  const nextPayoutAmount = demo ? 92000 : (stats?.nextPayoutAmount ?? 0); // Assuming stats will have nextPayoutAmount
 
   // Demo data for new widgets
   const demoRelationships = demo?.relationships ?? [
-    { id: 1, name: "Al-Futtaim Group", custodyAge: "2 years", attributionStatus: "Active" },
-    { id: 2, name: "Riyadh Solar JV", custodyAge: "11 months", attributionStatus: "Pending Payout" },
+    { id: 1, name: "Al-Futtaim Group", custodyHash: "0xabc123...", custodyDate: "2023-01-15T10:00:00Z", attributionStatus: "Active" },
+    { id: 2, name: "Riyadh Solar JV", custodyHash: "0xdef456...", custodyDate: "2023-03-20T14:30:00Z", attributionStatus: "Pending Payout" },
   ];
   const demoIntents = demo?.intents ?? [
     { id: 1, type: "buy", assetClass: "Solar", size: "$10M - $50M" },
@@ -456,19 +456,23 @@ export default function Dashboard() {
             <DashCard title={DASHBOARD.custodiedRelationships.title} dataTour="relationships">
               {demoRelationships.length > 0 ? (
                 <div className="space-y-3">
-                  {demoRelationships.map((rel) => (
-                    <div key={rel.id} className="flex items-center gap-3 text-sm">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/5">
-                        <Fingerprint className="h-4 w-4 text-[#1E3A5F]/60" />
-                      </span>
-                      <div className="flex-1">
-                        <p className="font-semibold text-[#0A1628]">{rel.name}</p>
-                        <p className="text-xs text-[#1E3A5F]/60">
-                          {DASHBOARD.custodiedRelationships.custodyAge} {rel.custodyAge} &middot; {rel.attributionStatus}
-                        </p>
+                  {demoRelationships.map((rel) => {
+                    const duration = intervalToDuration({ start: new Date(rel.custodyDate), end: new Date() });
+                    const age = `${duration.years ? duration.years + 'y ' : ''}${duration.months ? duration.months + 'm ' : ''}${duration.days ? duration.days + 'd' : ''}`.trim() || 'Today';
+                    return (
+                      <div key={rel.id} className="flex items-center gap-3 text-sm">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/5">
+                          <Fingerprint className="h-4 w-4 text-[#1E3A5F]/60" />
+                        </span>
+                        <div className="flex-1">
+                          <p className="font-semibold text-[#0A1628]">{rel.name}</p>
+                          <p className="text-xs text-[#1E3A5F]/60">
+                            {DASHBOARD.custodiedRelationships.custodyAge} {age} &middot; {rel.attributionStatus}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <p className="mt-4 text-xs text-[#1E3A5F]/50 flex items-center gap-1">
                     <Lock className="h-3 w-3" /> {DASHBOARD.custodiedRelationships.attributionCue}
                   </p>
@@ -487,8 +491,7 @@ export default function Dashboard() {
                   </MaybeLink>
                 </div>
               ) : (
-                <>
-                  <EmptyState {...EMPTY_STATES.relationships} title={DASHBOARD.custodiedRelationships.noRelationships} />
+                <EmptyState {...EMPTY_STATES.relationships} title={DASHBOARD.custodiedRelationships.noRelationships}>
                   <MaybeLink href="/relationships" demo={!!demo}>
                     <button
                       className="btn-gold w-full rounded-lg px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.97] mt-4"
@@ -497,7 +500,7 @@ export default function Dashboard() {
                       {DASHBOARD.custodiedRelationships.protectCta}
                     </button>
                   </MaybeLink>
-                </>
+                </EmptyState>
               )}
             </DashCard>
           </StaggerItem>
@@ -759,9 +762,9 @@ export default function Dashboard() {
                             ${p.amount.toLocaleString()}
                           </span>
                           <span className="ml-2 text-xs text-[#1E3A5F]/60">{p.deal}</span>
-                          {('originatorShare' in p) && (p as {originatorShare?: number}).originatorShare && (
+                          {p.originatorShare && (
                             <span className="ml-2 text-xs font-data-mono text-[#059669]">
-                              ({DASHBOARD.payouts.originationShare} {(p as {originatorShare: number}).originatorShare}%)
+                              ({DASHBOARD.payouts.originationShare} {p.originatorShare}%)
                             </span>
                           )}
                         </div>
@@ -796,7 +799,12 @@ export default function Dashboard() {
                         <span className="ml-2 text-xs text-[#1E3A5F]/60">
                           {p.payoutType.replace(/_/g, " ")}
                         </span>
-                        {/* TODO: wire originatorShare when added to payout schema */}
+                        {/* Assuming live payouts will also have an originatorShare or similar */}
+                        {p.originatorShare && (
+                          <span className="ml-2 text-xs font-data-mono text-[#059669]">
+                            ({DASHBOARD.payouts.originationShare} {p.originatorShare}%)
+                          </span>
+                        )}
                       </div>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${

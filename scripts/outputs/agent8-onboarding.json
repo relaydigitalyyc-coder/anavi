@@ -1,0 +1,369 @@
+```json
+{
+  "step_audit": [
+    {
+      "step_index": 0,
+      "step_name": "Persona Selection (ONBOARDING.TSX)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "medium",
+      "issues": [
+        "The initial ONBOARDING.TSX landing page focuses heavily on ANAVI's benefits and features ('After' state) but does not explicitly articulate the core problems ANAVI solves ('Before' state) as detailed in the whitepaper (broker chains, relationship leakage, due diligence duplication, fraud). The 'PROBLEMS' object in lib/copy.ts is unused here.",
+        "The 'Founding Member Access' badge is good for exclusivity but could be tied more directly to the whitepaper's vision of a 'private club' for elite participants."
+      ],
+      "proposed_copy": "Integrate a concise problem statement section, perhaps before the 'Capabilities' or within the hero subtitle, leveraging `lib/copy.ts/PROBLEMS` to set the stage for ANAVI as the solution.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 0,
+      "step_name": "Persona Selection (ONBOARDINGFLOW.TSX)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "medium",
+      "issues": [
+        "The persona descriptions in ONBOARDINGFLOW.TSX are functional but less impactful than the problem/answer statements defined in `lib/copy.ts/PERSONAS`. They don't fully leverage the direct, problem-solution framing from the whitepaper.",
+        "The 'Allocator' and 'Acquirer' personas are not explicitly defined in `lib/copy.ts/PERSONAS`, leading to potential inconsistency if their problem/answer statements were to be added there later."
+      ],
+      "proposed_copy": {
+        "originator": "My introductions close deals I never get credit for. → Custody your relationships. Timestamp your introductions. Collect your attribution.",
+        "investor": "I can't tell which deals are real or who's already seen them. → Verified counterparties. Blind matching. Mutual consent before any disclosure.",
+        "developer": "Raising capital means exposing my thesis before anyone commits. → Anonymous until you consent. NDA-gated rooms. Escrow-backed milestones."
+      },
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 0,
+      "step_name": "Identity (All Personas)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "medium",
+      "issues": [
+        "The benefit statement for the 'Identity' step is generic and heavily skewed towards the 'Originator' persona ('Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims.'). While relevant for Originators, it doesn't adequately articulate the specific value of identity/KYC for other personas (e.g., for Investors, it's about accessing trusted deal flow; for Developers, it's about attracting qualified capital and protecting their thesis). This dilutes the persona-specific value proposition.",
+        "The form fields are standard and appropriate."
+      ],
+      "proposed_copy": {
+        "originator": "Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims.",
+        "investor": "Establishes your verified identity — the foundation for accessing trusted deal flow and pre-verified counterparties.",
+        "developer": "Establishes your verified identity — the foundation for attracting qualified capital and protecting your project thesis.",
+        "allocator": "Establishes your institutional identity — the foundation for accessing verified deal flow and trusted counterparties.",
+        "acquirer": "Establishes your corporate identity — the foundation for confidential acquisition sourcing and verified targets."
+      },
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 1,
+      "step_name": "Business Profile (Originator)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 2,
+      "step_name": "First Relationship (Originator)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "The inline `CustodyReceipt` component (local function) is redundant given the `FVMCelebration` and `CustodyReceiptModal` sequence. It also uses inline copy ('Relationship Secured', 'Your relationship is now protected. Forever.') instead of `lib/copy.ts/CUSTODY_RECEIPT` tokens, violating the 'single source of truth' principle.",
+        "The `Secure Relationship` CTA is strong and aligns with the action."
+      ],
+      "proposed_copy": "Remove the inline `CustodyReceipt` component. The `FVMCelebration` and subsequent `CustodyReceiptModal` should be the sole 'aha' moment for relationship custody. Ensure `FVMCelebration`'s subtitle uses `CUSTODY_RECEIPT.body`.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 3,
+      "step_name": "Upgrade Prompt (Originator)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "The benefits listed for 'Tier 1' could be slightly more specific to contrast better with 'Tier 2' (e.g., 'Basic relationship custody' vs. 'Unlimited relationships').",
+        "'Commission tracking' for Tier 2 is a strong, direct benefit aligning with the Economics Engine."
+      ],
+      "proposed_copy": "For Tier 1: 'Basic relationship custody', 'Limited AI matching', '5 relationships/month'.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 4,
+      "step_name": "Dashboard Intro (Originator)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 1,
+      "step_name": "Investment Profile (Investor)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 2,
+      "step_name": "KYB / KYC (Investor)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "The `UploadZone` label 'Supporting Documentation' is generic. It could be more specific to the context of investor accreditation and fund documentation."
+      ],
+      "proposed_copy": "Change `UploadZone` label to 'Accreditation & Fund Documentation'.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 3,
+      "step_name": "First Intent (Investor)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "The 'Intent Created' result message is functional but lacks the gravitas and detailed explanation of 'blind matching' found in `lib/copy.ts/TOUR.blindMatch`. This is a key 'aha' moment for non-originator personas and should be more impactful."
+      ],
+      "proposed_copy": "Enhance the 'Intent Created' result to leverage `TOUR.blindMatch.title` and `TOUR.blindMatch.body` for a stronger, more aligned message.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 4,
+      "step_name": "Market Depth (Investor)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "medium",
+      "issues": [
+        "The benefit copy is functional but could be more evocative of the 'Bloomberg Terminal meets private club' aesthetic and the value of pre-verified opportunities."
+      ],
+      "proposed_copy": "Your verified capital, matched to exclusive opportunities. See the real-time depth of the private market, curated for your thesis.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 1,
+      "step_name": "Project Profile (Developer)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 2,
+      "step_name": "Verification (Developer)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "The statement 'Verified projects receive 3× more investor engagement' is an excellent data point that reinforces value."
+      ],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 3,
+      "step_name": "Capital Intent (Developer)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "Similar to the Investor's 'First Intent' step, the 'Intent Created' result message lacks the detailed explanation of 'blind matching' from `lib/copy.ts/TOUR.blindMatch`."
+      ],
+      "proposed_copy": "Enhance the 'Intent Created' result to leverage `TOUR.blindMatch.title` and `TOUR.blindMatch.body` for a stronger, more aligned message.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 4,
+      "step_name": "Blind Matching (Developer)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "The `BlindMatchingIntroStep` is well-designed and clearly articulates the value proposition of blind matching, directly addressing the persona's problem."
+      ],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 1,
+      "step_name": "Fund Profile (Allocator)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 2,
+      "step_name": "Compliance (Allocator)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 3,
+      "step_name": "First Allocation (Allocator)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "Similar to other personas, the 'Intent Created' result message lacks the detailed explanation of 'blind matching' from `lib/copy.ts/TOUR.blindMatch`."
+      ],
+      "proposed_copy": "Enhance the 'Intent Created' result to leverage `TOUR.blindMatch.title` and `TOUR.blindMatch.body` for a stronger, more aligned message.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 4,
+      "step_name": "Pipeline Preview (Allocator)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "medium",
+      "issues": [
+        "The benefit copy is functional but could be more evocative of the institutional-grade pipeline and the value of pre-verified opportunities."
+      ],
+      "proposed_copy": "Your mandate, matched to exclusive institutional opportunities. Preview the real-time pipeline awaiting your capital.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 1,
+      "step_name": "Acquisition Profile (Acquirer)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 2,
+      "step_name": "Due Diligence (Acquirer)",
+      "current_copy_quality": "high",
+      "whitepaper_alignment": "high",
+      "issues": [],
+      "proposed_copy": "N/A",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 3,
+      "step_name": "First Target Intent (Acquirer)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "high",
+      "issues": [
+        "Similar to other personas, the 'Intent Created' result message lacks the detailed explanation of 'blind matching' from `lib/copy.ts/TOUR.blindMatch`."
+      ],
+      "proposed_copy": "Enhance the 'Intent Created' result to leverage `TOUR.blindMatch.title` and `TOUR.blindMatch.body` for a stronger, more aligned message.",
+      "cta_quality": "high"
+    },
+    {
+      "step_index": 4,
+      "step_name": "Target Pipeline (Acquirer)",
+      "current_copy_quality": "medium",
+      "whitepaper_alignment": "medium",
+      "issues": [
+        "The benefit copy is functional but could be more evocative of the value of pre-verified acquisition targets."
+      ],
+      "proposed_copy": "Your criteria, matched to exclusive acquisition targets. Preview the real-time pipeline of pre-verified opportunities.",
+      "cta_quality": "high"
+    }
+  ],
+  "custody_receipt_implementation": {
+    "is_implemented": true,
+    "quality": "medium",
+    "issues": [
+      "The inline `CustodyReceipt` component (local function) is redundant and uses inconsistent copy not sourced from `lib/copy.ts/CUSTODY_RECEIPT`. This dilutes the primary 'aha' moment.",
+      "The `FVMCelebration` component's `subtitle` uses inline copy instead of `CUSTODY_RECEIPT.body`."
+    ],
+    "improvements": [
+      "Remove the local `CustodyReceipt` function and its usage in `OriginatorRelationshipStep`. The `FVMCelebration` followed by `CustodyReceiptModal` should be the sole, canonical 'aha' for relationship custody.",
+      "Update `FVMCelebration`'s `subtitle` prop to use `CUSTODY_RECEIPT.body` for consistency.",
+      "Ensure the `CustodyReceiptModal` (the imported component) fully leverages `CUSTODY_RECEIPT.title` and `CUSTODY_RECEIPT.body` for its content."
+    ]
+  },
+  "flow_logic_issues": [
+    {
+      "description": "Redundant inline `CustodyReceipt` for Originator, creating a confusing sequence of 'aha' moments.",
+      "step": "Originator - First Relationship",
+      "fix": "Remove the inline `CustodyReceipt` component. The `FVMCelebration` should lead directly to the `CustodyReceiptModal` (full-screen) as the primary confirmation."
+    },
+    {
+      "description": "The 'Intent Created' result for Investor, Developer, Allocator, and Acquirer is generic and doesn't fully articulate the 'blind matching' value proposition.",
+      "step": "Investor/Developer/Allocator/Acquirer - First Intent/Allocation/Target Intent",
+      "fix": "Enhance the `IntentCreationStep` result to use `lib/copy.ts/TOUR.blindMatch` copy for a more impactful and aligned 'aha' moment."
+    },
+    {
+      "description": "The 'Identity' step benefit is not persona-specific, leading to a diluted value proposition for non-Originators.",
+      "step": "All Personas - Identity",
+      "fix": "Tailor the benefit copy for the 'Identity' step for each persona to highlight its specific value (as proposed in `step_audit`)."
+    }
+  ],
+  "value_prop_gaps": [
+    {
+      "missing_concept": "Explicit Problem Statement (Initial Landing Page)",
+      "where_to_add": "ONBOARDING.TSX hero section or a dedicated 'Problems We Solve' section.",
+      "suggested_copy": "Leverage `lib/copy.ts/PROBLEMS` to introduce the 'Before' state (e.g., 'Before ANAVI: 5-15 Intermediaries Per Deal, $40B Annual Fraud Losses, $500K Duplicated Due Diligence'). This sets a stronger context for ANAVI as the solution."
+    },
+    {
+      "missing_concept": "Dynamic Trust Score (Beyond Originator's TrustDelta)",
+      "where_to_add": "Dashboard Intro for all personas, or a dedicated 'Trust Score' step/card.",
+      "suggested_copy": "For Dashboard Intro: 'Your dynamic Trust Score is already building, enhancing your access and credibility across the network.' (Leveraging `lib/copy.ts/TOUR.trustScore`)."
+    },
+    {
+      "missing_concept": "Lifetime Attribution (Beyond initial custody receipt)",
+      "where_to_add": "Originator's Dashboard Intro or a tooltip/feature highlight.",
+      "suggested_copy": "For Originator's Dashboard Intro: 'Every introduction you make from here is custodied, building compounding relationship value and lifetime attribution for follow-on deals.'"
+    }
+  ],
+  "patches": [
+    {
+      "file": "client/src/pages/Onboarding.tsx",
+      "description": "Introduce a 'Problems We Solve' section using `lib/copy.ts/PROBLEMS` to align with the whitepaper's problem-solution framing.",
+      "old_code": "N/A (new section)",
+      "new_code": "```tsx\n// Example new section after Hero, before Capabilities\n<section className=\"py-24 px-4 relative bg-background/80\">\n  <div className=\"max-w-6xl mx-auto text-center\">\n    <motion.h2\n      className=\"text-4xl md:text-5xl font-serif mb-12\"\n      initial={{ opacity: 0, y: 30 }}\n      whileInView={{ opacity: 1, y: 0 }}\n      viewport={{ once: true }}\n    >\n      The Private Market <GradientText>Before ANAVI</GradientText>\n    </motion.h2>\n    <div className=\"grid md:grid-cols-3 gap-8\">\n      {Object.values(PROBLEMS).map((problem, i) => (\n        <motion.div\n          key={i}\n          className=\"bg-card/80 backdrop-blur-sm border border-border/50 p-6 text-left\"\n          initial={{ opacity: 0, y: 40 }}\n          whileInView={{ opacity: 1, y: 0 }}\n          viewport={{ once: true }}\n          transition={{ delay: i * 0.1 }}\n        >\n          <div className=\"text-5xl font-light text-sky-500 mb-4\">{problem.stat}</div>\n          <h3 className=\"text-xl font-medium mb-2\">{problem.headline}</h3>\n          <p className=\"text-muted-foreground leading-relaxed\">{problem.body}</p>\n        </motion.div>\n      ))}\n    </div>\n  </div>\n</section>\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Update persona descriptions on the selection screen to use `lib/copy.ts/PERSONAS` problem/answer statements.",
+      "old_code": "```tsx\nconst PERSONAS: PersonaTile[] = [\n  {\n    id: \"originator\",\n    label: \"Deal Originator / Broker\",\n    icon: Handshake,\n    description:\n      \"I source deals and introduce buyers to sellers. I want my relationships protected.\",\n  },\n  // ... other personas\n];\n```",
+      "new_code": "```tsx\nimport { PERSONAS as PERSONAS_COPY } from '@/lib/copy'; // Import with alias\n// ...\nconst PERSONAS: PersonaTile[] = [\n  {\n    id: \"originator\",\    label: PERSONAS_COPY.originator.label,\n    icon: Handshake,\n    description: `${PERSONAS_COPY.originator.problem} → ${PERSONAS_COPY.originator.answer}`,\n  },\n  {\n    id: \"investor\",\n    label: PERSONAS_COPY.investor.label,\n    icon: TrendingUp,\n    description: `${PERSONAS_COPY.investor.problem} → ${PERSONAS_COPY.investor.answer}`,\n  },\n  {\n    id: \"developer\",\n    label: PERSONAS_COPY.developer.label,\n    icon: Building2,\n    description: `${PERSONAS_COPY.developer.problem} → ${PERSONAS_COPY.developer.answer}`,\n  },\n  // For allocator/acquirer, if not in PERSONAS_COPY, keep existing or add to PERSONAS_COPY\n  {\n    id: \"allocator\",\n    label: \"Institutional Allocator\",\n    icon: Landmark,\n    description:\n      \"I manage a fund and deploy capital systematically at scale.\",\n  },\n  {\n    id: \"acquirer\",\n    label: \"Strategic Acquirer\",\n    icon: Target,\n    description:\n      \"I'm a corporate acquirer seeking acquisition targets confidentially.\",\n  },\n];\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Tailor the 'Identity' step benefit for each persona.",
+      "old_code": "```tsx\nconst STEPS: Record<Persona, StepDef[]> = {\n  originator: [\n    { name: \"Identity\", minutes: 3, benefit: \"Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims.\" },\n    // ...\n  ],\n  investor: [\n    { name: \"Identity\", minutes: 3, benefit: \"Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims.\" },\n    // ...\n  ],\n  // ... and similar for developer, allocator, acquirer\n};\n```",
+      "new_code": "```tsx\nconst STEPS: Record<Persona, StepDef[]> = {\n  originator: [\n    { name: \"Identity\", minutes: 3, benefit: \"Establishes your timestamp authority — the cryptographic foundation of your relationship custody claims.\" },\n    // ...\n  ],\n  investor: [\n    { name: \"Identity\", minutes: 3, benefit: \"Establishes your verified identity — the foundation for accessing trusted deal flow and pre-verified counterparties.\" },\n    // ...\n  ],\n  developer: [\n    { name: \"Identity\", minutes: 3, benefit: \"Establishes your verified identity — the foundation for attracting qualified capital and protecting your project thesis.\" },\n    // ...\n  ],\n  allocator: [\n    { name: \"Identity\", minutes: 3, benefit: \"Establishes your institutional identity — the foundation for accessing verified deal flow and trusted counterparties.\" },\n    // ...\n  ],\n  acquirer: [\n    { name: \"Identity\", minutes: 3, benefit: \"Establishes your corporate identity — the foundation for confidential acquisition sourcing and verified targets.\" },\n    // ...\n  ],\n};\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Remove the inline `CustodyReceipt` component and update `handleNext` logic for Originator's Step 2.",
+      "old_code": "```tsx\n// Remove local CustodyReceipt function\n// ...\nfunction OriginatorRelationshipStep({ formData, set, showInlineReceipt }) {\n  if (showInlineReceipt) return <CustodyReceipt />; // Remove this block\n  // ...\n}\n// ...\nconst handleNext = () => {\n  if (persona === \"originator\" && step === 2 && !showInlineReceipt) {\n    setShowInlineReceipt(true);\n    setCustodyReceiptPayload({ /* ... */ });\n    setShowFVM(true);\n    return;\n  }\n  // ...\n};\n```",
+      "new_code": "```tsx\n// Remove the local CustodyReceipt function entirely from the file.\n// ...\nfunction OriginatorRelationshipStep({ formData, set }) { // Remove showInlineReceipt prop\n  // Always render the form fields, the 'aha' comes after submission\n  return (\n    <div className=\"space-y-5\">\n      <RadioGroup label=\"Relationship Type\" value={(formData.relType as string) ?? \"\"} onChange={(v) => set(\"relType\", v)} options={[\"Buyer\", \"Seller\", \"Investor\", \"Developer\", \"Other\"]} />\n      <SelectField label=\"Sector\" value={(formData.relSector as string) ?? \"\"} onChange={(v) => set(\"relSector\", v)} options={VERTICALS} />\n      <div className=\"grid grid-cols-2 gap-4\">\n        <InputField label=\"Min Deal Size\" value={(formData.relMinSize as string) ?? \"\"} onChange={(v) => set(\"relMinSize\", v)} placeholder=\"$1M\" />\n        <InputField label=\"Max Deal Size\" value={(formData.relMaxSize as string) ?? \"\"} onChange={(v) => set(\"relMaxSize\", v)} placeholder=\"$50M\" />\n      </div>\n      <MultiSelectChips label=\"Geographic Focus\" options={GEOGRAPHIES} selected={((formData.relGeo as string[]) ?? [])} onChange={(v) => set(\"relGeo\", v)} />\n      <TextArea label=\"Notes\" value={(formData.relNotes as string) ?? \"\"} onChange={(v) => set(\"relNotes\", v)} placeholder=\"Any relevant context about this relationship...\" />\n    </div>\n  );\n}\n// ...\nconst handleNext = () => {\n  if (persona === \"originator\" && step === 2) { // Simplified condition\n    setCustodyReceiptPayload({\n      relationshipName: (formData.relType as string) ? `${formData.relType as string} Relationship` : \"New Relationship\",\n      timestamp: new Date().toISOString(),\n      hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,\n      trustDelta: 12,\n    });\n    setShowFVM(true);\n    return; // Stop here, FVM will trigger the next step after dismissal\n  }\n  // ...\n};\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Enhance the 'Intent Created' result for non-Originator personas using `lib/copy.ts/TOUR.blindMatch`.",
+      "old_code": "```tsx\n// In IntentCreationStep\nif (showResult) {\n  const matchCount = 3 + Math.floor(Math.random() * 13);\n  return (\n    <div className=\"rounded-xl border border-[#059669]/30 bg-[#059669]/5 p-6 text-center\">\n      <p className=\"text-lg font-bold text-white\">Intent Created</p>\n      <p className=\"mt-2 text-sm text-white/80\">\n        Your intent matches <span className=\"font-bold text-[#2563EB]\">{matchCount}</span> verified opportunities\n      </p>\n    </div>\n  );\n}\n```",
+      "new_code": "```tsx\nimport { TOUR } from '@/lib/copy'; // Add this import\n// ...\n// In IntentCreationStep\nif (showResult) {\n  const matchCount = 3 + Math.floor(Math.random() * 13);\n  return (\n    <div className=\"rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/5 p-6 text-center\">\n      <div className=\"mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB]/10\">\n        <Target className=\"h-6 w-6 text-[#2563EB]\" />\n      </div>\n      <p className=\"text-lg font-bold text-white\">{TOUR.blindMatch.title}</p>\n      <p className=\"mt-2 text-sm text-white/80\">\n        {TOUR.blindMatch.body} <br/>\n        Your intent currently matches <span className=\"font-bold text-[#2563EB]\">{matchCount}</span> verified opportunities.\n      </p>\n    </div>\n  );\n}\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Update `FVMCelebration` subtitle to use `lib/copy.ts/CUSTODY_RECEIPT.body`.",
+      "old_code": "```tsx\n// In OnboardingFlow render\n{showFVM && (\n  <FVMCelebration\n    title=\"Relationship Custodied\"\n    subtitle=\"Your first relationship is now cryptographically timestamped and protected on ANAVI.\"\n    // ...\n  />\n)}\n```",
+      "new_code": "```tsx\nimport { CUSTODY_RECEIPT } from '@/lib/copy'; // Add this import\n// ...\n// In OnboardingFlow render\n{showFVM && (\n  <FVMCelebration\n    title={CUSTODY_RECEIPT.title}\n    subtitle={CUSTODY_RECEIPT.body}\n    // ...\n  />\n)}\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Update `InvestorKYCStep`'s UploadZone label for clarity.",
+      "old_code": "```tsx\n<UploadZone label=\"Supporting Documentation\" />\n```",
+      "new_code": "```tsx\n<UploadZone label=\"Accreditation & Fund Documentation\" />\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Update benefit copy for Investor's Market Depth step.",
+      "old_code": "```tsx\n{ name: \"Market Depth\", minutes: 1, benefit: \"See the depth of opportunities waiting for your capital.\" },\n```",
+      "new_code": "```tsx\n{ name: \"Market Depth\", minutes: 1, benefit: \"Your verified capital, matched to exclusive opportunities. See the real-time depth of the private market, curated for your thesis.\" },\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Update benefit copy for Allocator's Pipeline Preview step.",
+      "old_code": "```tsx\n{ name: \"Pipeline Preview\", minutes: 1, benefit: \"See the institutional pipeline awaiting your capital.\" },\n```",
+      "new_code": "```tsx\n{ name: \"Pipeline Preview\", minutes: 1, benefit: \"Your mandate, matched to exclusive institutional opportunities. Preview the real-time pipeline awaiting your capital.\" },\n```"
+    },
+    {
+      "file": "client/src/pages/OnboardingFlow.tsx",
+      "description": "Update benefit copy for Acquirer's Target Pipeline step.",
+      "old_code": "```tsx\n{ name: \"Target Pipeline\", minutes: 1, benefit: \"Preview acquisition targets matching your criteria — every counterparty pre-verified.\" },\n```",
+      "new_code": "```tsx\n{ name: \"Target Pipeline\", minutes: 1, benefit: \"Your criteria, matched to exclusive acquisition targets. Preview the real-time pipeline of pre-verified opportunities.\" },\n```"
+    }
+  ],
+  "overall_onboarding_score": 7,
+  "summary": "The ANAVI onboarding flow presents a strong visual and interactive experience, aligning well with the 'luxury aesthetic' and 'institutional-grade' UX principles. The persona-specific paths are a thoughtful implementation. However, the flow currently underutilizes the powerful problem-solution framing articulated in the whitepaper and `lib/copy.ts`. Key 'aha' moments for non-Originator personas are less impactful than the Originator's custody receipt, and there are inconsistencies in copy sourcing. Addressing these issues, particularly by explicitly stating the problems ANAVI solves upfront and tailoring the value proposition more precisely at each step, will significantly enhance alignment with the whitepaper's vision and create a more compelling first impression."
+}
+```
