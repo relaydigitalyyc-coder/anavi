@@ -121,11 +121,12 @@ function TrustScoreChip({ score }: { score: number }) {
 }
 
 const mobileNavItems = [
-  { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Target, label: "Matches", path: "/deal-matching" },
-  { icon: Users, label: "Relationships", path: "/relationships" },
-  { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms" },
-  { icon: User, label: "Profile", path: "/settings" },
+  { icon: Home,   label: "Dashboard",     path: "/dashboard" },
+  { icon: Target, label: "Blind Matching", path: "/deal-matching" },
+  { icon: Users,  label: "Relationships",  path: "/relationships" },
+  { icon: Wallet, label: "Payouts",        path: "/payouts" },
+  { icon: Shield, label: "Verification",   path: "/verification" },
+  { icon: User,   label: "Profile",        path: "/settings" },
 ] as const;
 
 const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: string }> = {

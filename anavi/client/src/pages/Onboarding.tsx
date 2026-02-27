@@ -249,7 +249,7 @@ export default function Onboarding() {
                   </motion.button>
                 </Magnetic>
               </Link>
-              <Link href="/deal-room">
+              <Link href="/deal-rooms">
                 <motion.button
                   className="px-10 py-4 text-base font-medium border border-border/50 hover:border-sky-500/50 hover:bg-sky-500/5 transition-all duration-300"
                   whileHover={{ scale: 1.02 }}

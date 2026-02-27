@@ -15,7 +15,9 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 
-// Demo fee data
+// ─── DEMO DATA ──────────────────────────────────────────────────────────────
+// TODO: Replace with live tRPC queries when fee schema is finalised.
+// trpc.fees.list returns recentFees only; aggregate stats are not yet in schema.
 const feeStats = {
   totalRevenue: 15840000,
   managementFees: 7482000,
@@ -50,6 +52,7 @@ const monthlyRevenue = [
   { month: "Dec", revenue: 2340000 },
   { month: "Jan", revenue: 2890000 },
 ];
+// ─── END DEMO DATA ──────────────────────────────────────────────────────────
 
 export default function FeeManagement() {
   const { data: recentFees = [] } = trpc.fees.list.useQuery();
