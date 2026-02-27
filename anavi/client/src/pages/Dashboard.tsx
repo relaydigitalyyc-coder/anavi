@@ -322,7 +322,7 @@ export default function Dashboard() {
       )}
       {/* E13: Personalized greeting */}
       <FadeInView>
-        <div className="mb-6 flex items-baseline justify-between">
+        <div data-tour="dashboard" className="mb-6 flex items-baseline justify-between">
           <div>
             <h1 className="dash-heading text-3xl">
               {getGreeting()}, {user?.name?.split(" ")[0] ?? "there"}
@@ -383,6 +383,7 @@ export default function Dashboard() {
             <div className="space-y-2">
               <MaybeLink href="/deal-matching" demo={!!demo}>
                 <button
+                  data-tour="create-intent"
                   className="btn-gold w-full rounded-lg px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.97]"
                   onClick={() => { if (!demo) toast.success("Navigating to Deal Matching"); }}
                 >
@@ -409,10 +410,11 @@ export default function Dashboard() {
 
         {/* ───────── Center Column ───────── */}
         <FadeInView delay={0.1}>
-          {/* Demo: Blind Match Cards */}
-          {demo && (demo.matches as unknown as unknown[]).length > 0 && (
-            <div className="mb-6">
-              <h2 className="mb-3 dash-heading text-xl">Blind Matches</h2>
+          {/* Blind Matches — always present so onboardingTour can target it.
+              Demo: shows fixture match cards. Live: shows tRPC data (wired when real matching lands). */}
+          <div data-tour="deal-matching" className="mb-6">
+            <h2 className="mb-3 dash-heading text-xl">Blind Matches</h2>
+            {demo && (demo.matches as unknown as unknown[]).length > 0 ? (
               <StaggerContainer className="space-y-3">
                 {(demo.matches as unknown as ReadonlyArray<{ id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string }>).map((m, idx) => (
                   <StaggerItem key={m.id}>
@@ -444,10 +446,14 @@ export default function Dashboard() {
                   </StaggerItem>
                 ))}
               </StaggerContainer>
-            </div>
-          )}
+            ) : !demo ? (
+              <div className="card-elevated p-6">
+                <EmptyState {...EMPTY_STATES.matches} />
+              </div>
+            ) : null}
+          </div>
 
-          {/* Demo: Deal Rooms */}
+          {/* Deal Rooms — demo only until live deal rooms are wired to this dashboard */}
           {demo && (demo.dealRooms as unknown as unknown[]).length > 0 && (
             <div className="mb-6">
               <h2 className="mb-3 dash-heading text-xl">Deal Rooms</h2>
@@ -489,6 +495,7 @@ export default function Dashboard() {
             </div>
           )}
 
+          <div data-tour="activity-feed">
           <h2 className="mb-4 dash-heading text-2xl">Activity</h2>
 
           {notifications.length > 0 ? (
@@ -535,6 +542,7 @@ export default function Dashboard() {
               <EmptyState {...EMPTY_STATES.notifications} />
             </div>
           )}
+          </div>{/* /data-tour="activity-feed" */}
         </FadeInView>
 
         {/* ───────── Right Column ───────── */}
@@ -658,18 +666,20 @@ export default function Dashboard() {
         </StaggerContainer>
       </div>
 
-      {/* Apply CTA — tour target + demo conversion path */}
+      {/* Apply CTA — onboardingTour "completion" target + demo "apply" target */}
       <FadeInView delay={0.3}>
-        <div data-tour="apply" className="mt-8 flex justify-center">
-          <Link href="/onboarding">
-            <motion.button
-              className="px-8 py-3 border border-[#C4972A]/40 text-[#C4972A] text-sm uppercase tracking-widest font-semibold hover:bg-[#C4972A]/5 transition-colors"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Request Full Access
-            </motion.button>
-          </Link>
+        <div data-tour="completion" className="mt-8">
+          <div data-tour="apply" className="flex justify-center">
+            <Link href="/onboarding">
+              <motion.button
+                className="px-8 py-3 border border-[#C4972A]/40 text-[#C4972A] text-sm uppercase tracking-widest font-semibold hover:bg-[#C4972A]/5 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Request Full Access
+              </motion.button>
+            </Link>
+          </div>
         </div>
       </FadeInView>
     </>

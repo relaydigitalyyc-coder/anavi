@@ -240,7 +240,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const SidebarNav = () => (
     <>
-      <nav aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <nav data-tour="demo-nav" aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         {navSections.map((section) => {
           const isCollapsed = collapsedSections[section.label];
           const hasActive = section.items.some(item => location === item.path);
