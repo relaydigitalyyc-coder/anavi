@@ -491,13 +491,13 @@ function OriginatorBusinessStep({
 function OriginatorRelationshipStep({
   formData,
   set,
-  showReceipt,
+  showInlineReceipt,
 }: {
   formData: Record<string, unknown>;
   set: (k: string, v: unknown) => void;
-  showReceipt: boolean;
+  showInlineReceipt: boolean;
 }) {
-  if (showReceipt) return <CustodyReceipt />;
+  if (showInlineReceipt) return <CustodyReceipt />;
   return (
     <div className="space-y-5">
       <RadioGroup label="Relationship Type" options={["Buyer", "Seller", "Investor", "Developer", "Other"]} value={(formData.relType as string) ?? ""} onChange={(v) => set("relType", v)} />
@@ -859,7 +859,9 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [showFVM, setShowFVM] = useState(false);
-  const [showReceipt, setShowReceipt] = useState(false);
+  // showInlineReceipt: drives the mini CustodyReceipt inside OriginatorRelationshipStep
+  // custodyReceiptPayload: drives the full-screen CustodyReceiptModal (fires after FVM dismisses)
+  const [showInlineReceipt, setShowInlineReceipt] = useState(false);
   const [showIntentResult, setShowIntentResult] = useState(false);
   const [custodyReceiptPayload, setCustodyReceiptPayload] = useState<{
     relationshipName: string;
@@ -897,8 +899,8 @@ export default function OnboardingFlow() {
 
   const handleNext = () => {
     // FVM triggers
-    if (persona === "originator" && step === 2 && !showReceipt) {
-      setShowReceipt(true);
+    if (persona === "originator" && step === 2 && !showInlineReceipt) {
+      setShowInlineReceipt(true);
       setCustodyReceiptPayload({
         relationshipName: (formData.relType as string) ? `${formData.relType as string} Relationship` : "New Relationship",
         timestamp: new Date().toISOString(),
@@ -918,7 +920,7 @@ export default function OnboardingFlow() {
 
     if (!isLastStep) {
       setStep((s) => s + 1);
-      setShowReceipt(false);
+      setShowInlineReceipt(false);
       setShowIntentResult(false);
     }
   };
@@ -926,7 +928,7 @@ export default function OnboardingFlow() {
   const handleBack = () => {
     if (step > 0) {
       setStep((s) => s - 1);
-      setShowReceipt(false);
+      setShowInlineReceipt(false);
       setShowIntentResult(false);
     } else {
       setPersona(null);
@@ -944,7 +946,7 @@ export default function OnboardingFlow() {
     switch (persona) {
       case "originator":
         if (step === 1) return <OriginatorBusinessStep formData={formData} set={set} />;
-        if (step === 2) return <OriginatorRelationshipStep formData={formData} set={set} showReceipt={showReceipt} />;
+        if (step === 2) return <OriginatorRelationshipStep formData={formData} set={set} showInlineReceipt={showInlineReceipt} />;
         if (step === 3) return <OriginatorUpgradeStep />;
         if (step === 4) return <DashboardIntroStep onGo={goToDashboard} />;
         break;
@@ -1009,7 +1011,7 @@ export default function OnboardingFlow() {
                   setPersona(p.id);
                   setStep(0);
                   setFormData({});
-                  setShowReceipt(false);
+                  setShowInlineReceipt(false);
                   setShowIntentResult(false);
                 }}
                 className="hover-lift group cursor-pointer glass-dark rounded-xl p-6 text-left border-0 hover:bg-white/[0.08] transition-all duration-200"
@@ -1063,7 +1065,7 @@ export default function OnboardingFlow() {
             onContinue={() => {
               setCustodyReceiptPayload(null);
               setStep((s) => s + 1);
-              setShowReceipt(false);
+              setShowInlineReceipt(false);
             }}
           />
         )}
@@ -1117,7 +1119,7 @@ export default function OnboardingFlow() {
                 onClick={handleNext}
                 className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#C4972A] px-6 py-2.5 text-sm font-medium text-[#060A12] transition hover:bg-[#D4A73A]"
               >
-                {persona === "originator" && step === 2 && !showReceipt
+                {persona === "originator" && step === 2 && !showInlineReceipt
                   ? "Secure Relationship"
                   : step === 3 && !showIntentResult && persona !== "originator"
                     ? "Create Intent"

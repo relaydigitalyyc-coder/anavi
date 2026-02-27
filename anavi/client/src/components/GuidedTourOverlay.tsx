@@ -22,7 +22,21 @@ export function GuidedTourOverlay({ persona, onExitDemo }: GuidedTourOverlayProp
   const handleComplete = useCallback(() => setShowClose(true), []);
   const handleSkip = useCallback(() => setTourDismissed(true), []);
 
-  if (tourDismissed && !showClose) return null;
+  // After "Continue Exploring", keep a floating exit affordance so user isn't trapped.
+  if (tourDismissed && !showClose) {
+    return (
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        onClick={onExitDemo}
+        className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 rounded-full border border-white/20 bg-[#060A12]/90 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white/50 shadow-lg backdrop-blur-sm transition-colors hover:border-white/40 hover:text-white/80 cursor-pointer"
+        aria-label="Exit demo"
+      >
+        ← Exit Demo
+      </motion.button>
+    );
+  }
 
   const steps = buildDemoTourSteps(persona);
   const personaCopy = PERSONAS[persona];
@@ -38,7 +52,7 @@ export function GuidedTourOverlay({ persona, onExitDemo }: GuidedTourOverlayProp
         />
       )}
 
-      {/* Full-screen tour close moment — Step 7 */}
+      {/* Full-screen close moment — fires after all 7 tour steps complete */}
       <AnimatePresence>
         {showClose && (
           <motion.div

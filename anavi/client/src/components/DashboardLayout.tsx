@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useDemoContext } from "@/contexts/DemoContext";
 import {
   BarChart3,
   Bell,
@@ -138,6 +139,7 @@ const TOUR_BANNER_DISMISSED_KEY = "anavi_tour_banner_dismissed";
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
+  const { isDemo, fixtures: demoFixtures } = useDemoContext();
   const [notifOpen, setNotifOpen] = useState(false);
   const tour = useTourContext();
   const [bannerDismissed, setBannerDismissed] = useState(() => {
@@ -181,7 +183,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     };
   });
 
-  const pageTitle = pageTitles[location] ?? "ANAVI";
+  const pageTitle = isDemo ? "Dashboard" : (pageTitles[location] ?? "ANAVI");
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
@@ -279,10 +281,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="border-t border-white/10 px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4972A] text-xs font-semibold text-white">
-            {getInitials(user?.name)}
+            {getInitials(isDemo ? demoFixtures?.user.name : user?.name)}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">{user?.name ?? "User"}</p>
+            <p className="truncate text-sm font-medium text-white">
+              {isDemo ? (demoFixtures?.user.name ?? "Demo User") : (user?.name ?? "User")}
+            </p>
           </div>
           <button
             onClick={() => logout()}
@@ -369,7 +373,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Search className="h-5 w-5" />
             </button>
             <div className="hidden md:block">
-              <TrustScoreChip score={84} />
+              <TrustScoreChip score={isDemo ? (demoFixtures?.user.trustScore ?? 84) : 84} />
             </div>
 
             {/* E43: Notification bell with drawer */}

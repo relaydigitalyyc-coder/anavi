@@ -76,7 +76,12 @@
       "Bash(cd /home/ariel/Documents/anavi-main && pnpm --filter @anavi/client check 2>&1 | head -100)",
       "Bash(cd /home/ariel/Documents/anavi-main/anavi && pnpm --filter client check 2>&1 | head -100)",
       "Bash(pnpm check 2>&1 | head -80)",
-      "Bash(pgrep -a -f \"vite\\\\|pnpm dev\\\\|node.*dev\" 2>&1 | grep -v grep | head -10)"
+      "Bash(pgrep -a -f \"vite\\\\|pnpm dev\\\\|node.*dev\" 2>&1 | grep -v grep | head -10)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1 | head -80)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && npx tsc --noEmit 2>&1 | grep \"client/src\" | head -40)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && npx tsc --noEmit 2>&1 | grep -v \"node_modules\" | head -30)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && pnpm test 2>&1 | tail -20)"
     ]
   }
 }

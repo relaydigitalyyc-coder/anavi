@@ -209,6 +209,20 @@ function DashboardSkeleton() {
   );
 }
 
+/** In demo mode suppress navigation so clicking a card doesn't destroy demo context. */
+function MaybeLink({
+  href,
+  demo,
+  children,
+}: {
+  href: string;
+  demo: boolean;
+  children: React.ReactNode;
+}) {
+  if (demo) return <>{children}</>;
+  return <Link href={href}>{children}</Link>;
+}
+
 function getGreeting(): string {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -268,13 +282,23 @@ export default function Dashboard() {
 
   const loading = demo ? false : (statsLoading || notificationsLoading);
 
-  // Demo notifications have a slightly different shape — normalize here
+  // Demo notifications have a slightly different shape — normalize here.
+  // Map fixture time strings to approximate Date offsets so relative timestamps are accurate.
+  const FIXTURE_TIME_OFFSETS: Record<string, number> = {
+    "30 minutes ago": 30 * 60 * 1000,
+    "1 hour ago":     1 * 60 * 60 * 1000,
+    "2 hours ago":    2 * 60 * 60 * 1000,
+    "4 hours ago":    4 * 60 * 60 * 1000,
+    "Yesterday":      24 * 60 * 60 * 1000,
+    "2 days ago":     2 * 24 * 60 * 60 * 1000,
+    "3 days ago":     3 * 24 * 60 * 60 * 1000,
+  };
   const demoNotifications = demo?.notifications.map((n) => ({
     id: String(n.id),
     type: n.type,
     title: n.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     message: n.message,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(Date.now() - (FIXTURE_TIME_OFFSETS[n.time] ?? 0)).toISOString(),
   }));
   const notifications = demoNotifications ?? notificationsData ?? [];
 
@@ -318,7 +342,7 @@ export default function Dashboard() {
         <StaggerContainer className="space-y-6">
           {/* Trust Score Widget — E11: clickable */}
           <StaggerItem>
-            <Link href="/verification">
+            <MaybeLink href="/verification" demo={!!demo}>
               <div data-tour="trust-score" className="group cursor-pointer card-elevated p-6 text-center hover:translate-y-[-2px]">
                 <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
                   Trust Score
@@ -339,44 +363,46 @@ export default function Dashboard() {
                   <span style={{ color: "#059669" }}>+3</span> this month
                 </p>
 
-                {stats?.verificationLevel && (
+                {(demo?.user.tier ?? stats?.verificationLevel) && (
                   <span className="mt-3 inline-block rounded-full bg-[#0A1628]/10 px-3 py-1 text-xs font-semibold text-[#0A1628]">
-                    {stats.verificationLevel}
+                    {demo?.user.tier ?? stats?.verificationLevel}
                   </span>
                 )}
 
-                <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1E3A5F]/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                  Click to view breakdown →
-                </p>
+                {!demo && (
+                  <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1E3A5F]/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    Click to view breakdown →
+                  </p>
+                )}
               </div>
-            </Link>
+            </MaybeLink>
           </StaggerItem>
 
           {/* E12: Quick Actions with ElasticButton feel + toast */}
           <StaggerItem>
             <div className="space-y-2">
-              <Link href="/deal-matching">
+              <MaybeLink href="/deal-matching" demo={!!demo}>
                 <button
                   className="btn-gold w-full rounded-lg px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.97]"
-                  onClick={() => toast.success("Navigating to Deal Matching")}
+                  onClick={() => { if (!demo) toast.success("Navigating to Deal Matching"); }}
                 >
                   Create Intent
                 </button>
-              </Link>
-              <Link href="/relationships">
+              </MaybeLink>
+              <MaybeLink href="/relationships" demo={!!demo}>
                 <button
                   data-tour="relationships"
                   className="w-full rounded-lg bg-[#C4972A] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#C4972A]/90 active:scale-[0.97]"
-                  onClick={() => toast.success("Navigating to Relationships")}
+                  onClick={() => { if (!demo) toast.success("Navigating to Relationships"); }}
                 >
                   Protect Relationship
                 </button>
-              </Link>
-              <Link href="/deal-matching">
+              </MaybeLink>
+              <MaybeLink href="/deal-matching" demo={!!demo}>
                 <button className="w-full rounded-lg border border-[#D1DCF0] bg-white px-4 py-3 text-sm font-semibold text-[#1E3A5F] transition-colors hover:bg-[#F3F7FC]">
                   View Matches
                 </button>
-              </Link>
+              </MaybeLink>
             </div>
           </StaggerItem>
         </StaggerContainer>
@@ -451,11 +477,11 @@ export default function Dashboard() {
                           />
                         </div>
                       </div>
-                      <Link href="/deal-rooms">
+                      <MaybeLink href="/deal-rooms" demo={!!demo}>
                         <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:text-[#2563EB]/80 uppercase tracking-wider transition-colors">
                           Enter Deal Room →
                         </button>
-                      </Link>
+                      </MaybeLink>
                     </div>
                   </StaggerItem>
                 ))}

@@ -59,16 +59,16 @@ export const TOUR = {
   },
   relationships: {
     originator: {
-      title: "Your Custody Register",
-      body: "Each entry carries a cryptographic timestamp — immutable proof of when you made this introduction. If this relationship produces a deal in three years, this record is your attribution claim.",
+      title: "Custody Your Relationship",
+      body: "Click to timestamp this introduction with a cryptographic custody hash — immutable proof of when you made it. If this relationship produces a deal in three years, this record is your attribution claim.",
     },
     investor: {
-      title: "Verified Counterparties",
-      body: "Every counterparty here has passed KYB verification, OFAC screening, and accreditation confirmation. You see their trust score before you see their name.",
+      title: "Protect Your Counterparty",
+      body: "Click to custody a counterparty relationship. Every counterparty you protect has passed KYB verification, OFAC screening, and accreditation confirmation — and every disclosure is logged permanently.",
     },
     developer: {
-      title: "Your Sealed Register",
-      body: "Counterparties know a qualified party exists. Nothing is disclosed until mutual consent — and every disclosure is logged.",
+      title: "Seal Your Register",
+      body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
     },
   },
   blindMatch: {
@@ -100,6 +100,10 @@ export const TOUR = {
   close: {
     headline: "The Private Market Operating System.",
     subhead: "Every relationship custodied. Every introduction attributed. Every deal closed on infrastructure purpose-built for the $13 trillion private market.",
+    cta: {
+      title: "Apply for Access",
+      body: "You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?",
+    },
   },
 } as const;
 

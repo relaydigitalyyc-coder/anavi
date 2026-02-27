@@ -12,98 +12,10 @@ export interface TourStep {
   actionHint?: string;
 }
 
-export const onboardingTour: TourStep[] = [
-  {
-    targetSelector: '[data-tour="dashboard"]',
-    title: 'Dashboard Overview',
-    content:
-      'This is your command center. Every deal, relationship, and payout starts here. Let us show you where everything lives.',
-  },
-  {
-    targetSelector: '[data-tour="trust-score"]',
-    title: 'Your Trust Score',
-    content:
-      'This is your Trust Score — the number that determines your access and matching priority. Click it anytime to see your full breakdown and how to improve it.',
-  },
-  {
-    targetSelector: '[data-tour="relationships"]',
-    title: 'Your Custodied Relationships',
-    content:
-      'This is where your protected relationships live. The timestamp you see is your legal priority claim. Each relationship now has lifetime value.',
-  },
-  {
-    targetSelector: '[data-tour="deal-matching"]',
-    title: 'Deal Matching',
-    content:
-      'This is where your matches appear. Once your intent is active, you will get notified here every time a qualified counterparty is found.',
-  },
-  {
-    targetSelector: '[data-tour="activity-feed"]',
-    title: 'Activity Feed',
-    content:
-      'Your activity feed is your deal nervous system — every match, update, attribution, and verification event appears here in real time.',
-  },
-  {
-    targetSelector: '[data-tour="create-intent"]',
-    title: 'Create Intent',
-    content:
-      'This button is your fastest path to your next deal. Create an intent anytime — it takes 3 minutes and starts matching immediately.',
-  },
-  {
-    targetSelector: '[data-tour="completion"]',
-    title: 'You Are Ready',
-    content:
-      'Your relationships are protected. Your profile is active. The network is waiting. Create your first intent to start matching.',
-  },
-];
-
 import type { PersonaKey } from "@/lib/copy";
 import { TOUR } from "@/lib/copy";
 
-/** Whitepaper-aligned persona-aware tour steps for the demo experience. */
-export function buildDemoTourSteps(persona: PersonaKey): TourStep[] {
-  return [
-    {
-      targetSelector: '[data-tour="trust-score"]',
-      title: TOUR.trustScore.title,
-      content: TOUR.trustScore.body,
-      position: "bottom",
-    },
-    {
-      targetSelector: '[data-tour="relationships"]',
-      title: TOUR.relationships[persona].title,
-      content: TOUR.relationships[persona].body,
-      position: "right",
-    },
-    {
-      targetSelector: '[data-tour="match-card"]',
-      title: TOUR.blindMatch.title,
-      content: TOUR.blindMatch.body,
-      position: "bottom",
-    },
-    {
-      targetSelector: '[data-tour="deal-room"]',
-      title: TOUR.dealRoom.title,
-      content: TOUR.dealRoom.body,
-      position: "top",
-      interactive: true,
-      actionHint: "Enter the deal room to see the full audit trail.",
-    },
-    {
-      targetSelector: '[data-tour="payout"]',
-      title: TOUR.attribution[persona].title,
-      content: TOUR.attribution[persona].body,
-      position: "top",
-    },
-    {
-      targetSelector: '[data-tour="verification"]',
-      title: TOUR.compliance.title,
-      content: TOUR.compliance.body,
-      position: "right",
-    },
-  ];
-}
-
+/** Legacy tour used by /demo route (Demo.tsx). Retained for backwards compatibility. */
 export const demoTour: TourStep[] = [
   {
     targetSelector: '[data-tour="demo-nav"]',
@@ -152,15 +64,59 @@ export const demoTour: TourStep[] = [
       'Your Trust Score and compliance passport unlock deal access and matching priority. Tier 2 gives you institutional-grade verification and counterparty confidence.',
   },
   {
-    targetSelector: '[data-tour="payouts"]',
-    title: 'Payouts & Attribution',
-    content:
-      'Automatic attribution when deals close. Your relationships generate lifetime value. See total earned, next payout, and the full attribution history.',
-  },
-  {
     targetSelector: '[data-tour="apply"]',
     title: 'Apply for Access',
     content:
       'You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?',
   },
 ];
+
+/** Whitepaper-aligned persona-aware tour steps for the demo experience. */
+export function buildDemoTourSteps(persona: PersonaKey): TourStep[] {
+  return [
+    {
+      targetSelector: '[data-tour="trust-score"]',
+      title: TOUR.trustScore.title,
+      content: TOUR.trustScore.body,
+      position: "bottom",
+    },
+    {
+      targetSelector: '[data-tour="relationships"]',
+      title: TOUR.relationships[persona].title,
+      content: TOUR.relationships[persona].body,
+      position: "right",
+    },
+    {
+      targetSelector: '[data-tour="match-card"]',
+      title: TOUR.blindMatch.title,
+      content: TOUR.blindMatch.body,
+      position: "bottom",
+    },
+    {
+      targetSelector: '[data-tour="deal-room"]',
+      title: TOUR.dealRoom.title,
+      content: TOUR.dealRoom.body,
+      position: "top",
+      interactive: true,
+      actionHint: "Explore the deal room details above.",
+    },
+    {
+      targetSelector: '[data-tour="payout"]',
+      title: TOUR.attribution[persona].title,
+      content: TOUR.attribution[persona].body,
+      position: "top",
+    },
+    {
+      targetSelector: '[data-tour="verification"]',
+      title: TOUR.compliance.title,
+      content: TOUR.compliance.body,
+      position: "right",
+    },
+    {
+      targetSelector: '[data-tour="apply"]',
+      title: TOUR.close.cta.title,
+      content: TOUR.close.cta.body,
+      position: "top",
+    },
+  ];
+}
