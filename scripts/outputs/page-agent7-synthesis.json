@@ -1,0 +1,12 @@
+{
+  "consistency_report": "The audit identified a terminology inconsistency in the 'Intents' page header, which used 'AI Blind Matching' instead of the standard 'Blind Matching' from the copy tokens. Additionally, the 'Intents' and 'Relationships' pages currently lack explicit empty state components for when no data is present, unlike other audited pages ('Matches', 'Deal Rooms', 'Payouts') which utilize the `EmptyState` component. Due to the truncation of the provided file content, precise insertions for these missing empty states cannot be provided as targeted corrections.",
+  "corrections": [
+    {
+      "file": "client/src/pages/intents.tsx",
+      "old_string": "<span className=\"text-[0.6875rem] font-semibold uppercase tracking-widest text-muted-foreground\">AI Blind Matching</span>",
+      "new_string": "<span className=\"text-[0.6875rem] font-semibold uppercase tracking-widest text-muted-foreground\">Blind Matching</span>",
+      "reason": "Aligns with the 'Blind Match' terminology from the copy tokens (TOUR.blindMatch.title) for cross-page consistency and removes the redundant 'AI' prefix, as the AI aspect is explained in the body text."
+    }
+  ],
+  "all_clear": false
+}

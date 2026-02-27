@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "```json\n{\n  \"consistency_report\": \"The audit identified a terminology inconsistency in the 'Intents' page header, which used 'AI Blind Matching' instead of the standard 'Blind Matching' from the copy tokens. Additionally, the 'Intents' and 'Relationships' pages currently lack explicit empty state components for when no data is present, unlike other audited pages ('Matches', 'Deal Rooms', 'Payouts') which utilize the `EmptyState` component. Due to the truncation of the provided file content, precise insertions for these missing empty states cannot be provided as targeted corrections.\",\n  \"corrections\": [\n    {\n      \"file\": \"client/src/pages/intents.tsx\",\n      \"old_string\": \"\u003cspan className=\\\"text-[0.6875rem] font-semibold uppercase tracking-widest text-muted-foreground\\\"\u003eAI Blind Matching\u003c/span\u003e\",\n      \"new_string\": \"\u003cspan className=\\\"text-[0.6875rem] font-semibold uppercase tracking-widest text-muted-foreground\\\"\u003eBlind Matching\u003c/span\u003e\",\n      \"reason\": \"Aligns with the 'Blind Match' terminology from the copy tokens (TOUR.blindMatch.title) for cross-page consistency and removes the redundant 'AI' prefix, as the AI aspect is explained in the body text.\"\n    }\n  ],\n  \"all_clear\": false\n}\n```"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 16424,
+    "candidatesTokenCount": 296,
+    "totalTokenCount": 22336,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 16424
+      }
+    ],
+    "thoughtsTokenCount": 5616
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "deihaey-BPSHz7IPjK2e0QY"
+}

@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "executionArgs": {
+    "projectName": "anavi",
+    "projectPath": "/home/ariel/Documents/anavi-main/anavi",
+    "testIds": [],
+    "additionalInstruction": "Auth gate is disabled - all routes are publicly accessible without login. Do NOT test login/register/forgot-password flows since auth is bypassed. Focus on testing: 1) Dashboard page loads with cards and stats, 2) Sidebar navigation works between pages, 3) Deal Rooms page loads, 4) Relationships page loads, 5) Verification page loads, 6) Analytics page loads, 7) AI Brain page loads, 8) Deal Matching page loads. All pages are at localhost:3000/<path>. No login required.",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user-lK1e9kB81hA8zFZiRns7tU3EhE_6XcQN86k3_Lhn4fh7Jmlvdo6NYXc7EtsB2YJxAaM_ZbsE2sH0TdjE8Rkaw4_IWwJfxAjmkt40apyHScfa4Z-glvcPHtHRiuZJuZN1j24"
+    }
+  },
+  "serverPort": 45289,
+  "proxy": "http://b5e5ef2a-8dc9-495d-b88d-6ecb7f7b9661:B0tFm80jFf9KEObZ4aGRNUmoz0QWP1Ho@tun.testsprite.com:8080",
+  "loginUser": "demo@prelaunch.local",
+  "loginPassword": "demo123"
+}

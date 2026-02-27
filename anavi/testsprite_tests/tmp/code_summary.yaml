@@ -1,0 +1,202 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - React 19
+  - Vite
+  - Tailwind CSS
+  - shadcn/ui
+  - wouter
+  - tRPC React Query
+  - framer-motion
+routes:
+  - path: /
+    file: client/src/pages/Home.tsx
+    auth_required: false
+    description: Landing page
+  - path: /login
+    file: client/src/pages/Login.tsx
+    auth_required: false
+    description: User login page
+  - path: /register
+    file: client/src/pages/Register.tsx
+    auth_required: false
+    description: User registration
+  - path: /forgot-password
+    file: client/src/pages/ForgotPassword.tsx
+    auth_required: false
+    description: Password reset
+  - path: /demo
+    file: client/src/pages/Demo.tsx
+    auth_required: false
+    description: Demo flow
+  - path: /dashboard
+    file: client/src/pages/Dashboard.tsx
+    auth_required: false
+    description: Main dashboard
+  - path: /relationships
+    file: client/src/pages/Relationships.tsx
+    auth_required: false
+    description: Relationship management
+  - path: /deal-matching
+    file: client/src/pages/DealMatching.tsx
+    auth_required: false
+    description: Deal matching flow
+  - path: /deal-rooms
+    file: client/src/pages/DealRooms.tsx
+    auth_required: false
+    description: Deal rooms list
+  - path: /deal-rooms/:id
+    file: client/src/pages/DealRoom.tsx
+    auth_required: false
+    description: Deal room detail
+  - path: /deals
+    file: client/src/pages/Deals.tsx
+    auth_required: false
+    description: Deals list
+  - path: /deal-intelligence
+    file: client/src/pages/DealIntelligence.tsx
+    auth_required: false
+    description: Deal intelligence
+  - path: /intents
+    file: client/src/pages/Intents.tsx
+    auth_required: false
+    description: Intents management
+  - path: /matches
+    file: client/src/pages/Matches.tsx
+    auth_required: false
+    description: Matches list
+  - path: /family-offices
+    file: client/src/pages/FamilyOffices.tsx
+    auth_required: false
+    description: Family offices
+  - path: /targeting
+    file: client/src/pages/Targeting.tsx
+    auth_required: false
+    description: Targeting
+  - path: /network
+    file: client/src/pages/Network.tsx
+    auth_required: false
+    description: Network graph
+  - path: /verification
+    file: client/src/pages/Verification.tsx
+    auth_required: false
+    description: Verification status
+  - path: /audit-logs
+    file: client/src/pages/AuditLogs.tsx
+    auth_required: false
+    description: Audit logs
+  - path: /compliance
+    file: client/src/pages/Compliance.tsx
+    auth_required: false
+    description: Compliance
+  - path: /payouts
+    file: client/src/pages/Payouts.tsx
+    auth_required: false
+    description: Payouts
+  - path: /lp-portal
+    file: client/src/pages/LPPortal.tsx
+    auth_required: false
+    description: LP Portal
+  - path: /analytics
+    file: client/src/pages/Analytics.tsx
+    auth_required: false
+    description: Analytics
+  - path: /ai-brain
+    file: client/src/pages/AIBrain.tsx
+    auth_required: false
+    description: AI Brain
+  - path: /intelligence
+    file: client/src/pages/Intelligence.tsx
+    auth_required: false
+    description: Intelligence
+  - path: /calendar
+    file: client/src/pages/Calendar.tsx
+    auth_required: false
+    description: Calendar
+  - path: /settings
+    file: client/src/pages/Settings.tsx
+    auth_required: false
+    description: Settings
+features:
+  - name: User Login
+    description: Login with email and password credentials
+    files:
+      - client/src/pages/Login.tsx
+      - client/src/_core/hooks/useAuth.ts
+    entry_route: /login
+    user_interactions:
+      - Fill email input field
+      - Fill password input field
+      - Click Login button to submit
+      - See error message on invalid credentials
+    api_calls:
+      - method: POST
+        endpoint: /api/trpc/auth.login
+    auth_required: false
+  - name: Dashboard
+    description: View main dashboard with key metrics
+    files:
+      - client/src/pages/Dashboard.tsx
+    entry_route: /dashboard
+    user_interactions:
+      - View dashboard cards and stats
+      - Navigate via sidebar
+    api_calls:
+      - method: GET
+        endpoint: tRPC queries for dashboard data
+    auth_required: false
+  - name: Deal Rooms
+    description: List and view deal rooms
+    files:
+      - client/src/pages/DealRooms.tsx
+      - client/src/pages/DealRoom.tsx
+    entry_route: /deal-rooms
+    user_interactions:
+      - View deal rooms list
+      - Click deal room to open detail
+      - Switch tabs in deal room (Overview, Documents, etc.)
+    api_calls:
+      - method: GET
+        endpoint: tRPC dealRoom procedures
+    auth_required: false
+  - name: Relationships
+    description: Manage relationships and contacts
+    files:
+      - client/src/pages/Relationships.tsx
+    entry_route: /relationships
+    user_interactions:
+      - View relationships list
+      - Search or filter relationships
+      - Add or edit relationship
+    api_calls:
+      - method: GET
+        endpoint: tRPC relationship procedures
+    auth_required: false
+  - name: Verification
+    description: View verification status and trust score
+    files:
+      - client/src/pages/Verification.tsx
+    entry_route: /verification
+    user_interactions:
+      - View verification status
+      - See trust score
+    api_calls:
+      - method: GET
+        endpoint: tRPC verification procedures
+    auth_required: false
+  - name: Navigation
+    description: Navigate app via sidebar and header
+    files:
+      - client/src/components/DashboardLayout.tsx
+    entry_route: /dashboard
+    user_interactions:
+      - Click sidebar items to navigate
+      - Use global search
+      - Open user menu
+    api_calls: []
+    auth_required: false
+known_limitations:
+  - issue: Some pages use demo/mock data (Commodities, TransactionMatching, CapitalManagement, TradingPlatform, CryptoAssets, MemberOnboarding, FeeManagement)
+    location: Various page components
+    impact: Data may not persist to backend

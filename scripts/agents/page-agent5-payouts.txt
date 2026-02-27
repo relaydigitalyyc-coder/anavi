@@ -1,0 +1,973 @@
+=== TASK: Upgrade client/src/pages/Payouts.tsx for ANAVI whitepaper vision conformance ===
+Module: ECONOMICS ENGINE / LIFETIME ATTRIBUTION
+
+
+=== ANAVI WHITEPAPER CONTEXT ===
+
+ANAVI is "The Private Market Operating System" ("If Bloomberg runs public markets, ANAVI will run private ones").
+
+Six core modules:
+1. TRUST & IDENTITY — Trust Score (0-100), composite of KYB depth, transaction history,
+   dispute outcomes, peer attestations. Three tiers: Basic / Enhanced / Institutional.
+   Compliance Passport travels with every transaction.
+2. RELATIONSHIP CUSTODY — Timestamped, cryptographically signed introductions.
+   "Custodied" = protected with hash proof. "Open" = visible but unprotected.
+3. BLIND MATCHING — Intents expressed anonymously. Counterparty identity sealed until
+   mutual consent. Match cards: "Sealed -- [AssetClass]", compatibility score, deal size.
+   "Blind Intent" = anonymous intent. "Blind Match" = sealed result brief.
+4. DEAL ROOMS — NDA-gated workspaces. Immutable audit trail. Workflow:
+   NDA Pending -> Active -> Diligence -> Closing -> Completed.
+5. COMPLIANCE / ESCROW — KYB verified, OFAC clean, AML passed. Escrow milestones trigger automatically.
+6. ECONOMICS ENGINE — Lifetime attribution. Originators earn 40-60% of fees. Follow-on deals
+   compound. Attribution Chain. Payout types: originator_fee, introducer_fee, advisor_fee,
+   milestone_bonus, success_fee.
+
+Visual language:
+- Navy: #0A1628 (darkest), #1E3A5F (body text/secondary)
+- Gold: #C4972A (accent, CTAs)
+- Trust green: #059669
+- Cards: className="card-elevated p-6"
+- Stat chips: "rounded-full bg-[COLOR]/15 px-3 py-1 text-xs font-semibold text-[COLOR]"
+- Animations: FadeInView, StaggerContainer, StaggerItem (from @/components/PageTransition)
+- Numbers: font-data-hud class; hashes/IDs: font-data-mono class
+- Primary CTA: className="btn-gold ..."
+
+=== COPY TOKENS (client/src/lib/copy.ts) ===
+// client/src/lib/copy.ts
+// Single source of truth for all whitepaper-aligned platform language.
+// Import from here — never write custody/attribution/trust copy inline.
+
+export const PLATFORM = {
+  tagline: "The Private Market Operating System",
+  thesis: "If Bloomberg runs public markets, ANAVI will run private ones.",
+  market: "$13 trillion private market",
+} as const;
+
+export const PROBLEMS = {
+  brokerChain: {
+    stat: "5–15",
+    headline: "Intermediaries Per Deal",
+    body: "5 to 15 intermediaries per deal. Each extracting 1–5%. The originator — the person whose relationship made the deal possible — receives no attribution, no compounding value, and no protection if they're cut out.",
+  },
+  fraud: {
+    stat: "$40B",
+    headline: "Annual Fraud Losses",
+    body: "$10 to $40 billion in annual US investment fraud losses. Because identity verification across private markets is fragmented, unshared, and trivially forged. Everyone runs their own checks. No one shares the results.",
+  },
+  dueDiligence: {
+    stat: "$500K",
+    headline: "Duplicated Per Deal",
+    body: "$50,000 to $500,000 per deal in duplicated compliance costs. Every investor in the chain runs the same KYC, the same OFAC screen, the same accreditation check — independently, expensively, and without coordination.",
+  },
+} as const;
+
+export const PERSONAS = {
+  originator: {
+    label: "Deal Originator / Broker",
+    role: "Relationship Holder",
+    problem: "My introductions close deals I never get credit for.",
+    answer: "Custody your relationships. Timestamp your introductions. Collect your attribution.",
+    tourPitch: "You made 847 introductions last year. ANAVI would have attributed every one.",
+  },
+  investor: {
+    label: "Investor / Family Office",
+    role: "Capital Deployer",
+    problem: "I can't tell which deals are real or who's already seen them.",
+    answer: "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
+    tourPitch: "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
+  },
+  developer: {
+    label: "Developer / Asset Owner",
+    role: "Capital Seeker",
+    problem: "Raising capital means exposing my thesis before anyone commits.",
+    answer: "Anonymous until you consent. NDA-gated rooms. Escrow-backed milestones.",
+    tourPitch: "You raised $30M. ANAVI would have protected your thesis until the moment you chose to disclose it.",
+  },
+} as const;
+
+export type PersonaKey = keyof typeof PERSONAS;
+
+export const TOUR = {
+  trustScore: {
+    title: "Your Trust Score",
+    body: "A dynamic credential built from KYB verification depth, transaction history, dispute resolution outcomes, and peer attestations. It determines your access tier, your whitelist status, and whether counterparties transact with you.",
+  },
+  relationships: {
+    originator: {
+      title: "Custody Your Relationship",
+      body: "Click to timestamp this introduction with a cryptographic custody hash — immutable proof of when you made it. If this relationship produces a deal in three years, this record is your attribution claim.",
+    },
+    investor: {
+      title: "Protect Your Counterparty",
+      body: "Click to custody a counterparty relationship. Every counterparty you protect has passed KYB verification, OFAC screening, and accreditation confirmation — and every disclosure is logged permanently.",
+    },
+    developer: {
+      title: "Seal Your Register",
+      body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
+    },
+  },
+  blindMatch: {
+    title: "Blind Match",
+    body: "A qualified counterparty has been matched to your intent. Their identity, firm, and terms remain sealed. ANAVI's matching engine operates on anonymized attributes — the platform cannot see unencrypted details until both parties authorize disclosure.",
+  },
+  dealRoom: {
+    title: "Deal Room",
+    body: "NDA executed. Immutable audit trail initiated. Every document access, version change, and signature event is cryptographically logged. This record is the basis for originator attribution, payout calculation, and regulatory compliance.",
+  },
+  attribution: {
+    originator: {
+      title: "Attribution & Payout",
+      body: "Your introduction. $47M Riyadh Solar JV. Originator share: 2.5% — $1.175M — calculated automatically from the closing ledger. Triggered on milestone. No negotiation. No intermediary.",
+    },
+    investor: {
+      title: "Attribution & Payout",
+      body: "Your capital deployed across 3 verified SPVs. Every subsequent deal from this relationship credits your participation — compounding attribution over time.",
+    },
+    developer: {
+      title: "Escrow Milestone",
+      body: "Milestone reached: $12M of $30M committed. Funds release triggered automatically. Your operator economics, protected and automated.",
+    },
+  },
+  compliance: {
+    title: "Compliance Passport",
+    body: "This counterparty's compliance passport — KYB verified, OFAC clean, accredited status confirmed — travels with every transaction they execute on ANAVI. You access their verification record. You don't duplicate it. $500,000 in due diligence costs, shared.",
+  },
+  close: {
+    headline: "The Private Market Operating System.",
+    subhead: "Every relationship custodied. Every introduction attributed. Every deal closed on infrastructure purpose-built for the $13 trillion private market.",
+    cta: {
+      title: "Apply for Access",
+      body: "You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?",
+    },
+  },
+} as const;
+
+export const CUSTODY_RECEIPT = {
+  title: "Introduction Custodied.",
+  body: "This introduction is now timestamped, cryptographically signed, and permanently attributed to you. If this relationship produces a deal — today or in five years — this record is your claim.",
+  cta: "View Your Custody Register",
+} as const;
+
+/** Six-module navigation section labels. */
+export const MODULES = {
+  overview: "OVERVIEW",
+  trustIdentity: "TRUST & IDENTITY",
+  relationships: "RELATIONSHIPS",
+  deals: "DEALS",
+  economics: "ECONOMICS",
+  intelligence: "INTELLIGENCE",
+  settings: "SETTINGS",
+} as const;
+
+/** Notification type labels shown on activity feed badges. */
+export const NOTIFICATIONS = {
+  matchFound:      { label: "MATCH" },
+  dealUpdate:      { label: "DEAL ROOM" },
+  payoutReceived:  { label: "ATTRIBUTION" },
+  complianceAlert: { label: "VERIFICATION" },
+  system:          { label: "SYSTEM" },
+} as const;
+
+/** Toast messages triggered by dashboard CTA clicks. */
+export const TOASTS = {
+  navigatingRelationships: "Opening Relationship Custody",
+  navigatingDealMatching:  "Opening Blind Matching",
+} as const;
+
+/** Dashboard widget titles, labels, and CTAs. */
+export const DASHBOARD = {
+  trustScore: {
+    title: "Trust Score",
+    scoreChange: (delta: number) => `${delta > 0 ? "+" : ""}${delta} this month`,
+    whitelistStatus: "Whitelist",
+    compoundNature:
+      "Your score compounds with every verified transaction and peer attestation.",
+    breakdownCta: "Click to view breakdown →",
+  },
+  marketDepth: {
+    title: "Market Depth",
+    buyersLabel: "Buyers",
+    sellersLabel: "Sellers",
+  },
+  blindMatches: {
+    title: "Blind Matches",
+    sealedStatus: "Sealed",
+    noMatches: "No matches yet. Express an intent to activate matching.",
+  },
+  dealRooms: {
+    title: "Deal Rooms",
+    documents: "Documents:",
+    auditEvents: "Audit Events:",
+    immutableAuditTrail: "Immutable audit trail & document versioning active",
+    escrowLabel: "Escrow",
+    enterCta: "Enter Deal Room →",
+    noDealRooms: "No deal rooms yet. Accept a match to open a deal room.",
+  },
+  complianceStatus: {
+    title: "Compliance Status",
+    passportSummary: "Compliance Passport",
+    kybStatus: "KYB",
+    ofacStatus: "OFAC",
+    amlStatus: "AML",
+    viewPassportCta: "View Passport",
+    badgeRequired: "Required",
+    noPendingActions: "All compliance requirements met.",
+  },
+  payouts: {
+    title: "Economics Engine",
+    nextPayoutLabel: "Next Payout:",
+    lifetimeAttribution: "Lifetime Attribution Value:",
+    originationShare: "Originator Share:",
+    noPayouts: "No payouts yet. Close a deal to trigger attribution.",
+  },
+  activeIntents: {
+    title: "Your Active Intents",
+    manageCta: "Manage Intents",
+    noIntents: "No active intents. Visit Blind Matching to express an intent.",
+  },
+  custodiedRelationships: {
+    title: "Relationship Custody",
+    custodyAge: "Custodied:",
+    attributionCue: "Cryptographic timestamps ensure forever attribution",
+    protectCta: "Protect a Relationship",
+    viewRegisterCta: "View Custody Register",
+    noRelationships:
+      "No custodied relationships yet. Protect your first introduction.",
+  },
+} as const;
+
+
+=== DASHBOARD.TSX IMPORTS (style reference) ===
+import { useAuth } from "@/_core/hooks/useAuth";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import { trpc } from "@/lib/trpc";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+import { formatDistanceToNow } from "date-fns";
+import {
+  FileText,
+  Lock,
+  Shield,
+  Target,
+  TrendingUp,
+  Clock,
+  Fingerprint,
+  CheckCircle,
+  XCircle,
+  Info,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
+import { toast } from "sonner";
+import { DASHBOARD, NOTIFICATIONS, TOASTS } from "@/lib/copy";
+
+// --- Assuming DEMO_FIXTURES in client/src/lib/demoFixtures.ts is updated as follows: ---
+// interface DemoMatch { id: number; tag: string; compatibilityScore: number; assetClass: string; dealSize: string; intentType?: 'buy' | 'sell' | 'invest'; }
+// interface DemoDealRoom { id: number; name: string; stage: string; counterparty: string; escrowProgress: number; auditEvents: number; documentCount: number; }
+// interface DemoPayout { id: number; deal: string; amount: number; status: string; originatorShare: number; }
+// interface DemoRelationship { id: number; name: string; custodyHash: string; custodyDate: string; attributionStatus: string; }
+// interface DemoIntent { id: number; type: 'buy' | 'sell' | 'invest'; assetClass: string; size: string; }
+// DEMO_FIXTURES should also include a 'relationships' and 'intents' array.
+// -----------------------------------------------------------------------------------
+
+const NOTIFICATION_STYLES: Record<
+  string,
+  { border: string; badge: string; label: string }
+> = {
+  match_found: {
+    border: "border-l-[#C4972A]",
+    badge: "bg-[#C4972A]/15 text-[#C4972A]",
+    label: NOTIFICATIONS.matchFound.label,
+  },
+  deal_update: {
+    border: "border-l-[#2563EB]",
+    badge: "bg-[#2563EB]/15 text-[#2563EB]",
+    label: NOTIFICATIONS.dealUpdate.label,
+  },
+  payout_received: {
+    border: "border-l-[#059669]",
+    badge: "bg-[#059669]/15 text-[#059669]",
+    label: NOTIFICATIONS.payoutReceived.label,
+  },
+  compliance_alert: {
+    border: "border-l-[#1E3A5F]",
+    badge: "bg-[#1E3A5F]/15 text-[#1E3A5F]",
+    label: NOTIFICATIONS.complianceAlert.label,
+  },
+};
+
+
+
+=== SOURCE FILE: client/src/pages/Payouts.tsx ===
+import { useState, useMemo, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import { FadeInView } from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Wallet,
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
+  Link2,
+  Download,
+  FileText,
+} from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+
+
+const fmtCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    amount,
+  );
+
+type PayoutStatus = "all" | "pending" | "processing" | "completed" | "failed";
+type PayoutTypeFilter =
+  | "all"
+  | "originator_fee"
+  | "introducer_fee"
+  | "advisor_fee"
+  | "milestone_bonus"
+  | "success_fee";
+
+const STATUS_OPTIONS: { value: PayoutStatus; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "processing", label: "Processing" },
+  { value: "completed", label: "Completed" },
+  { value: "failed", label: "Failed" },
+];
+
+const TYPE_OPTIONS: { value: PayoutTypeFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "originator_fee", label: "Originator Fee" },
+  { value: "introducer_fee", label: "Introducer Fee" },
+  { value: "advisor_fee", label: "Advisor Fee" },
+  { value: "milestone_bonus", label: "Milestone Bonus" },
+  { value: "success_fee", label: "Success Fee" },
+];
+
+function getTypeLabel(type: string) {
+  return (
+    TYPE_OPTIONS.find((t) => t.value === type)?.label ??
+    type.replace(/_/g, " ")
+  );
+}
+
+function getTypeBadgeClasses(type: string): string {
+  switch (type) {
+    case "originator_fee":
+      return "bg-slate-900 text-white";
+    case "introducer_fee":
+      return "bg-blue-600 text-white";
+    case "advisor_fee":
+      return "bg-[#C4972A] text-white";
+    case "milestone_bonus":
+      return "bg-emerald-600 text-white";
+    case "success_fee":
+      return "bg-violet-600 text-white";
+    default:
+      return "";
+  }
+}
+
+function PayoutStatementSection() {
+  const [periodStart, setPeriodStart] = useState(() =>
+    format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd")
+  );
+  const [periodEnd, setPeriodEnd] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [showModal, setShowModal] = useState(false);
+
+  const { data: statement, isLoading } = trpc.payout.getStatement.useQuery(
+    {
+      periodStart: `${periodStart}T00:00:00.000Z`,
+      periodEnd: `${periodEnd}T23:59:59.999Z`,
+    },
+    { enabled: showModal && !!periodStart && !!periodEnd }
+  );
+
+  const downloadCSV = () => {
+    if (!statement) return;
+    const header = "Deal ID,Amount,Currency,Type,Status,Date\n";
+    const rows = statement.items.map(
+      (p: any) =>
+        `${p.dealId ?? ""},${p.amount ?? 0},${p.currency ?? "USD"},${p.payoutType ?? ""},${p.status ?? ""},"${new Date(p.createdAt).toLocaleDateString()}"`
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ANAVI-Payout-Statement-${periodStart}-${periodEnd}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Statement downloaded");
+  };
+
+  return (
+    <div className="card-elevated p-6">
+      <h3 className="data-label mb-2 text-slate-900">
+        Payout Statement
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Official ANAVI payout statement. Select a period and view or download.
+      </p>
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase text-muted-foreground">Start</label>
+          <Input
+            type="date"
+            value={periodStart}
+            onChange={(e) => setPeriodStart(e.target.value)}
+            className="w-[160px]"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase text-muted-foreground">End</label>
+          <Input
+            type="date"
+            value={periodEnd}
+            onChange={(e) => setPeriodEnd(e.target.value)}
+            className="w-[160px]"
+          />
+        </div>
+        <Button
+          className="btn-gold gap-2"
+          onClick={() => setShowModal(true)}
+        >
+          <FileText className="w-4 h-4" />
+          View Statement
+        </Button>
+      </div>
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
+          <div className="relative z-10 bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-slate-200">
+              <h4 className="text-lg font-semibold text-slate-900">
+                Official ANAVI Payout Statement
+              </h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                {periodStart} — {periodEnd} · Generated {format(new Date(), "PP")}
+              </p>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[50vh]">
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Loading…</p>
+              ) : !statement || statement.items.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No payouts in this period. Select a different range.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {statement.items.map((p: any, i: number) => (
+                    <div key={i} className="flex justify-between py-2 border-b border-slate-200">
+                      <span className="text-sm">Deal #{p.dealId}</span>
+                      <span className="font-data-hud font-semibold">
+                        {fmtCurrency(Number(p.amount ?? 0))}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between pt-3 font-bold text-base text-slate-900">
+                    <span>Total</span>
+                    <span>{fmtCurrency(statement.total ?? 0)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-6 border-t border-slate-200 flex justify-between">
+              <Button variant="outline" onClick={() => setShowModal(false)}>
+                Close
+              </Button>
+              <Button className="btn-gold gap-2" onClick={downloadCSV} disabled={!statement || statement.items.length === 0}>
+                <Download className="w-4 h-4" />
+                Download CSV
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getStatusPillClasses(status: string) {
+  switch (status) {
+    case "pending":
+      return "bg-orange-100 text-orange-700";
+    case "processing":
+      return "bg-blue-100 text-blue-700";
+    case "completed":
+      return "bg-emerald-100 text-emerald-700";
+    case "failed":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
+}
+
+function buildMonthOptions() {
+  const now = new Date();
+  const opts: { value: string; label: string }[] = [
+    { value: "all", label: "All Time" },
+  ];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    opts.push({
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: format(d, "MMMM yyyy"),
+    });
+  }
+  return opts;
+}
+
+export default function Payouts() {
+  const { data: payouts, isLoading } = trpc.payout.list.useQuery();
+  useEffect(() => { document.title = "Payouts | ANAVI"; }, []);
+
+  const [statusFilter, setStatusFilter] = useState<PayoutStatus>("all");
+  const [typeFilter, setTypeFilter] = useState<PayoutTypeFilter>("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [expandedDeal, setExpandedDeal] = useState<number | null>(null);
+
+  const monthOptions = useMemo(buildMonthOptions, []);
+
+  const completedPayouts = useMemo(
+    () => payouts?.filter((p) => p.status === "completed") ?? [],
+    [payouts],
+  );
+
+  const totalEarnings = useMemo(
+    () => completedPayouts.reduce((s, p) => s + parseFloat(p.amount), 0),
+    [completedPayouts],
+  );
+
+  const pendingAmount = useMemo(
+    () =>
+      (payouts ?? [])
+        .filter((p) => p.status === "pending" || p.status === "processing")
+        .reduce((s, p) => s + parseFloat(p.amount), 0),
+    [payouts],
+  );
+
+  const thisMonthEarnings = useMemo(() => {
+    const now = new Date();
+    return (payouts ?? [])
+      .filter((p) => {
+        if (p.status !== "completed") return false;
+        const d = new Date(p.paidAt ?? p.createdAt);
+        return (
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
+      })
+      .reduce((s, p) => s + parseFloat(p.amount), 0);
+  }, [payouts]);
+
+  const completedDealCount = useMemo(
+    () => new Set(completedPayouts.map((p) => p.dealId)).size,
+    [completedPayouts],
+  );
+
+  const filteredPayouts = useMemo(() => {
+    if (!payouts) return [];
+    return payouts.filter((p) => {
+      if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (typeFilter !== "all" && p.payoutType !== typeFilter) return false;
+      if (monthFilter !== "all") {
+        const d = new Date(p.createdAt);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        if (key !== monthFilter) return false;
+      }
+      return true;
+    });
+  }, [payouts, statusFilter, typeFilter, monthFilter]);
+
+  const dealGroups = useMemo(() => {
+    if (!payouts) return [];
+    const map = new Map<
+      number,
+      { dealId: number; payouts: typeof payouts; total: number }
+    >();
+    for (const p of payouts) {
+      if (!map.has(p.dealId))
+        map.set(p.dealId, { dealId: p.dealId, payouts: [], total: 0 });
+      const g = map.get(p.dealId)!;
+      g.payouts.push(p);
+      g.total += parseFloat(p.amount);
+    }
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [payouts]);
+
+  if (isLoading) {
+    return (
+      <div className="p-8 space-y-6">
+        <div className="h-8 w-56 rounded-lg animate-pulse bg-slate-50" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 rounded-xl animate-pulse bg-slate-50" />
+          ))}
+        </div>
+        <div className="h-48 rounded-xl animate-pulse bg-slate-50" />
+        <div className="h-64 rounded-xl animate-pulse bg-slate-50" />
+      </div>
+    );
+  }
+
+  const empty = !payouts || payouts.length === 0;
+
+  return (
+    <div className="p-8 space-y-8">
+      {/* ── Page Header ────────────────────────────────────────────── */}
+      <FadeInView>
+      <div>
+        <h1 className="text-display tracking-tight flex items-center gap-3 text-slate-900">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50">
+            <Wallet className="w-5 h-5 text-blue-600" />
+          </div>
+          Payouts &amp; Earnings
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Track your earnings from deal origination and introductions
+        </p>
+      </div>
+      </FadeInView>
+
+      {/* ── Attribution Summary Hero ────────────────────────────────── */}
+      <div className="card-elevated p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Earnings (Lifetime Attribution) */}
+          <div>
+            <p className="data-label mb-1">Lifetime Attribution</p>
+            <p className="font-data-hud text-3xl font-bold text-emerald-600">
+              $<SmoothCounter value={totalEarnings} duration={1.2} />
+            </p>
+          </div>
+          {/* Next Payout (Pending Amount) */}
+          <div>
+            <p className="data-label mb-1">Next Payout</p>
+            <p className="font-data-hud text-3xl font-bold text-slate-900">
+              $<SmoothCounter value={pendingAmount} duration={1} />
+            </p>
+          </div>
+          {/* Pending Count */}
+          <div>
+            <p className="data-label mb-1">Pending</p>
+            <p className="font-data-hud text-3xl font-bold text-[#C4972A]">
+              <SmoothCounter value={(payouts ?? []).filter((p) => p.status === "pending" || p.status === "processing").length} duration={1} />
+            </p>
+          </div>
+          {/* This Month */}
+          <div>
+            <p className="data-label mb-1">This Month</p>
+            <p className="font-data-hud text-3xl font-bold text-blue-600">
+              $<SmoothCounter value={thisMonthEarnings} duration={1} />
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* F7: Payout Statement */}
+      <PayoutStatementSection />
+
+      {/* ── Economics Overview ──────────────────────────────────────── */}
+      <div className="card-elevated p-6 space-y-5">
+          <h3 className="text-lg font-semibold text-slate-900">
+            ANAVI Economics Model
+          </h3>
+          <div className="flex gap-1 h-8 rounded-lg overflow-hidden">
+            <div
+              className="flex items-center justify-center text-xs font-semibold text-white bg-slate-900"
+              style={{ flex: "50 0 0%" }}
+            >
+              Originator 40–60%
+            </div>
+            <div
+              className="flex items-center justify-center text-xs font-semibold text-white bg-blue-600"
+              style={{ flex: "25 0 0%" }}
+            >
+              Contributors 20–30%
+            </div>
+            <div
+              className="flex items-center justify-center text-xs font-semibold text-white bg-[#C4972A]"
+              style={{ flex: "15 0 0%" }}
+            >
+              Platform 10–20%
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            When deals close through ANAVI, payouts are automated. Originators receive the largest share — guaranteed at close.
+          </p>
+      </div>
+
+      {/* ── Attribution History ─────────────────────────────────────── */}
+      <div className="card-elevated p-6 space-y-6">
+        <h3 className="data-label text-slate-900">
+          Attribution History
+        </h3>
+          {/* Filter Bar */}
+          <div className="flex flex-wrap gap-3">
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => setStatusFilter(v as PayoutStatus)}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={typeFilter}
+              onValueChange={(v) => setTypeFilter(v as PayoutTypeFilter)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {TYPE_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Date Range" />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Payout Table */}
+          {empty ? (
+            <div className="py-12">
+              <EmptyState {...EMPTY_STATES.payouts} />
+            </div>
+          ) : filteredPayouts.length === 0 ? (
+            <div className="text-center py-12">
+              <AlertCircle className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground">No payouts match the selected filters.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {filteredPayouts.map((p) => (
+                <div
+                  key={p.id}
+                  className="card-elevated px-4 py-3 flex items-center justify-between hover:translate-y-[-1px] transition-transform"
+                >
+                  <div>
+                    <p className="font-data-hud text-base font-semibold text-slate-900">
+                      {fmtCurrency(parseFloat(p.amount))}
+                    </p>
+                    <p className="data-label mt-0.5">{getTypeLabel(p.payoutType)}</p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="font-medium text-sm text-blue-600">
+                      Deal&nbsp;#{p.dealId}
+                    </span>
+                    <span className="data-label">{format(new Date(p.createdAt), "MMM d")}</span>
+                    <Badge className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}>
+                      {p.status ?? "pending"}
+                    </Badge>
+                    {p.relationshipId && (
+                      <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                        <Link2 className="w-3 h-3" />
+                        REL-{p.relationshipId}
+                      </span>
+                    )}
+                    {p.isFollowOn && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+                        Follow-on
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+      </div>
+
+      {/* ── Deal Payout Timeline ───────────────────────────────────── */}
+      {!empty && dealGroups.length > 0 && (
+        <div className="card-elevated p-6 space-y-6">
+          <h3 className="data-label text-slate-900">
+            Deal Payout Timeline
+          </h3>
+            {dealGroups.map((group) => {
+              const isExpanded = expandedDeal === group.dealId;
+              return (
+                <div key={group.dealId} className="card-elevated p-4">
+                  {/* Deal header */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between gap-4 text-left"
+                    onClick={() => setExpandedDeal(isExpanded ? null : group.dealId)}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {isExpanded ? (
+                        <ChevronDown className="w-5 h-5 shrink-0 text-slate-900" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 shrink-0 text-slate-900" />
+                      )}
+                      <span className="font-semibold truncate text-slate-900">
+                        Deal #{group.dealId}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {group.payouts.length} payout{group.payouts.length !== 1 && "s"}
+                      </span>
+                    </div>
+                                <span className="font-data-hud font-bold shrink-0 text-emerald-600">
+                                    {fmtCurrency(group.total)}
+                                  </span>
+                  </button>
+
+                  {/* Milestone Timeline */}
+                  {isExpanded && (
+                    <div className="mt-5 ml-6 border-l-2 border-slate-200 pl-6 space-y-5">
+                      {group.payouts
+                        .sort(
+                          (a, b) =>
+                            new Date(a.createdAt).getTime() -
+                            new Date(b.createdAt).getTime(),
+                        )
+                        .map((p) => {
+                          const dotColorClass =
+                            p.status === "completed"
+                              ? "bg-slate-900"
+                              : p.status === "pending"
+                                ? "bg-[#C4972A]"
+                                : "bg-gray-300";
+                          return (
+                            <div key={p.id} className="relative">
+                              {/* Dot */}
+                              <div
+                                className={`absolute -left-[33px] top-1 w-4 h-4 rounded-full border-2 border-white ${dotColorClass}`}
+                              />
+                              <div className="flex flex-wrap items-start justify-between gap-2">
+                                <div className="space-y-1">
+                                  <p className="font-medium text-sm text-slate-900">
+                                    {p.milestoneName ?? getTypeLabel(p.payoutType)}
+                                  </p>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <Badge
+                                      className={`border-0 text-[11px] ${getTypeBadgeClasses(p.payoutType)}`}
+                                    >
+                                      {getTypeLabel(p.payoutType)}
+                                    </Badge>
+                                    <Badge
+                                      className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}
+                                    >
+                                      {p.status ?? "pending"}
+                                    </Badge>
+                                    {p.isFollowOn && (
+                                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+                                        Follow-on
+                                      </span>
+                                    )}
+                                  </div>
+                                  {p.attributionPercentage && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Attribution: {parseFloat(p.attributionPercentage)}%
+                                      {p.relationshipId && (
+                                        <span className="ml-2 text-blue-600">
+                                          <Link2 className="inline w-3 h-3 mr-0.5" />
+                                          REL-{p.relationshipId}
+                                        </span>
+                                      )}
+                                    </p>
+                                  )}
+                                  {p.status === "completed" && p.paidAt && (
+                                    <p className="text-xs text-emerald-600">
+                                      Paid on {format(new Date(p.paidAt), "MMM d, yyyy")} ({formatDistanceToNow(new Date(p.paidAt), { addSuffix: true })})
+                                    </p>
+                                  )}
+                                </div>
+                                <span className="font-data-hud font-bold text-sm text-slate-900">
+                                  {fmtCurrency(parseFloat(p.amount))}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+=== INSTRUCTIONS ===
+
+Your task: upgrade Payouts.tsx for whitepaper vision conformance.
+
+SPECIFIC ISSUES TO FIX:
+1. This file does not import from @/lib/copy. Add:
+   import { DASHBOARD } from "@/lib/copy";
+   Then use:
+   - DASHBOARD.payouts.lifetimeAttribution as the label for the "Lifetime Attribution" stat card header
+   - DASHBOARD.payouts.originationShare as the label for originator share percentage display
+2. Before the deal timeline accordion, add a section heading:
+   "Attribution Chain"
+   with a subtitle: "Every credit in this chain is cryptographically linked to your origination event."
+   Style it as: <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-[#1E3A5F]">
+3. The ANAVI Economics Model bar chart (Originator 40-60%, Contributors 20-30%, Platform 10-20%)
+   is well-aligned; no changes needed there.
+4. In payout type display, originator_fee renders as "Originator Fee" via .replace -- ensure capitalized.
+
+DO NOT CHANGE: All trpc.payout.* queries, the 4-stat cards, the period picker, the statement
+modal, the bar chart, the attribution history filters, the deal timeline accordion.
+
+
+
+=== OUTPUT FORMAT ===
+Respond with ONLY valid JSON (no markdown, no code blocks):
+{
+  "upgraded_tsx": "<complete upgraded TypeScript/TSX file content>",
+  "changes_summary": ["change 1", "change 2"],
+  "whitepaper_terms_added": ["term 1", "term 2"],
+  "copy_tokens_used": ["DASHBOARD.xxx", "TOUR.xxx"]
+}
+
+CRITICAL RULES:
+1. upgraded_tsx must be the COMPLETE file — do not truncate.
+2. Preserve ALL existing tRPC queries and mutations — do not remove any.
+3. Preserve ALL existing form logic, modals, validation.
+4. Only change: copy/labels, visual aesthetics, terminology alignment.
+5. Do not add new tRPC queries unless explicitly instructed.
+6. TypeScript must compile — no implicit any, no missing imports.
+7. Only import from libraries already in the project: react, wouter, framer-motion,
+   lucide-react, sonner, date-fns, @/lib/trpc, @/lib/copy, @/components/ui/*,
+   @/components/EmptyState, @/components/PageTransition, @/components/PremiumAnimations,
+   @/_core/hooks/useAuth.

@@ -1,0 +1,1501 @@
+=== TASK: Cross-page consistency audit ===
+
+=== COPY TOKENS (client/src/lib/copy.ts) ===
+// client/src/lib/copy.ts
+// Single source of truth for all whitepaper-aligned platform language.
+// Import from here — never write custody/attribution/trust copy inline.
+
+export const PLATFORM = {
+  tagline: "The Private Market Operating System",
+  thesis: "If Bloomberg runs public markets, ANAVI will run private ones.",
+  market: "$13 trillion private market",
+} as const;
+
+export const PROBLEMS = {
+  brokerChain: {
+    stat: "5–15",
+    headline: "Intermediaries Per Deal",
+    body: "5 to 15 intermediaries per deal. Each extracting 1–5%. The originator — the person whose relationship made the deal possible — receives no attribution, no compounding value, and no protection if they're cut out.",
+  },
+  fraud: {
+    stat: "$40B",
+    headline: "Annual Fraud Losses",
+    body: "$10 to $40 billion in annual US investment fraud losses. Because identity verification across private markets is fragmented, unshared, and trivially forged. Everyone runs their own checks. No one shares the results.",
+  },
+  dueDiligence: {
+    stat: "$500K",
+    headline: "Duplicated Per Deal",
+    body: "$50,000 to $500,000 per deal in duplicated compliance costs. Every investor in the chain runs the same KYC, the same OFAC screen, the same accreditation check — independently, expensively, and without coordination.",
+  },
+} as const;
+
+export const PERSONAS = {
+  originator: {
+    label: "Deal Originator / Broker",
+    role: "Relationship Holder",
+    problem: "My introductions close deals I never get credit for.",
+    answer: "Custody your relationships. Timestamp your introductions. Collect your attribution.",
+    tourPitch: "You made 847 introductions last year. ANAVI would have attributed every one.",
+  },
+  investor: {
+    label: "Investor / Family Office",
+    role: "Capital Deployer",
+    problem: "I can't tell which deals are real or who's already seen them.",
+    answer: "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
+    tourPitch: "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
+  },
+  developer: {
+    label: "Developer / Asset Owner",
+    role: "Capital Seeker",
+    problem: "Raising capital means exposing my thesis before anyone commits.",
+    answer: "Anonymous until you consent. NDA-gated rooms. Escrow-backed milestones.",
+    tourPitch: "You raised $30M. ANAVI would have protected your thesis until the moment you chose to disclose it.",
+  },
+} as const;
+
+export type PersonaKey = keyof typeof PERSONAS;
+
+export const TOUR = {
+  trustScore: {
+    title: "Your Trust Score",
+    body: "A dynamic credential built from KYB verification depth, transaction history, dispute resolution outcomes, and peer attestations. It determines your access tier, your whitelist status, and whether counterparties transact with you.",
+  },
+  relationships: {
+    originator: {
+      title: "Custody Your Relationship",
+      body: "Click to timestamp this introduction with a cryptographic custody hash — immutable proof of when you made it. If this relationship produces a deal in three years, this record is your attribution claim.",
+    },
+    investor: {
+      title: "Protect Your Counterparty",
+      body: "Click to custody a counterparty relationship. Every counterparty you protect has passed KYB verification, OFAC screening, and accreditation confirmation — and every disclosure is logged permanently.",
+    },
+    developer: {
+      title: "Seal Your Register",
+      body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
+    },
+  },
+  blindMatch: {
+    title: "Blind Match",
+    body: "A qualified counterparty has been matched to your intent. Their identity, firm, and terms remain sealed. ANAVI's matching engine operates on anonymized attributes — the platform cannot see unencrypted details until both parties authorize disclosure.",
+  },
+  dealRoom: {
+    title: "Deal Room",
+    body: "NDA executed. Immutable audit trail initiated. Every document access, version change, and signature event is cryptographically logged. This record is the basis for originator attribution, payout calculation, and regulatory compliance.",
+  },
+  attribution: {
+    originator: {
+      title: "Attribution & Payout",
+      body: "Your introduction. $47M Riyadh Solar JV. Originator share: 2.5% — $1.175M — calculated automatically from the closing ledger. Triggered on milestone. No negotiation. No intermediary.",
+    },
+    investor: {
+      title: "Attribution & Payout",
+      body: "Your capital deployed across 3 verified SPVs. Every subsequent deal from this relationship credits your participation — compounding attribution over time.",
+    },
+    developer: {
+      title: "Escrow Milestone",
+      body: "Milestone reached: $12M of $30M committed. Funds release triggered automatically. Your operator economics, protected and automated.",
+    },
+  },
+  compliance: {
+    title: "Compliance Passport",
+    body: "This counterparty's compliance passport — KYB verified, OFAC clean, accredited status confirmed — travels with every transaction they execute on ANAVI. You access their verification record. You don't duplicate it. $500,000 in due diligence costs, shared.",
+  },
+  close: {
+    headline: "The Private Market Operating System.",
+    subhead: "Every relationship custodied. Every introduction attributed. Every deal closed on infrastructure purpose-built for the $13 trillion private market.",
+    cta: {
+      title: "Apply for Access",
+      body: "You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?",
+    },
+  },
+} as const;
+
+export const CUSTODY_RECEIPT = {
+  title: "Introduction Custodied.",
+  body: "This introduction is now timestamped, cryptographically signed, and permanently attributed to you. If this relationship produces a deal — today or in five years — this record is your claim.",
+  cta: "View Your Custody Register",
+} as const;
+
+/** Six-module navigation section labels. */
+export const MODULES = {
+  overview: "OVERVIEW",
+  trustIdentity: "TRUST & IDENTITY",
+  relationships: "RELATIONSHIPS",
+  deals: "DEALS",
+  economics: "ECONOMICS",
+  intelligence: "INTELLIGENCE",
+  settings: "SETTINGS",
+} as const;
+
+/** Notification type labels shown on activity feed badges. */
+export const NOTIFICATIONS = {
+  matchFound:      { label: "MATCH" },
+  dealUpdate:      { label: "DEAL ROOM" },
+  payoutReceived:  { label: "ATTRIBUTION" },
+  complianceAlert: { label: "VERIFICATION" },
+  system:          { label: "SYSTEM" },
+} as const;
+
+/** Toast messages triggered by dashboard CTA clicks. */
+export const TOASTS = {
+  navigatingRelationships: "Opening Relationship Custody",
+  navigatingDealMatching:  "Opening Blind Matching",
+} as const;
+
+/** Dashboard widget titles, labels, and CTAs. */
+export const DASHBOARD = {
+  trustScore: {
+    title: "Trust Score",
+    scoreChange: (delta: number) => `${delta > 0 ? "+" : ""}${delta} this month`,
+    whitelistStatus: "Whitelist",
+    compoundNature:
+      "Your score compounds with every verified transaction and peer attestation.",
+    breakdownCta: "Click to view breakdown →",
+  },
+  marketDepth: {
+    title: "Market Depth",
+    buyersLabel: "Buyers",
+    sellersLabel: "Sellers",
+  },
+  blindMatches: {
+    title: "Blind Matches",
+    sealedStatus: "Sealed",
+    noMatches: "No matches yet. Express an intent to activate matching.",
+  },
+  dealRooms: {
+    title: "Deal Rooms",
+    documents: "Documents:",
+    auditEvents: "Audit Events:",
+    immutableAuditTrail: "Immutable audit trail & document versioning active",
+    escrowLabel: "Escrow",
+    enterCta: "Enter Deal Room →",
+    noDealRooms: "No deal rooms yet. Accept a match to open a deal room.",
+  },
+  complianceStatus: {
+    title: "Compliance Status",
+    passportSummary: "Compliance Passport",
+    kybStatus: "KYB",
+    ofacStatus: "OFAC",
+    amlStatus: "AML",
+    viewPassportCta: "View Passport",
+    badgeRequired: "Required",
+    noPendingActions: "All compliance requirements met.",
+  },
+  payouts: {
+    title: "Economics Engine",
+    nextPayoutLabel: "Next Payout:",
+    lifetimeAttribution: "Lifetime Attribution Value:",
+    originationShare: "Originator Share:",
+    noPayouts: "No payouts yet. Close a deal to trigger attribution.",
+  },
+  activeIntents: {
+    title: "Your Active Intents",
+    manageCta: "Manage Intents",
+    noIntents: "No active intents. Visit Blind Matching to express an intent.",
+  },
+  custodiedRelationships: {
+    title: "Relationship Custody",
+    custodyAge: "Custodied:",
+    attributionCue: "Cryptographic timestamps ensure forever attribution",
+    protectCta: "Protect a Relationship",
+    viewRegisterCta: "View Custody Register",
+    noRelationships:
+      "No custodied relationships yet. Protect your first introduction.",
+  },
+} as const;
+
+
+=== UPGRADED PAGE CONTENT ===
+=== intents.tsx (first 8000 chars) ===
+import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { 
+  Target, Plus, Search, Zap, Eye, EyeOff, 
+  DollarSign, Clock, Sparkles, Play, Pause, TrendingUp, Filter, ChevronRight, ArrowUpRight
+} from "lucide-react";
+import { toast } from "sonner";
+import { TOUR } from "@/lib/copy"; // Import TOUR
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition"; // Import PageTransition components
+
+export default function Intents() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newIntent, setNewIntent] = useState({
+    intentType: "buy" as "buy" | "sell" | "invest" | "seek_investment" | "partner",
+    title: "",
+    description: "",
+    assetType: undefined as any,
+    minValue: "",
+    maxValue: "",
+    targetTimeline: "",
+    isAnonymous: true,
+  });
+
+  const { data: intents, isLoading, refetch } = trpc.intent.list.useQuery();
+  const createMutation = trpc.intent.create.useMutation({
+    onSuccess: () => {
+      toast.success("Intent created! AI matching is now active.");
+      setIsAddDialogOpen(false);
+      setNewIntent({
+        intentType: "buy",
+        title: "",
+        description: "",
+        assetType: undefined,
+        minValue: "",
+        maxValue: "",
+        targetTimeline: "",
+        isAnonymous: true,
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const updateMutation = trpc.intent.update.useMutation({
+    onSuccess: () => {
+      toast.success("Intent updated");
+      refetch();
+    },
+  });
+
+  const findMatchesMutation = trpc.intent.findMatches.useMutation({
+    onSuccess: (data) => {
+      if (data.matches.length > 0) {
+        toast.success(`Found ${data.matches.length} potential matches!`);
+      } else {
+        toast.info("No matches found yet. Keep your intent active.");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const filteredIntents = intents?.filter(intent => 
+    intent.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    intent.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
+  const getIntentTypeStyle = (type: string) => {
+    switch (type) {
+      case "buy": return "bg-sky-500";
+      case "sell": return "bg-rose-500";
+      case "invest": return "bg-blue-500";
+      case "seek_investment": return "bg-purple-500";
+      case "partner": return "bg-sky-500";
+      default: return "bg-muted";
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "matched": return "default";
+      default: return "outline";
+    }
+  };
+
+  const stats = [
+    { label: "Total Intents", value: intents?.length || 0, icon: Target, color: "accent" },
+    { label: "Active", value: intents?.filter(i => i.status === 'active').length || 0, icon: Zap, color: "dark" },
+    { label: "Matched", value: intents?.filter(i => i.status === 'matched').length || 0, icon: TrendingUp, color: "accent" },
+    { label: "Anonymous", value: intents?.filter(i => i.isAnonymous).length || 0, icon: EyeOff, color: "dark" },
+  ];
+
+  return (
+    <FadeInView>
+      <div className="min-h-screen bg-background bg-geometric">
+        {/* Header */}
+        <div className="px-8 pt-10 pb-8">
+          <StaggerContainer>
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+              <StaggerItem>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="geo-dot" />
+                  <span className="text-[0.6875rem] font-semibold uppercase tracking-widest text-muted-foreground">AI Blind Matching</span>
+                </div>
+                <h1 className="text-4xl font-semibold tracking-tight text-foreground mb-3">
+                  Deal <span className="gradient-text">Intents</span>
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-md mb-2">
+                  <span className="font-semibold text-foreground">{TOUR.blindMatch.title}:</span> {TOUR.blindMatch.body}
+                </p>
+              </StaggerItem>
+              
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <StaggerItem delay={0.1}>
+                    <Button className="btn-gold flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      New Intent
+                    </Button>
+                  </StaggerItem>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-semibold tracking-tight">Create Intent</DialogTitle>
+                    <DialogDescription>
+                      AI will match you with compatible counterparties
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+                    <div className="space-y-2">
+                      <Label>Intent Type</Label>
+                      <Select
+                        value={newIntent.intentType}
+                        onValueChange={(value: any) => setNewIntent({ ...newIntent, intentType: value })}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="buy">Buy / Acquire</SelectItem>
+                          <SelectItem value="sell">Sell / Divest</SelectItem>
+                          <SelectItem value="invest">Invest Capital</SelectItem>
+                          <SelectItem value="seek_investment">Seek Investment</SelectItem>
+                          <SelectItem value="partner">Find Partner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Title</Label>
+                      <Input
+                        placeholder="e.g., Seeking 50,000 MT EN590 Rotterdam delivery"
+                        value={newIntent.title}
+                        onChange={(e) => setNewIntent({ ...newIntent, title: e.target.value })}
+                        className="h-11"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea
+                        placeholder="Provide details about your requirements..."
+                        value={newIntent.description}
+                        onChange={(e) => setNewIntent({ ...newIntent, description: e.target.value })}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Asset Type</Label>
+                      <Select
+                        value={newIntent.assetType}
+                        onValueChange={(value: any) => setNewIntent({ ...newIntent, assetType: value })}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Select asset type" />
+                        </SelectTrigger>
+             
+
+=== matches.tsx (first 8000 chars) ===
+import { trpc } from "@/lib/trpc";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Handshake, Heart, X, MessageSquare, Shield,
+  Clock, Sparkles, ArrowRight, CheckCircle2, Zap, Lock
+} from "lucide-react";
+import { toast } from "sonner";
+import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { DASHBOARD } from "@/lib/copy";
+
+export default function Matches() {
+  const [, setLocation] = useLocation();
+  const { user } = useAuth(); // Get current user
+  const { data: matches, isLoading, refetch } = trpc.match.list.useQuery();
+  
+  const expressInterestMutation = trpc.match.expressInterest.useMutation({
+    onSuccess: (data) => {
+      if (data.mutualInterest) {
+        toast.success("Mutual interest! You can now create a deal room.");
+      } else {
+        toast.success("Interest expressed. Waiting for counterparty response.");
+      }
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const createDealRoomMutation = trpc.match.createDealRoom.useMutation({
+    onSuccess: () => {
+      toast.success("Deal room created!");
+      setLocation("/deal-rooms");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-sky-100 text-sky-700";
+      case "user1_interested": 
+      case "user2_interested": return "bg-blue-100 text-blue-700";
+      case "mutual_interest": return "bg-sky-100 text-sky-700";
+      case "deal_room_created": return "bg-[#059669]/15 text-[#059669]"; // Trust green for active deal room
+      case "declined": return "bg-red-100 text-red-700";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getStatusLabel = (status: string, isUser1: boolean) => {
+    switch (status) {
+      case "pending": return "Awaiting Response";
+      case "user1_interested": return isUser1 ? "You Expressed Interest" : "They're Interested";
+      case "user2_interested": return !isUser1 ? "You Expressed Interest" : "They're Interested";
+      case "mutual_interest": return "Mutual Interest!";
+      case "deal_room_created": return "Deal Room Active";
+      case "declined": return "Declined";
+      default: return status;
+    }
+  };
+
+  return (
+    <FadeInView className="p-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+              <Handshake className="w-5 h-5 text-rose-600" />
+            </div>
+            {DASHBOARD.blindMatches.title}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Intents expressed anonymously. Counterparty identity sealed until mutual consent.
+          </p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <Card className="card-elevated">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-1">{DASHBOARD.blindMatches.title}</div>
+                <div className="text-3xl font-bold font-data-hud">{matches?.length || 0}</div>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center">
+                <Handshake className="w-6 h-6 text-rose-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="card-elevated">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-1">Pending</div>
+                <div className="text-3xl font-bold font-data-hud text-sky-600">
+                  {matches?.filter(m => m.status === 'pending').length || 0}
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-sky-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="card-elevated">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-1">Mutual Interest</div>
+                <div className="text-3xl font-bold font-data-hud text-sky-600">
+                  {matches?.filter(m => m.status === 'mutual_interest').length || 0}
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center">
+                <Heart className="w-6 h-6 text-sky-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="card-elevated">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-1">Deal Rooms</div>
+                <div className="text-3xl font-bold font-data-hud text-[#C4972A]">
+                  {matches?.filter(m => m.status === 'deal_room_created').length || 0}
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-[#C4972A]/10 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-[#C4972A]" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Matches List */}
+      {isLoading ? (
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="card-elevated">
+              <CardContent className="p-6">
+                <div className="h-40 animate-shimmer rounded-xl" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : !matches || matches.length === 0 ? (
+        <Card className="card-elevated">
+          <CardContent className="p-16 text-center">
+            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No Blind Matches Yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+              Express an intent to activate matching and find compatible counterparties.
+            </p>
+            <Button onClick={() => setLocation("/intents")} className="btn-gold">
+              Create Intent
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <StaggerContainer className="grid gap-4">
+          {matches.map((match, index) => {
+            // TODO: derive from match.user1Id and user.id. Assuming match has user1Id and user2Id.
+            // If match.user1Id or match.user2Id are not directly available, this will need adjustment.
+            const isUser1 = user?.id === match.user1Id; // Derived isUser1
+            const hasExpressedInterest = isUser1 ? match.user1Consent : match.user2Consent;
+            const compatibilityScore = parseFloat(match.compatibilityScore || "0");
+
+            return (
+              <StaggerItem key={match.id}>
+                <Card 
+                  className="card-elevated relative overflow-hidden bg-gradient-to-br from-[#0A1628]/5 to-transparent
+
+=== relationships.tsx (first 8000 chars) ===
+import { useState, useEffect, useRef } from "react";
+import { trpc } from "@/lib/trpc";
+import { Link } from "wouter";
+import {
+  Shield, Lock, Copy, LayoutGrid, List, Plus, Search,
+  Filter, Check, Upload, Users, Briefcase, TrendingUp,
+  DollarSign, Globe, ChevronDown, X, Loader2, UserPlus, ShieldCheck,
+  Mail, Phone, Linkedin, Save, QrCode, ExternalLink,
+} from "lucide-react";
+import QRCode from "qrcode";
+import { toast } from "sonner";
+import { FadeInView, ScaleHover, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { GlowingBorder } from "@/components/PremiumAnimations";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
+import { CUSTODY_RECEIPT } from "@/lib/copy";
+
+const COLORS = {
+  navy: "#0A1628",
+  gold: "#C4972A",
+  blue: "#2563EB",
+  green: "#059669",
+  surface: "#F3F7FC",
+  border: "#D1DCF0",
+};
+
+const SECTORS = ["Oil & Gas", "Solar", "Real Estate", "Mining", "Infrastructure", "M&A", "Other"];
+const REGIONS = ["North America", "Europe", "Asia", "Middle East", "Africa", "Latin America"];
+const REL_TYPES = [
+  { value: "buyer", label: "Buyer", icon: Briefcase },
+  { value: "seller", label: "Seller", icon: TrendingUp },
+  { value: "investor", label: "Investor", icon: DollarSign },
+  { value: "developer", label: "Developer", icon: Globe },
+  { value: "other", label: "Other", icon: Users },
+] as const;
+
+const VERIFICATION_LEVELS = [
+  "Basic contact info",
+  "Business verified",
+  "Financial verified",
+  "Fully documented",
+];
+
+function formatCurrency(val: number) {
+  if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
+  if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
+  return `$${val.toFixed(0)}`;
+}
+
+function generateFakeHash() {
+  const chars = "abcdef0123456789";
+  return Array.from({ length: 64 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
+
+export default function Relationships() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sectorFilter, setSectorFilter] = useState("");
+  const [verificationFilter, setVerificationFilter] = useState("");
+  const [matchFilter, setMatchFilter] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalStep, setModalStep] = useState(1);
+  const [selectedRelId, setSelectedRelId] = useState<number | null>(null);
+
+  const [formType, setFormType] = useState("");
+  const [formSectors, setFormSectors] = useState<string[]>([]);
+  const [formDealMin, setFormDealMin] = useState("");
+  const [formDealMax, setFormDealMax] = useState("");
+  const [formRegions, setFormRegions] = useState<string[]>([]);
+  const [formRequirements, setFormRequirements] = useState("");
+  const [formVerification, setFormVerification] = useState("");
+  const [formExposure, setFormExposure] = useState("full");
+  const [formAutoMatch, setFormAutoMatch] = useState(true);
+
+  const utils = trpc.useUtils();
+  const { data: relationships, isLoading, refetch } = trpc.relationship.list.useQuery();
+  const [proofModal, setProofModal] = useState<number | null>(null);
+  const { data: stats } = trpc.user.getStats.useQuery();
+  const createMutation = trpc.relationship.create.useMutation({
+    onSuccess: () => {
+      refetch();
+      setModalStep(5);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const filteredRelationships = (relationships || []).filter((rel) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      !q ||
+      `REL-${rel.id}`.toLowerCase().includes(q) ||
+      rel.relationshipType?.toLowerCase().includes(q) ||
+      rel.tags?.some((t: string) => t.toLowerCase().includes(q));
+    const matchesSector = !sectorFilter || rel.tags?.includes(sectorFilter);
+    const matchesVerification =
+      !verificationFilter ||
+      (verificationFilter === "custodied" && rel.isBlind) ||
+      (verificationFilter === "open" && !rel.isBlind);
+    const matchesMatch =
+      !matchFilter ||
+      (matchFilter === "active" && (rel.dealCount || 0) > 0) ||
+      (matchFilter === "dormant" && (rel.dealCount || 0) === 0);
+    return matchesSearch && matchesSector && matchesVerification && matchesMatch;
+  });
+
+  const totalValue = relationships?.reduce((s, r) => s + parseFloat(r.totalDealValue || "0"), 0) || 0;
+  const totalEarnings = relationships?.reduce((s, r) => s + parseFloat(r.totalEarnings || "0"), 0) || 0;
+  const activeMatches = (stats as any)?.activeMatches ?? 12;
+
+  const copyHash = (hash: string) => {
+    navigator.clipboard.writeText(hash);
+    toast.success("Custody hash copied");
+  };
+
+  const resetModal = () => {
+    setModalStep(1);
+    setFormType("");
+    setFormSectors([]);
+    setFormDealMin("");
+    setFormDealMax("");
+    setFormRegions([]);
+    setFormRequirements("");
+    setFormVerification("");
+    setFormExposure("full");
+    setFormAutoMatch(true);
+  };
+
+  const openModal = () => {
+    resetModal();
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    resetModal();
+  };
+
+  const submitRelationship = () => {
+    createMutation.mutate({
+      contactId: Math.floor(Math.random() * 100000),
+      relationshipType: (formType || "direct") as any,
+      notes: formRequirements,
+      tags: [...formSectors, ...formRegions],
+    });
+  };
+
+  const statCards = [
+    { label: "CUSTODIED RELATIONSHIPS", value: relationships?.length || 0 },
+    { label: "PORTFOLIO VALUE", value: totalValue > 0 ? formatCurrency(totalValue) : "$2.4M" },
+    { label: "TOTAL ATTRIBUTION EARNED", value: formatCurrency(totalEarnings) },
+    { label: "ACTIVE MATCHES", value: activeMatches },
+  ];
+
+  const confirmationId = `REL-${Math.floor(Math.random() * 90000) + 10000}`;
+  const confirmationHash = generateFakeHash();
+
+  useEffect(() => { document.title = "Relationships | ANAVI"; }, []);
+
+  return (
+    <div style={{ minHeight: "100vh", background: COLORS.surface }}>
+      {/* Page Heading */}
+      <div style={{ padding: "32px 32px 12px" }}>
+        <h1 className="dash-heading text-3xl">Relationship Custody</h1>
+        <p className="text-lg text-[#6B7A90] mt-2">Timestamped introductions with cryptographic proof of custody.</p>
+      </div>
+
+      {/* Header Stats Bar */}
+      <FadeInView>
+        <div style={{ padding: "0 32px 0" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+            {statCards.map((s) => (
+              <div
+                key={s.label}
+                className="hover-lift card-elevated"
+                style={{
+                  padding: "24px 28px",
+                }}
+              >
+                <div style={{ fontSize: 28, fontWeight: 700, color: COLORS.navy }}>{s.value}</div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase" as const,
+                  color: "#6B7A90",
+                  marginTop: 6,
+                }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+          </div>
+        </div>
+      </FadeInView>
+
+      {/* Filter Bar */}
+      <div style={{ padding: "0 32px 24px" }}>
+        <div
+          className="card-elevated"
+          style={{
+            padding: "20px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+        <div style={{ position: "relative", width: 300 }}>
+          <Search
+            size={16}
+            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }}
+          />
+          <input
+            type="text"
+            placeholder="Search relationships..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: 
+
+=== verification.tsx (first 8000 chars) ===
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import FVMCelebration from "@/components/FVMCelebration";
+import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { motion } from "framer-motion";
+import { SmoothReveal, GlowingBorder, SmoothCounter } from "@/components/PremiumAnimations";
+import {
+  Shield,
+  ShieldCheck,
+  TrendingUp,
+  Award,
+  Clock,
+  Users,
+  Star,
+  FileCheck,
+  Lock,
+  Copy,
+  QrCode,
+  ChevronRight,
+  Check,
+  Upload,
+  X,
+  Info,
+  Fingerprint, // Added Fingerprint icon
+} from "lucide-react";
+import { toast } from "sonner";
+
+// ─── Design Tokens ───────────────────────────────────────────
+const C = {
+  navy: "#0A1628",
+  gold: "#C4972A",
+  blue: "#2563EB",
+  green: "#059669",
+  red: "#DC2626",
+  steel: "#1E3A5F",
+  surface: "#F3F7FC",
+  border: "#D1DCF0",
+} as const;
+
+// ─── Radar / Score Dimensions ────────────────────────────────
+// Whitepaper-aligned Trust Score components
+const DIMENSIONS_CONFIG = [
+  { key: "kyb_depth", label: "KYB Depth", score: 90, icon: ShieldCheck, status: "Verified" },
+  { key: "transaction_history", label: "Transaction History", score: 80, icon: Award, status: "Auto" },
+  { key: "dispute_outcomes", label: "Dispute Outcomes", score: 70, icon: Info, status: "Auto" },
+  { key: "peer_attestations", label: "Peer Attestations", score: 85, icon: Users, status: "Auto" },
+  { key: "platform_tenure", label: "Platform Tenure", score: 60, icon: Clock, status: "Auto" },
+  { key: "identity_verification", label: "Identity Verification", score: 95, icon: Fingerprint, status: "Verified" },
+] as const;
+
+const TIER_FEATURES = [
+  { label: "Deal value access", t1: "Up to $1M", t2: "Up to $50M", t3: "Unlimited" },
+  { label: "Counterparty access", t1: "Basic only", t2: "Enhanced + Basic", t3: "All tiers" },
+  { label: "Match priority", t1: "Standard", t2: "Priority", t3: "Premium" },
+  { label: "Founding member", t1: "No", t2: "Eligible", t3: "Included" },
+];
+
+const AML_QUESTIONS = [
+  "Are all funds derived from legitimate business activities?",
+  "Are you or any beneficial owner a Politically Exposed Person (PEP)?",
+  "Have you or your organization been subject to any sanctions or enforcement actions?",
+  "Can you provide documentation for the source of funds used in transactions?",
+];
+
+// TODO: replace with live trpc.user.getTrustScoreHistory data
+const SCORE_HISTORY = [65, 68, 72, 74, 78, 84];
+
+const DOC_TYPES = [
+  "government_id",
+  "passport",
+  "business_license",
+  "incorporation_docs",
+  "proof_of_address",
+  "bank_statement",
+  "tax_document",
+  "accreditation_letter",
+] as const;
+
+// ─── Constants ───────────────────────────────────────────────
+const PARTNER_COUNT = 12; // TODO: source from live data
+
+function VerificationDocumentsSection() {
+  const utils = trpc.useUtils();
+  const { data: docs = [] } = trpc.user.getVerificationDocuments.useQuery();
+  const requestUpload = trpc.verification.requestUpload.useMutation();
+  const confirmUpload = trpc.verification.confirmUpload.useMutation({
+    onSuccess: () => {
+      utils.user.getVerificationDocuments.invalidate();
+      utils.user.getTrustScore.invalidate();
+      toast.success("Document submitted for review");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const [docType, setDocType] = useState<typeof DOC_TYPES[number]>("government_id");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = useCallback(async () => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { key } = await requestUpload.mutateAsync({
+        documentType: docType,
+        mimeType: file.type || "application/octet-stream",
+      });
+      await confirmUpload.mutateAsync({ fileKey: key, documentType: docType });
+      setFile(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }, [file, docType, requestUpload, confirmUpload]);
+
+  const statusBadge = (status: string) => {
+    const cls =
+      status === "approved"
+        ? "bg-[#059669]/15 text-[#059669]"
+        : status === "rejected"
+          ? "bg-red-500/15 text-red-600"
+          : "bg-[#F59E0B]/15 text-[#F59E0B]";
+    return (
+      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cls}`}>
+        {status}
+      </span>
+    );
+  };
+
+  return (
+    <div className="card-elevated p-6">
+      <h3 className="mb-4 data-label">Verification Documents</h3>
+      <p className="text-sm mb-6" style={{ color: `${C.navy}70` }}>
+        Upload your first verification document. Accepted: gov ID, business license, proof of address.
+      </p>
+
+      {docs.length > 0 && (
+        <div className="mb-6 space-y-3">
+          {docs.map((d: any) => (
+            <div
+              key={d.id}
+              className="flex items-center justify-between p-3 rounded-lg"
+              style={{ backgroundColor: `${C.navy}06`, borderColor: C.border, borderWidth: 1 }}
+            >
+              <div className="flex items-center gap-3">
+                <FileCheck className="w-5 h-5" style={{ color: C.blue }} />
+                <div>
+                  <p className="text-sm font-medium" style={{ color: C.navy }}>
+                    {String(d.documentType).replace(/_/g, " ")}
+                  </p>
+                  <p className="text-xs" style={{ color: `${C.navy}60` }}>
+                    {new Date(d.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              {statusBadge(d.status ?? "pending")}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        className="rounded-xl border-2 border-dashed p-6 transition-colors flex flex-col items-center justify-center gap-3 cursor-pointer"
+        style={{
+          borderColor: file ? C.green : C.border,
+          backgroundColor: file ? `${C.green}08` : "white",
+        }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const f = e.dataTransfer.files[0];
+          if (f && /\.(pdf|jpg|jpeg|png)$/i.test(f.name)) setFile(f);
+        }}
+        onClick={() => {
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = ".pdf,.jpg,.jpeg,.png";
+          input.onchange = (ev) => {
+            const f = (ev.target as HTMLInputElement).files?.[0];
+            if (f) setFile(f);
+          };
+          input.click();
+        }}
+      >
+        <select
+          value={docType}
+          onChange={(e) => setDocType(e.target.value as typeof DOC_TYPES[number])}
+          className="rounded-lg px-3 py-2 text-sm border mb-2"
+          style={{ borderColor: C.border }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {DOC_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t.replace(/_/g, " ")}
+            </option>
+          ))}
+        </select>
+        {file ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2 text-sm" style={{ color: C.green }}>
+              <Check className="w-4 h-4" />
+              {file.name}
+            </div>
+            <Button
+              size="sm"
+              className="cursor-pointer"
+              style={{ backgroundColor: C.gold, color: "white" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUpload();
+              }}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading…" : "Submit for Review"}
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Upload className="w-8 h-8" style={{ color: C.steel }} />
+            <span
+
+=== payouts.tsx (first 8000 chars) ===
+import { useState, useMemo, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import { FadeInView } from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Wallet,
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
+  Link2,
+  Download,
+  FileText,
+} from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { DASHBOARD } from "@/lib/copy";
+
+
+const fmtCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    amount,
+  );
+
+type PayoutStatus = "all" | "pending" | "processing" | "completed" | "failed";
+type PayoutTypeFilter =
+  | "all"
+  | "originator_fee"
+  | "introducer_fee"
+  | "advisor_fee"
+  | "milestone_bonus"
+  | "success_fee";
+
+const STATUS_OPTIONS: { value: PayoutStatus; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "processing", label: "Processing" },
+  { value: "completed", label: "Completed" },
+  { value: "failed", label: "Failed" },
+];
+
+const TYPE_OPTIONS: { value: PayoutTypeFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "originator_fee", label: "Originator Fee" },
+  { value: "introducer_fee", label: "Introducer Fee" },
+  { value: "advisor_fee", label: "Advisor Fee" },
+  { value: "milestone_bonus", label: "Milestone Bonus" },
+  { value: "success_fee", label: "Success Fee" },
+];
+
+function getTypeLabel(type: string) {
+  return (
+    TYPE_OPTIONS.find((t) => t.value === type)?.label ??
+    type.replace(/_/g, " ")
+  );
+}
+
+function getTypeBadgeClasses(type: string): string {
+  switch (type) {
+    case "originator_fee":
+      return "bg-slate-900 text-white";
+    case "introducer_fee":
+      return "bg-blue-600 text-white";
+    case "advisor_fee":
+      return "bg-[#C4972A] text-white";
+    case "milestone_bonus":
+      return "bg-emerald-600 text-white";
+    case "success_fee":
+      return "bg-violet-600 text-white";
+    default:
+      return "";
+  }
+}
+
+function PayoutStatementSection() {
+  const [periodStart, setPeriodStart] = useState(() =>
+    format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd")
+  );
+  const [periodEnd, setPeriodEnd] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [showModal, setShowModal] = useState(false);
+
+  const { data: statement, isLoading } = trpc.payout.getStatement.useQuery(
+    {
+      periodStart: `${periodStart}T00:00:00.000Z`,
+      periodEnd: `${periodEnd}T23:59:59.999Z`,
+    },
+    { enabled: showModal && !!periodStart && !!periodEnd }
+  );
+
+  const downloadCSV = () => {
+    if (!statement) return;
+    const header = "Deal ID,Amount,Currency,Type,Status,Date\n";
+    const rows = statement.items.map(
+      (p: any) =>
+        `${p.dealId ?? ""},${p.amount ?? 0},${p.currency ?? "USD"},${p.payoutType ?? ""},${p.status ?? ""},"${new Date(p.createdAt).toLocaleDateString()}"`
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ANAVI-Payout-Statement-${periodStart}-${periodEnd}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Statement downloaded");
+  };
+
+  return (
+    <div className="card-elevated p-6">
+      <h3 className="data-label mb-2 text-slate-900">
+        Payout Statement
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Official ANAVI payout statement. Select a period and view or download.
+      </p>
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase text-muted-foreground">Start</label>
+          <Input
+            type="date"
+            value={periodStart}
+            onChange={(e) => setPeriodStart(e.target.value)}
+            className="w-[160px]"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase text-muted-foreground">End</label>
+          <Input
+            type="date"
+            value={periodEnd}
+            onChange={(e) => setPeriodEnd(e.target.value)}
+            className="w-[160px]"
+          />
+        </div>
+        <Button
+          className="btn-gold gap-2"
+          onClick={() => setShowModal(true)}
+        >
+          <FileText className="w-4 h-4" />
+          View Statement
+        </Button>
+      </div>
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
+          <div className="relative z-10 bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-slate-200">
+              <h4 className="text-lg font-semibold text-slate-900">
+                Official ANAVI Payout Statement
+              </h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                {periodStart} — {periodEnd} · Generated {format(new Date(), "PP")}
+              </p>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[50vh]">
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Loading…</p>
+              ) : !statement || statement.items.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No payouts in this period. Select a different range.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {statement.items.map((p: any, i: number) => (
+                    <div key={i} className="flex justify-between py-2 border-b border-slate-200">
+                      <span className="text-sm">Deal #{p.dealId}</span>
+                      <span className="font-data-hud font-semibold">
+                        {fmtCurrency(Number(p.amount ?? 0))}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between pt-3 font-bold text-base text-slate-900">
+                    <span>Total</span>
+                    <span>{fmtCurrency(statement.total ?? 0)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-6 border-t border-slate-200 flex justify-between">
+              <Button variant="outline" onClick={() => setShowModal(false)}>
+                Close
+              </Button>
+              <Button className="btn-gold gap-2" onClick={downloadCSV} disabled={!statement || statement.items.length === 0}>
+                <Download className="w-4 h-4" />
+                Download CSV
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getStatusPillClasses(status: string) {
+  switch (status) {
+    case "pending":
+      return "bg-orange-100 text-orange-700";
+    case "processing":
+      return "bg-blue-100 text-blue-700";
+    case "completed":
+      return "bg-emerald-100 text-emerald-700";
+    case "failed":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
+}
+
+function buildMonthOptions() {
+  const now = new Date();
+  const opts: { value: string; label: string }[] = [
+    { value: "all", label: "All Time" },
+  ];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    opts.push({
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: for
+
+=== dealrooms.tsx (first 8000 chars) ===
+import { useState, useMemo, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
+import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
+import {
+  FolderOpen, Clock, ChevronRight,
+  Lock, Download, Eye
+} from "lucide-react";
+import { useLocation } from "wouter";
+import { FadeInView, ScaleHover, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+
+type StatusFilter = "all" | "nda_pending" | "active" | "completed" | "declined";
+
+const STATUS_FILTERS: { key: StatusFilter; label: string; className: string }[] = [
+  { key: "all", label: "All", className: "" },
+  { key: "nda_pending", label: "NDA Pending", className: "status-nda-pending" },
+  { key: "active", label: "Active", className: "status-active" },
+  { key: "completed", label: "Completed", className: "status-completed" },
+  { key: "declined", label: "Declined", className: "status-declined" },
+];
+
+const BADGE = "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider";
+
+function getStatusClass(status: string | null): string {
+  switch (status) {
+    case "active":
+      return `bg-[#22D4F5]/10 text-[#22D4F5]/80 ${BADGE}`;
+    case "closed":
+      return `bg-[#059669]/15 text-[#059669] ${BADGE}`;
+    case "archived":
+      return `bg-[#6B7280]/15 text-[#6B7280] ${BADGE}`;
+    default:
+      return `bg-[#F59E0B]/15 text-[#F59E0B] ${BADGE}`;
+  }
+}
+
+function getStatusLabel(status: string | null): string {
+  switch (status) {
+    case "active": return "Active";
+    case "closed": return "Completed";
+    case "archived": return "Declined";
+    default: return "NDA Pending";
+  }
+}
+
+function daysSince(date: Date | string): number {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function formatRelativeTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const diffMs = Date.now() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 30) return `${diffDay}d ago`;
+  return d.toLocaleDateString();
+}
+
+export default function DealRooms() {
+  const [, setLocation] = useLocation();
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const { data: dealRooms, isLoading } = trpc.dealRoom.list.useQuery();
+
+  const stats = useMemo(() => {
+    if (!dealRooms) return { active: 0, pendingNda: 0, completed: 0, total: 0 };
+    return {
+      active: dealRooms.filter(r => r.status === "active").length,
+      pendingNda: dealRooms.filter(r => !r.status || r.status === null).length,
+      completed: dealRooms.filter(r => r.status === "closed").length,
+      total: dealRooms.length,
+    };
+  }, [dealRooms]);
+
+  const filtered = useMemo(() => {
+    if (!dealRooms) return [];
+    if (filter === "all") return dealRooms;
+    const mapping: Record<StatusFilter, (r: any) => boolean> = {
+      all: () => true,
+      nda_pending: r => !r.status || r.status === null,
+      active: r => r.status === "active",
+      completed: r => r.status === "closed",
+      declined: r => r.status === "archived",
+    };
+    return dealRooms.filter(mapping[filter]);
+  }, [dealRooms, filter]);
+
+  useEffect(() => { document.title = "Deal Rooms | ANAVI"; }, []);
+
+  return (
+    <div className="p-8 space-y-6 animate-fade-in">
+      {/* Header */}
+      <FadeInView>
+        <h1 className="dash-heading text-3xl">Deal Rooms</h1>
+        {/* Subtitle added */}
+        <p className="text-lg text-[#1E3A5F]/80 mt-2">NDA-gated workspaces. Immutable audit trail active on every room.</p>
+      </FadeInView>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Active Rooms", value: stats.active, color: "#2563EB" },
+          { label: "Pending NDA", value: stats.pendingNda, color: "#C4972A" },
+          { label: "Completed", value: stats.completed, color: "#059669" },
+          { label: "Total Rooms", value: stats.total, color: "#0A1628" },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="card-elevated p-5"
+          >
+            <div className="text-label text-muted-foreground mb-1">{s.label}</div>
+            <div className="text-2xl font-bold number-display" style={{ color: s.color }}>
+              {s.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter Bar */}
+      <div className="card-elevated p-1.5 flex flex-wrap gap-1">
+        {STATUS_FILTERS.map((sf) => {
+          const isActive = filter === sf.key;
+          return (
+            <button
+              key={sf.key}
+              onClick={() => setFilter(sf.key)}
+              className={
+                isActive
+                  ? "rounded-md px-3 py-1.5 text-xs font-semibold bg-[#0A1628] text-white cursor-pointer transition-all"
+                  : "rounded-md px-3 py-1.5 text-xs font-medium text-[#1E3A5F]/60 hover:text-[#0A1628] hover:bg-[#0A1628]/5 cursor-pointer transition-all"
+              }
+            >
+              {sf.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Deal Room Cards */}
+      {isLoading ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="card-elevated p-6">
+              <div className="h-40 animate-shimmer rounded-lg" />
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="card-elevated p-6">
+          <EmptyState {...EMPTY_STATES.dealRooms} />
+        </div>
+      ) : (
+        <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((room) => {
+            const settings = (room.settings as any) || {};
+            const days = daysSince(room.createdAt);
+            const lastActivity = formatRelativeTime(room.updatedAt || room.createdAt);
+
+            return (
+              <StaggerItem key={room.id}>
+              <ScaleHover>
+              <div className="card-elevated flex flex-col hover:translate-y-[-2px]">
+                <div className="p-5 flex-1 space-y-3">
+                  {/* Status pill */}
+                  <div className="flex justify-end">
+                    <span className={`inline-flex ${getStatusClass(room.status)}`}>
+                      {getStatusLabel(room.status)}
+                    </span>
+                  </div>
+
+                  {/* Room name */}
+                  <h3 className="font-semibold text-base" style={{ color: "#0A1628" }}>
+                    {room.name}
+                  </h3>
+
+                  {/* New text line added */}
+                  <p className="text-[10px] text-[#1E3A5F]/50">Every document access and signature is cryptographically logged.</p>
+
+                  {/* Parties (anonymized) */}
+                  <div className="text-sm text-muted-foreground">
+                    <span className="font-medium">Party A</span>
+                    {" ↔ "}
+                    <span className="font-medium">Party B</span>
+                  </div>
+
+                  {/* Meta row */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      {days}d in room
+                    </span>
+                    <span>Last: <span className="font-data-hud text-[10px] text-[#1E3A5F]/50">{lastActivity}</span></span>
+                  </div>
+
+                  {/* Badges */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {room.ndaRequired && (
+                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-orange-50 text-orange-700">
+    
+
+=== INSTRUCTIONS ===
+
+You are Agent 7 - the synthesis and consistency checker.
+
+You will receive the upgraded TSX content of 6 pages. Identify any remaining
+cross-page inconsistencies and produce a list of small targeted corrections.
+
+Do NOT rewrite any full file. Produce precise edits only:
+each edit has a file, an old_string (exact, unique in the file), and a new_string.
+
+Check for:
+1. Terminology -- "Blind Match" not "AI Match"; "Custodied" not "Protected"; "Attribution Chain" consistent.
+2. Color -- gold CTAs #C4972A, trust green #059669.
+3. Empty states -- all pages handle empty tRPC gracefully.
+4. Animation patterns -- FadeInView / StaggerContainer used consistently.
+
+Output ONLY valid JSON (no markdown, no code blocks):
+{
+  "consistency_report": "2-3 sentence summary",
+  "corrections": [
+    {
+      "file": "client/src/pages/Matches.tsx",
+      "old_string": "exact text",
+      "new_string": "replacement",
+      "reason": "why"
+    }
+  ],
+  "all_clear": true
+}
