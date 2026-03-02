@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { notifyOwner } from "./notification";
 import { adminProcedure, publicProcedure, router } from "./trpc";
+import { ENV } from "./env";
 
 export const systemRouter = router({
   health: publicProcedure
@@ -12,6 +13,11 @@ export const systemRouter = router({
     .query(() => ({
       ok: true,
     })),
+  runtime: publicProcedure.query(() => ({
+    mode: ENV.appRuntimeMode,
+    capabilities: ENV.appRuntimeCapabilities,
+    nodeEnv: process.env.NODE_ENV ?? "development",
+  })),
 
   notifyOwner: adminProcedure
     .input(

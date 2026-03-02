@@ -33,6 +33,7 @@ import ConceptTooltip from '@/components/ConceptTooltip';
 import GuidedTour, { clearTourCompleted } from '@/components/GuidedTour';
 import { TOOLTIP_CONTENT } from '@/lib/tooltipContent';
 import { demoTour } from '@/lib/tourDefinitions';
+import { useAppMode } from "@/contexts/AppModeContext";
 
 // ─── Number counter hook ─────────────────────────────────
 function useCountUp(value: number, durationMs = 500, enabled = true) {
@@ -1239,7 +1240,24 @@ function DemoDashboard({
 // ─── Main export ─────────────────────────────────────────
 
 export default function Demo() {
+  const { capabilities } = useAppMode();
   const [initial, setInitial] = useState<{ persona: DemoPersona; name: string } | null>(null);
+
+  if (!capabilities.allowDemoFixtures) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F3F7FC] px-6">
+        <div className="max-w-xl rounded-xl border border-[#D1DCF0] bg-white p-8 text-center">
+          <h1 className="text-2xl font-bold text-[#0A1628]">Demo mode is disabled</h1>
+          <p className="mt-3 text-sm text-[#1E3A5F]/70">
+            This environment is running in live mode. Set <code>APP_RUNTIME_MODE=demo</code> or <code>APP_RUNTIME_MODE=hybrid</code> to enable demo surfaces.
+          </p>
+          <Link href="/" className="mt-5 inline-flex rounded-md bg-[#0A1628] px-4 py-2 text-sm font-semibold text-white">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!initial) {
     return (

@@ -48,6 +48,13 @@ export const PERSONAS = {
     answer: "Anonymous until you consent. NDA-gated rooms. Escrow-backed milestones.",
     tourPitch: "You raised $30M. ANAVI would have protected your thesis until the moment you chose to disclose it.",
   },
+  principal: {
+    label: "Principal / Asset Owner",
+    role: "Supply Side",
+    problem: "Raising capital means exposing my thesis before anyone commits.",
+    answer: "Seal your asset. Match anonymously. Disclose only on consent.",
+    tourPitch: "You raised $30M. ANAVI protected your thesis until the moment you chose to disclose it.",
+  },
 } as const;
 
 export type PersonaKey = keyof typeof PERSONAS;
@@ -70,6 +77,10 @@ export const TOUR = {
       title: "Seal Your Register",
       body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
     },
+    principal: {
+      title: "Seal Your Register",
+      body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
+    },
   },
   blindMatch: {
     title: "Blind Match",
@@ -89,6 +100,10 @@ export const TOUR = {
       body: "Your capital deployed across 3 verified SPVs. Every subsequent deal from this relationship credits your participation — compounding attribution over time.",
     },
     developer: {
+      title: "Escrow Milestone",
+      body: "Milestone reached: $12M of $30M committed. Funds release triggered automatically. Your operator economics, protected and automated.",
+    },
+    principal: {
       title: "Escrow Milestone",
       body: "Milestone reached: $12M of $30M committed. Funds release triggered automatically. Your operator economics, protected and automated.",
     },
@@ -122,6 +137,21 @@ export const MODULES = {
   economics: "ECONOMICS",
   intelligence: "INTELLIGENCE",
   settings: "SETTINGS",
+} as const;
+
+export const PERSONA_NAV = {
+  originator: {
+    exclusive: ["Custody Register", "Attribution Ledger", "Introduction Pipeline"],
+    routes: ["/custody", "/attribution", "/pipeline"],
+  },
+  investor: {
+    exclusive: ["Deal Flow", "Portfolio", "Counterparty Intelligence"],
+    routes: ["/deal-flow", "/portfolio", "/counterparty-intelligence"],
+  },
+  principal: {
+    exclusive: ["Asset Register", "Demand Room", "Close Tracker"],
+    routes: ["/assets", "/demand", "/close"],
+  },
 } as const;
 
 /** Notification type labels shown on activity feed badges. */

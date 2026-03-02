@@ -1,6 +1,12 @@
 import { eq, desc, and } from "drizzle-orm";
-import { InsertUser, users, trustScoreHistory, peerReviews, complianceChecks as complianceChecksTable } from "../../drizzle/schema";
-import { ENV } from '../_core/env';
+import {
+  InsertUser,
+  users,
+  trustScoreHistory,
+  peerReviews,
+  complianceChecks as complianceChecksTable,
+} from "../../drizzle/schema";
+import { ENV } from "../_core/env";
 import { getDb } from "./connection";
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -20,7 +26,12 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod", "passwordHash"] as const;
+    const textFields = [
+      "name",
+      "email",
+      "loginMethod",
+      "passwordHash",
+    ] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
@@ -41,8 +52,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -65,7 +76,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -79,14 +94,24 @@ export async function getUserById(id: number) {
 export async function getUserByEmail(email: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function updateUserProfile(userId: number, data: Partial<InsertUser>) {
+export async function updateUserProfile(
+  userId: number,
+  data: Partial<InsertUser>
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(users).set({ ...data, updatedAt: new Date() }).where(eq(users.id, userId));
+  await db
+    .update(users)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 }
 
 /** F3: Trust score weights (delta per event). */
@@ -102,7 +127,7 @@ export const TRUST_SCORE_WEIGHTS: Record<string, number> = {
   doc_rejected: -10,
 };
 
-const TRUST_SCORE_CEIL = 1000;
+const TRUST_SCORE_CEIL = 100;
 const TRUST_SCORE_FLOOR = 0;
 
 export async function updateUserTrustScore(
@@ -124,12 +149,22 @@ export async function updateUserTrustScore(
     previousScore: user.trustScore,
     newScore,
     changeReason: reason,
-    changeSource: source as "deal_completion" | "peer_review" | "verification_upgrade" | "compliance_check" | "dispute_resolution" | "time_decay" | "manual_adjustment",
+    changeSource: source as
+      | "deal_completion"
+      | "peer_review"
+      | "verification_upgrade"
+      | "compliance_check"
+      | "dispute_resolution"
+      | "time_decay"
+      | "manual_adjustment",
     relatedEntityId: relatedEntityId ?? null,
     relatedEntityType: relatedEntityType ?? null,
   });
 
-  await db.update(users).set({ trustScore: newScore, updatedAt: new Date() }).where(eq(users.id, userId));
+  await db
+    .update(users)
+    .set({ trustScore: newScore, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 }
 
 /** F3: Idempotent trust score recalculation from events. */
@@ -146,7 +181,8 @@ export async function recalculateTrustScore(
   const delta = deltaOverride ?? TRUST_SCORE_WEIGHTS[eventType];
   if (delta === undefined || delta === 0) return;
 
-  const changeSource = eventType === "doc_rejected" ? "verification_upgrade" : eventType;
+  const changeSource =
+    eventType === "doc_rejected" ? "verification_upgrade" : eventType;
 
   const existing = await db
     .select({ id: trustScoreHistory.id })
@@ -164,8 +200,12 @@ export async function recalculateTrustScore(
   const user = await getUserById(userId);
   if (!user) return;
   const prev = Number(user.trustScore ?? 0);
-  const next = Math.max(TRUST_SCORE_FLOOR, Math.min(TRUST_SCORE_CEIL, prev + delta));
-  const reason = delta >= 0 ? `+${delta} ${eventType}` : `${delta} ${eventType}`;
+  const next = Math.max(
+    TRUST_SCORE_FLOOR,
+    Math.min(TRUST_SCORE_CEIL, prev + delta)
+  );
+  const reason =
+    delta >= 0 ? `+${delta} ${eventType}` : `${delta} ${eventType}`;
   await updateUserTrustScore(
     userId,
     String(next),
@@ -205,7 +245,11 @@ export async function calculateTrustScore(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  const userRows = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
   if (userRows.length === 0) throw new Error(`User ${userId} not found`);
   const user = userRows[0]!;
 
@@ -217,7 +261,12 @@ export async function calculateTrustScore(userId: number): Promise<number> {
   const checkRows = await db
     .select()
     .from(complianceChecksTable)
-    .where(and(eq(complianceChecksTable.entityType, "user"), eq(complianceChecksTable.entityId, userId)));
+    .where(
+      and(
+        eq(complianceChecksTable.entityType, "user"),
+        eq(complianceChecksTable.entityId, userId)
+      )
+    );
 
   const tierRaw = TIER_SCORES[user.verificationTier ?? "none"] ?? 0;
   const totalDeals = user.totalDeals ?? 0;
@@ -225,18 +274,21 @@ export async function calculateTrustScore(userId: number): Promise<number> {
 
   let reviewRaw = 0;
   if (reviewRows.length > 0) {
-    const avgRating = reviewRows.reduce((sum, r) => sum + (r.rating ?? 1), 0) / reviewRows.length;
+    const avgRating =
+      reviewRows.reduce((sum, r) => sum + (r.rating ?? 1), 0) /
+      reviewRows.length;
     reviewRaw = ((avgRating - 1) / 4) * 100;
   }
 
   let complianceRaw = 0;
   if (checkRows.length > 0) {
-    const passed = checkRows.filter((c) => c.status === "passed").length;
+    const passed = checkRows.filter(c => c.status === "passed").length;
     complianceRaw = (passed / checkRows.length) * 100;
   }
 
   const createdAt = user.createdAt ?? new Date();
-  const monthsOld = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+  const monthsOld =
+    (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
   const tenureRaw = Math.min(monthsOld / 24, 1) * 100;
 
   const rawScore =
@@ -265,11 +317,18 @@ export async function calculateTrustScore(userId: number): Promise<number> {
 }
 
 /** Badge assignment: score < 40 → none; ≥40 → basic; ≥70 + kyb → enhanced; ≥90 + all compliance → institutional */
-export async function assignBadge(userId: number, score: number): Promise<void> {
+export async function assignBadge(
+  userId: number,
+  score: number
+): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  const userRows = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
   if (userRows.length === 0) throw new Error(`User ${userId} not found`);
   const user = userRows[0]!;
   const kybStatus = user.kybStatus ?? "pending";
@@ -277,8 +336,14 @@ export async function assignBadge(userId: number, score: number): Promise<void> 
   const checkRows = await db
     .select()
     .from(complianceChecksTable)
-    .where(and(eq(complianceChecksTable.entityType, "user"), eq(complianceChecksTable.entityId, userId)));
-  const allCompliancePassed = checkRows.length > 0 && checkRows.every((c) => c.status === "passed");
+    .where(
+      and(
+        eq(complianceChecksTable.entityType, "user"),
+        eq(complianceChecksTable.entityId, userId)
+      )
+    );
+  const allCompliancePassed =
+    checkRows.length > 0 && checkRows.every(c => c.status === "passed");
 
   let badge: string | null = null;
   let verificationTier = "none";
@@ -297,7 +362,11 @@ export async function assignBadge(userId: number, score: number): Promise<void> 
     .update(users)
     .set({
       verificationBadge: badge,
-      verificationTier: verificationTier as "none" | "basic" | "enhanced" | "institutional",
+      verificationTier: verificationTier as
+        | "none"
+        | "basic"
+        | "enhanced"
+        | "institutional",
       updatedAt: new Date(),
     })
     .where(eq(users.id, userId));

@@ -1,65 +1,88 @@
-# Agent Quick Reference
+# AGENTS.md
 
-For AI agents working on this codebase. See `.cursor/rules/` for detailed conventions.
+Operating guide for AI/code agents in this repository.
 
-## White Paper Alignment
+## Scope and Canonical Paths
 
-ANAVI implements the vision from the Strategic White Paper (Jan 2026). Use consistent terminology: **Relationship Custody**, **Trust Score**, **Originator**, **Attribution**, **Blind Matching**, **Deal Room**, **Intent**. Full concept → code mapping: `docs/white-paper-alignment.md`.
+- Product application code lives in `anavi/`.
+- Strategic + historical planning docs live in `docs/`.
+- App-local implementation plans live in `anavi/docs/plans/`.
+- Active execution memory and TODO tracking live in `anavi/docs/ops/`.
 
-## Where to Add Things
+If something appears duplicated between `docs/` and `anavi/docs/`, prefer:
+- Strategy and PRD history: `docs/`
+- Current implementation status for shipped code: `anavi/docs/`
 
-| To add… | Location |
-|---------|----------|
-| API endpoint | `anavi/server/routers/<domain>.ts` + merge in `routers/index.ts` |
-| DB operation | `anavi/server/db/<domain>.ts` (add to matching module) |
-| Schema table | `anavi/drizzle/schema.ts` + relation in `relations.ts` + `pnpm drizzle-kit generate` |
-| Page | `anavi/client/src/pages/*.tsx` + route in `App.tsx` (ShellRoute) |
-| Sidebar link | `navSections` array in `DashboardLayout.tsx` |
-| Component | `anavi/client/src/components/` |
-| Hook | `anavi/client/src/hooks/` |
-| Shared types | `anavi/shared/types.ts` or schema |
-| Large page decomposition | `anavi/client/src/pages/<page-name>/` (see `deal-room/` as example) |
+## White Paper Terminology (required)
 
-## Commands (run from `anavi/`)
+Use ANAVI-first language consistently:
+- `Relationship Custody`
+- `Trust Score`
+- `Blind Matching`
+- `Deal Room`
+- `Attribution`
+- `Intent`
+
+Reference map: `docs/white-paper-alignment.md`.
+
+## Where Changes Go
+
+| Change | Path |
+|---|---|
+| Router endpoint | `anavi/server/routers/<domain>.ts` and index merge |
+| DB operation | `anavi/server/db/<domain>.ts` |
+| Schema updates | `anavi/drizzle/schema/*` |
+| Pages | `anavi/client/src/pages/*.tsx` |
+| Components | `anavi/client/src/components/*` |
+| Shared copy/tokens | `anavi/client/src/lib/copy.ts` |
+| Demo fixtures | `anavi/client/src/lib/demoFixtures.ts` |
+| Dashboard nav | `anavi/client/src/components/DashboardLayout.tsx` |
+| App routes | `anavi/client/src/App.tsx` |
+
+## Runtime Wrapping Rules
+
+- Use `ShellRoute` for standard authenticated app pages.
+- Use `ProtectedPage` for full-screen gated flows.
+- Do not mount `DashboardLayout` inside page components.
+
+## Validation Commands
+
+Run from `anavi/`:
 
 ```bash
-pnpm check   # TypeScript type-check
-pnpm test    # 37 tests (unit + integration)
-pnpm build   # Client + server production build
+pnpm check
+pnpm test
+pnpm build
 ```
 
-## Route Pattern
+Minimum merge gate: `pnpm check` clean.
 
-- **ShellRoute** = auth + DashboardLayout + PageTransition (all main pages; pages do NOT render DashboardLayout)
-- **ProtectedPage** = auth only (full-screen flows: Onboarding, OnboardingFlow)
-- Register in `App.tsx`; never expose protected content without a wrapper
+## Documentation Hygiene Rules
 
-## End-to-End Feature Checklist
+When implementing features:
+- Add or update PRD/plan references in `anavi/docs/plans/README.md`.
+- Update execution memory in `anavi/docs/ops/ENGINEERING_MEMORY.md`.
+- Update work queue in `anavi/docs/ops/TODO_BOARD.md`.
+- If a legacy todo is superseded, mark it as archival and link forward.
 
-1. Schema change? → `drizzle/schema.ts` + relation in `relations.ts` + migration
-2. DB function → `server/db/<domain>.ts`
-3. Router procedure → `server/routers/<domain>.ts` + merge in index
-4. Client page → `client/src/pages/X.tsx`, no DashboardLayout wrapper
-5. Route → `App.tsx` with ShellRoute
-6. Sidebar? → `navSections` in `DashboardLayout.tsx`
-7. Verify → `pnpm check && pnpm test`
+Do not delete historical plans unless explicitly requested.
 
-## Conventions
+## Todo + Memory Workflow
 
-- DB modules are in `server/db/` (16 domain files + barrel). Add functions to matching module.
-- Routers are thin: call `db.*`, return. 25 individual router files.
-- `protectedProcedure` for user-scoped data. Zod for all inputs.
-- Client: `trpc.router.proc.useQuery` / `useMutation`
-- UI: shadcn/ui from `@/components/ui/*`, lucide-react, framer-motion
-- Decompose large pages: extract tab/section components into `pages/<name>/` subdirectory
+After each substantive implementation batch:
+1. Append a dated entry in `anavi/docs/ops/ENGINEERING_MEMORY.md`.
+2. Move completed tasks in `anavi/docs/ops/TODO_BOARD.md` to `Done`.
+3. Keep `Next Up` limited to highest-leverage tasks.
+4. Ensure `todo.md` points to the canonical board.
 
-## Sidebar Navigation (navSections)
+## Sidebar and Persona Notes
 
-7 grouped sections with 20 items:
-- Overview: Dashboard, Analytics
-- Deals: Deal Matching, Deal Rooms, Deals, Deal Intelligence
-- Network: Relationships, Family Offices, Targeting, Network Graph
-- Compliance: Verification, Audit Logs, Compliance
-- Finance: Payouts, LP Portal
-- AI & Intel: AI Brain, Intelligence
-- Settings: Calendar, Settings
+- Persona-exclusive tools are defined in `DashboardLayout.tsx`.
+- Persona ordering preferences are localStorage-driven.
+- Demo persona, industry, and scenario state are in `anavi/client/src/contexts/DemoContext.tsx`.
+
+## Safety and Refactoring Expectations
+
+- Avoid destructive git commands.
+- Preserve unrelated working tree edits.
+- Prefer additive organization (indexes, docs, ops boards) over moving large file trees unless asked.

@@ -43,6 +43,12 @@ export const DEMO_FIXTURES = {
       { id: 1, deal: "Riyadh Solar JV", amount: 1175000, status: "triggered", originatorShare: 2.5, closingDate: "2026-02-18" },
       { id: 2, deal: "Gulf Coast Refinery", amount: 240000, status: "pending", originatorShare: 2.0, closingDate: null },
     ],
+    opsTelemetry: {
+      updatedAt: "2026-03-02T09:40:00.000Z",
+      activity24h: 14,
+      activity7d: 52,
+      stalledItems: 2,
+    },
   },
 
   investor: {
@@ -82,6 +88,12 @@ export const DEMO_FIXTURES = {
       { id: 1, deal: "Infrastructure Alpha SPV", amount: 2100000, status: "deployed", irr: 18.5, vintage: "2025" },
       { id: 2, deal: "Meridian Real Estate II", amount: 750000, status: "deployed", irr: 14.2, vintage: "2025" },
     ],
+    opsTelemetry: {
+      updatedAt: "2026-03-02T09:42:00.000Z",
+      activity24h: 19,
+      activity7d: 73,
+      snapshotPeriod: "QTD",
+    },
   },
 
   developer: {
@@ -118,8 +130,193 @@ export const DEMO_FIXTURES = {
     payouts: [
       { id: 1, deal: "Riyadh Solar JV", amount: 30000000, status: "fundraising", escrowMilestone: 40, nextTrigger: "$18M committed" },
     ],
+    opsTelemetry: {
+      updatedAt: "2026-03-02T09:35:00.000Z",
+      activity24h: 11,
+      activity7d: 37,
+      blockersOpen: 3,
+    },
+    opsEvents: [
+      { id: 1, level: "moderate", kind: "milestone", message: "NDA countersignature completed for lead allocator", minutesAgo: 18 },
+      { id: 2, level: "high", kind: "disclosure", message: "Disclosure request waiting legal approval", minutesAgo: 71 },
+      { id: 3, level: "low", kind: "escrow", message: "Escrow audit continuity check passed", minutesAgo: 130 },
+    ],
+  },
+  principal: {
+    intents: [
+      { id: 1, type: "sell" as const, assetClass: "Infrastructure", size: "$30M raise" },
+    ],
+    user: {
+      id: "demo-principal",
+      name: "Meridian Renewables",
+      email: "principal@meridianrenewables.com",
+      trustScore: 65,
+      tier: "basic" as const,
+      kybStatus: "verified" as const,
+      onboardingCompleted: true,
+      upgradePromptActive: true,
+    },
+    relationships: [
+      { id: 1, name: "[Sealed — Institutional Allocator]", company: "Identity Protected", trustScore: 91, custodyAge: "Pending consent", attributionStatus: "pending", hash: "0x3f4g...5h6i", assetClass: "Infrastructure" },
+      { id: 2, name: "[Sealed — Family Office]", company: "Identity Protected", trustScore: 85, custodyAge: "Pending consent", attributionStatus: "pending", hash: "0x7j8k...9l0m", assetClass: "Infrastructure" },
+    ],
+    matches: [
+      { id: 1, tag: "Institutional Allocator — $100M+ deployment mandate, solar focus", compatibilityScore: 94, sealed: true, assetClass: "Infrastructure", dealSize: "$47M", status: "pending_consent" },
+      { id: 2, tag: "Family Office — Direct deal mandate, renewable energy", compatibilityScore: 87, sealed: true, assetClass: "Infrastructure", dealSize: "$30M", status: "pending_consent" },
+      { id: 3, tag: "PE Fund — Infrastructure debt + equity hybrid", compatibilityScore: 78, sealed: true, assetClass: "Infrastructure", dealSize: "$15M", status: "pending_consent" },
+    ],
+    dealRooms: [
+      { id: 1, name: "Riyadh Solar JV — $30M Raise", stage: "fundraising", ndaStatus: "executed", escrowProgress: 40, escrowCurrent: 12000000, escrowTarget: 30000000, auditEvents: 47, documentCount: 5, counterparty: "3 qualified investors — identities sealed" },
+    ],
+    notifications: [
+      { id: 1, type: "match_found", message: "3 qualified investors matched to your Riyadh Solar JV raise", time: "30 minutes ago" },
+      { id: 2, type: "deal_update", message: "Escrow milestone reached: $12M of $30M committed", time: "Yesterday" },
+      { id: 3, type: "compliance_alert", message: "Upgrade to Tier 2 to unlock direct investor introductions", time: "3 days ago" },
+    ],
+    payouts: [
+      { id: 1, deal: "Riyadh Solar JV", amount: 30000000, status: "fundraising", escrowMilestone: 40, nextTrigger: "$18M committed" },
+    ],
+    opsTelemetry: {
+      updatedAt: "2026-03-02T09:35:00.000Z",
+      activity24h: 11,
+      activity7d: 37,
+      blockersOpen: 3,
+    },
+    opsEvents: [
+      { id: 1, level: "moderate", kind: "milestone", message: "NDA countersignature completed for lead allocator", minutesAgo: 18 },
+      { id: 2, level: "high", kind: "disclosure", message: "Disclosure request waiting legal approval", minutesAgo: 71 },
+      { id: 3, level: "low", kind: "escrow", message: "Escrow audit continuity check passed", minutesAgo: 130 },
+    ],
   },
 } as const;
 
 export type DemoFixtures = typeof DEMO_FIXTURES;
 export type PersonaFixtures = DemoFixtures[PersonaKey];
+
+export const DEMO_SCENARIOS = [
+  {
+    key: "baseline",
+    label: "Baseline",
+    note: "Standard operating posture",
+  },
+  {
+    key: "momentum",
+    label: "Momentum",
+    note: "Higher velocity and conversion",
+  },
+  {
+    key: "closing",
+    label: "Closing Window",
+    note: "Execution concentrated at close",
+  },
+] as const;
+
+export type DemoScenarioKey = (typeof DEMO_SCENARIOS)[number]["key"];
+
+function cloneFixtures<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function adjustByScenario(
+  fixtures: PersonaFixtures,
+  scenario: DemoScenarioKey
+): PersonaFixtures {
+  const mutable = fixtures as unknown as {
+    user: Record<string, unknown>;
+    notifications: Array<Record<string, unknown>>;
+    matches: Array<Record<string, unknown>>;
+    dealRooms: Array<Record<string, unknown>>;
+    payouts: Array<Record<string, unknown>>;
+    relationships: Array<Record<string, unknown>>;
+  };
+
+  if (scenario === "baseline") return fixtures;
+
+  if (scenario === "momentum") {
+    mutable.user.trustScore = Math.min(99, Number(mutable.user.trustScore ?? 0) + 4);
+    mutable.notifications.unshift({
+      id: 9001,
+      type: "deal_update",
+      message: "Velocity signal: 3 opportunities advanced to consent in the last cycle",
+      time: "Just now",
+    });
+
+    mutable.matches = mutable.matches.map((match, idx) => ({
+      ...match,
+      compatibilityScore: Math.min(99, Number(match.compatibilityScore ?? 0) + (idx === 0 ? 3 : 2)),
+      status: idx === 0 ? "consent_ready" : match.status,
+    }));
+
+    mutable.dealRooms = mutable.dealRooms.map((room) => ({
+      ...room,
+      escrowProgress: Math.min(95, Number(room.escrowProgress ?? 0) + 18),
+      auditEvents: Number(room.auditEvents ?? 0) + 9,
+      stage: room.stage === "fundraising" ? "diligence" : room.stage,
+    }));
+
+    mutable.payouts = mutable.payouts.map((payout) => {
+      if ("irr" in payout && typeof payout.irr === "number") {
+        return { ...payout, irr: payout.irr + 1.2 };
+      }
+      if ("escrowMilestone" in payout && typeof payout.escrowMilestone === "number") {
+        return { ...payout, escrowMilestone: Math.min(95, payout.escrowMilestone + 12) };
+      }
+      return payout;
+    });
+  }
+
+  if (scenario === "closing") {
+    mutable.user.trustScore = Math.min(99, Number(mutable.user.trustScore ?? 0) + 2);
+    mutable.notifications.unshift({
+      id: 9002,
+      type: "payout_received",
+      message: "Closing window opened: execution controls now prioritize signed NDAs and escrow milestones",
+      time: "Just now",
+    });
+
+    mutable.matches = mutable.matches.map((match, idx) => ({
+      ...match,
+      compatibilityScore: Math.min(99, Number(match.compatibilityScore ?? 0) + (idx === 0 ? 2 : 0)),
+      status: idx < 2 ? "nda_executed" : match.status,
+    }));
+
+    mutable.relationships = mutable.relationships.map((relationship, idx) => ({
+      ...relationship,
+      attributionStatus: idx < 2 ? "active" : relationship.attributionStatus,
+      trustScore:
+        typeof relationship.trustScore === "number"
+          ? Math.min(99, relationship.trustScore + 3)
+          : relationship.trustScore,
+    }));
+
+    mutable.dealRooms = mutable.dealRooms.map((room) => ({
+      ...room,
+      escrowProgress: Math.min(99, Number(room.escrowProgress ?? 0) + 28),
+      stage: room.stage === "closing" ? room.stage : "closing",
+      documentCount: Number(room.documentCount ?? 0) + 2,
+    }));
+
+    mutable.payouts = mutable.payouts.map((payout) => {
+      if ("status" in payout && payout.status === "pending") {
+        return { ...payout, status: "triggered" };
+      }
+      if ("status" in payout && payout.status === "fundraising") {
+        return { ...payout, status: "closing" };
+      }
+      if ("irr" in payout && typeof payout.irr === "number") {
+        return { ...payout, irr: payout.irr + 0.6 };
+      }
+      return payout;
+    });
+  }
+
+  return fixtures;
+}
+
+export function getDemoFixtures(
+  persona: PersonaKey,
+  scenario: DemoScenarioKey
+): PersonaFixtures {
+  const base = cloneFixtures(DEMO_FIXTURES[persona]) as PersonaFixtures;
+  return adjustByScenario(base, scenario);
+}

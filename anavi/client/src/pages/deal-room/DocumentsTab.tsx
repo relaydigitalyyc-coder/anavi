@@ -38,6 +38,13 @@ export function DocumentsTab({
     onSuccess: () => toast.success("Signature requested"),
     onError: (e) => toast.error(e.message),
   });
+  const utils = trpc.useUtils();
+  const { data: ndaEnvelopes, refetch: refetchNdaEnvelopes } = trpc.dealRoom.getNdaEnvelopes.useQuery(
+    { dealRoomId: dealRoomId ?? 0 },
+    { enabled: !!dealRoomId }
+  );
+  const createNdaEnvelope = trpc.dealRoom.createNdaEnvelope.useMutation();
+  const sendNdaEnvelope = trpc.dealRoom.sendNdaEnvelope.useMutation();
   const [ndaModalOpen, setNdaModalOpen] = useState(false);
   const [uploads, setUploads] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -86,6 +93,43 @@ export function DocumentsTab({
     return FileText;
   };
 
+  const isNdaSigningBusy =
+    signNda.isPending ||
+    createNdaEnvelope.isPending ||
+    sendNdaEnvelope.isPending;
+
+  const handleNdaSign = async () => {
+    if (!dealRoomId) return;
+    try {
+      const created = await createNdaEnvelope.mutateAsync({ dealRoomId });
+      if (created.provider === "mock") {
+        await signNda.mutateAsync({ dealRoomId });
+        setNdaModalOpen(false);
+        await refetchNdaEnvelopes();
+        return;
+      }
+      if (created.status !== "sent") {
+        await sendNdaEnvelope.mutateAsync({ envelopeId: created.envelopeId });
+      }
+      const returnUrl = window.location.href;
+      const signView = await utils.dealRoom.getNdaSignUrl.fetch({
+        envelopeId: created.envelopeId,
+        returnUrl,
+      });
+      if (signView?.signingUrl) {
+        window.open(signView.signingUrl, "_blank", "noopener,noreferrer");
+        toast.success("DocuSign session opened. Complete signature to unlock documents.");
+      } else {
+        toast.error("Unable to open DocuSign signing session");
+      }
+      setNdaModalOpen(false);
+      onNdaSigned?.();
+      await refetchNdaEnvelopes();
+    } catch (error: any) {
+      toast.error(error?.message ?? "Unable to start DocuSign NDA flow");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* NDA Banner */}
@@ -126,6 +170,54 @@ export function DocumentsTab({
           )}
         </div>
       )}
+      {ndaEnvelopes && (
+        <section className="rounded-lg border p-4" style={{ borderColor: "#D1DCF0", background: "#FFFFFF" }}>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <h4 className="text-sm font-semibold" style={{ color: "#0A1628" }}>
+              NDA Signature Workflow ({ndaEnvelopes.provider === "docusign" ? "DocuSign" : "Mock"})
+            </h4>
+            <button
+              onClick={() => refetchNdaEnvelopes()}
+              className="text-xs font-medium px-2 py-1 rounded hover:bg-[#F3F7FC]"
+              style={{ color: "#2563EB" }}
+            >
+              Refresh
+            </button>
+          </div>
+          {ndaEnvelopes.envelopes.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No NDA envelopes created yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {ndaEnvelopes.envelopes.map((envelope) => (
+                <div key={envelope.id} className="rounded border p-3" style={{ borderColor: "#D1DCF0", background: "#F9FBFF" }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold" style={{ color: "#0A1628" }}>
+                      {envelope.subject}
+                    </p>
+                    <span className="status-pill status-nda-pending text-[10px]">
+                      {envelope.status}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Envelope #{envelope.id} · Provider ID {envelope.providerEnvelopeId}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {envelope.recipients.map((recipient) => (
+                      <span
+                        key={recipient.id}
+                        className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        style={{ background: "#2563EB12", color: "#2563EB" }}
+                      >
+                        {recipient.name} · {recipient.status}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* NDA Sign Modal */}
       {ndaModalOpen && (
@@ -144,12 +236,12 @@ export function DocumentsTab({
                 Cancel
               </button>
               <button
-                onClick={() => dealRoomId && signNda.mutate({ dealRoomId }, { onSuccess: () => setNdaModalOpen(false) })}
+                onClick={handleNdaSign}
                 className="px-4 py-1.5 text-sm font-medium rounded-lg text-white"
                 style={{ backgroundColor: "#2563EB" }}
-                disabled={signNda.isPending}
+                disabled={isNdaSigningBusy}
               >
-                {signNda.isPending ? "Signing…" : "Sign"}
+                {isNdaSigningBusy ? "Preparing…" : "Sign"}
               </button>
             </div>
           </div>

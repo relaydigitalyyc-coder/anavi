@@ -57,6 +57,23 @@ function findScrollParent(el: Element): HTMLElement | null {
   return null;
 }
 
+function scrollElementIntoView(el: Element, behavior: ScrollBehavior = 'smooth') {
+  const scrollParent = findScrollParent(el);
+  if (scrollParent) {
+    const parentRect = scrollParent.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const targetTop =
+      scrollParent.scrollTop +
+      (elRect.top - parentRect.top) -
+      parentRect.height / 2 +
+      elRect.height / 2;
+    scrollParent.scrollTo({ top: Math.max(0, targetTop), behavior });
+    return;
+  }
+
+  el.scrollIntoView({ behavior, block: 'center', inline: 'nearest' });
+}
+
 function bestPlacement(rect: TargetRect, preferredPos?: CardPlacement): CardPlacement {
   const vh = window.innerHeight;
   const vw = window.innerWidth;
@@ -134,23 +151,28 @@ export default function GuidedTour({
     setScrolling(true);
     setTargetRect(null);
 
-    const el = document.querySelector(step.targetSelector);
-    if (el) {
-      const scrollParent = findScrollParent(el);
-      if (scrollParent) {
-        const parentRect = scrollParent.getBoundingClientRect();
-        const elRect = el.getBoundingClientRect();
-        const targetTop = scrollParent.scrollTop + (elRect.top - parentRect.top) - parentRect.height / 2 + elRect.height / 2;
-        scrollParent.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-      } else {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      }
+    const firstTarget = document.querySelector(step.targetSelector);
+    if (firstTarget) {
+      scrollElementIntoView(firstTarget, 'smooth');
     }
 
     clearTimeout(scrollTimerRef.current);
     scrollTimerRef.current = setTimeout(() => setScrolling(false), 400);
+    let scrollAttempts = 0;
+    const MAX_SCROLL_ATTEMPTS = 12;
 
     const measure = () => {
+      const target = document.querySelector(step.targetSelector);
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        if (!isRectVisible(rect) && scrollAttempts < MAX_SCROLL_ATTEMPTS) {
+          scrollAttempts += 1;
+          scrollElementIntoView(target, 'auto');
+          setScrolling(true);
+          clearTimeout(scrollTimerRef.current);
+          scrollTimerRef.current = setTimeout(() => setScrolling(false), 180);
+        }
+      }
       measureTarget();
       rafRef.current = requestAnimationFrame(measure);
     };

@@ -82,7 +82,14 @@
       "Bash(cd /home/ariel/Documents/anavi-main/anavi && npx tsc --noEmit 2>&1 | grep \"client/src\" | head -40)",
       "Bash(cd /home/ariel/Documents/anavi-main/anavi && npx tsc --noEmit 2>&1 | grep -v \"node_modules\" | head -30)",
       "Bash(cd /home/ariel/Documents/anavi-main/anavi && pnpm test 2>&1 | tail -20)",
-      "Bash(pnpm check 2>&1 | grep -v \"llmFactory\")"
+      "Bash(pnpm check 2>&1 | grep -v \"llmFactory\")",
+      "Bash(/home/ariel/.local/node20/bin/vercel --prod --yes)",
+      "Bash(git add vercel.json)",
+      "Bash(git commit -m \"fix: add root vercel.json pointing to anavi/ subdirectory\")",
+      "Bash(pnpm check 2>&1 | grep \"error TS\" | wc -l)",
+      "Bash(pnpm check 2>&1 | grep \"error TS\" | grep -E \"\\(Dashboard|notifications|users|Relationships|KnowledgeGraph|ComponentShowcase\\)\")",
+      "Bash(pnpm test 2>&1)",
+      "Bash(which gpg && gpg --version | head -1; which openssl && openssl version; python3 -c \"from cryptography.fernet import Fernet; print\\('cryptography ok'\\)\" 2>/dev/null || echo \"no cryptography\")"
     ]
   }
 }

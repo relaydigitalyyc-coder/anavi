@@ -2,20 +2,37 @@
 // Whitepaper-aligned demo context. Zero API calls in demo mode.
 // Pages check useDemoFixtures() — if truthy, use fixture data; if null, use real tRPC.
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import type { PersonaKey } from "@/lib/copy";
-import { DEMO_FIXTURES, type DemoFixtures } from "@/lib/demoFixtures";
+import { useAppMode } from "@/contexts/AppModeContext";
+import {
+  getDemoFixtures,
+  type DemoFixtures,
+  type DemoScenarioKey,
+} from "@/lib/demoFixtures";
 
 interface DemoContextValue {
   isDemo: boolean;
   persona: PersonaKey | null;
+  activePersona: PersonaKey | null;
+  activeIndustry: string;
+  activeScenario: DemoScenarioKey;
   fixtures: DemoFixtures[PersonaKey] | null;
+  switchPersona: (p: PersonaKey) => void;
+  switchIndustry: (i: string) => void;
+  switchScenario: (s: DemoScenarioKey) => void;
 }
 
 const DemoContext = createContext<DemoContextValue>({
   isDemo: false,
   persona: null,
+  activePersona: null,
+  activeIndustry: "Infrastructure",
+  activeScenario: "baseline",
   fixtures: null,
+  switchPersona: () => {},
+  switchIndustry: () => {},
+  switchScenario: () => {},
 });
 
 export function DemoContextProvider({
@@ -25,12 +42,27 @@ export function DemoContextProvider({
   persona: PersonaKey;
   children: ReactNode;
 }) {
+  const { capabilities } = useAppMode();
+  const [activePersona, setActivePersona] = useState<PersonaKey>(persona);
+  const [activeIndustry, setActiveIndustry] = useState<string>(
+    persona === "investor" ? "Infrastructure" : "Commodities"
+  );
+  const [activeScenario, setActiveScenario] = useState<DemoScenarioKey>("baseline");
+
   return (
     <DemoContext.Provider
       value={{
-        isDemo: true,
+        isDemo: capabilities.allowDemoFixtures,
         persona,
-        fixtures: DEMO_FIXTURES[persona],
+        activePersona,
+        activeIndustry,
+        activeScenario,
+        fixtures: capabilities.allowDemoFixtures
+          ? getDemoFixtures(activePersona, activeScenario)
+          : null,
+        switchPersona: setActivePersona,
+        switchIndustry: setActiveIndustry,
+        switchScenario: setActiveScenario,
       }}
     >
       {children}
@@ -55,5 +87,30 @@ export function useDemoContext() {
  */
 export function useDemoFixtures() {
   const ctx = useContext(DemoContext);
-  return ctx.isDemo ? ctx.fixtures : null;
+  const { capabilities } = useAppMode();
+  return ctx.isDemo && capabilities.allowDemoFixtures ? ctx.fixtures : null;
+}
+
+export function useActivePersona() {
+  const ctx = useContext(DemoContext);
+  return ctx.activePersona;
+}
+
+export function useActiveIndustry() {
+  const ctx = useContext(DemoContext);
+  return ctx.activeIndustry;
+}
+
+export function usePersonaSwitcher() {
+  const ctx = useContext(DemoContext);
+  return {
+    switchPersona: ctx.switchPersona,
+    switchIndustry: ctx.switchIndustry,
+    switchScenario: ctx.switchScenario,
+  };
+}
+
+export function useActiveScenario() {
+  const ctx = useContext(DemoContext);
+  return ctx.activeScenario;
 }

@@ -1,13 +1,14 @@
 // client/src/components/GuidedTourOverlay.tsx
 // Wraps GuidedTour with persona-aware whitepaper steps + full-screen close moment.
 
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GuidedTour, { isTourCompleted } from "@/components/GuidedTour";
 import { buildDemoTourSteps } from "@/lib/tourDefinitions";
 import { TOUR, PERSONAS, type PersonaKey } from "@/lib/copy";
 import { AuroraBackground } from "@/components/PremiumAnimations";
 import { Link } from "wouter";
+import { useActivePersona } from "@/contexts/DemoContext";
 
 interface GuidedTourOverlayProps {
   persona: PersonaKey;
@@ -15,9 +16,15 @@ interface GuidedTourOverlayProps {
 }
 
 export function GuidedTourOverlay({ persona, onExitDemo }: GuidedTourOverlayProps) {
-  const tourId = `demo-${persona}`;
+  const activePersona = useActivePersona() ?? persona;
+  const tourId = `demo-${activePersona}`;
   const [showClose, setShowClose] = useState(false);
   const [tourDismissed, setTourDismissed] = useState(isTourCompleted(tourId));
+
+  useEffect(() => {
+    setTourDismissed(isTourCompleted(tourId));
+    setShowClose(false);
+  }, [tourId]);
 
   const handleComplete = useCallback(() => setShowClose(true), []);
   const handleSkip = useCallback(() => setTourDismissed(true), []);
@@ -38,8 +45,8 @@ export function GuidedTourOverlay({ persona, onExitDemo }: GuidedTourOverlayProp
     );
   }
 
-  const steps = buildDemoTourSteps(persona);
-  const personaCopy = PERSONAS[persona];
+  const steps = buildDemoTourSteps(activePersona);
+  const personaCopy = PERSONAS[activePersona];
 
   return (
     <>

@@ -2,11 +2,12 @@
 // Fullscreen persona picker overlay. No URL change.
 // On persona select: fades in → mounts DemoShell (DashboardLayout + tour).
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Handshake, TrendingUp, Building2 } from "lucide-react";
+import { Handshake, TrendingUp, Building2, Landmark } from "lucide-react";
 import { PERSONAS, type PersonaKey } from "@/lib/copy";
 import { DemoContextProvider } from "@/contexts/DemoContext";
+import { useAppMode } from "@/contexts/AppModeContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Dashboard from "@/pages/Dashboard";
 import { GuidedTourOverlay } from "@/components/GuidedTourOverlay";
@@ -16,24 +17,34 @@ const ICONS: Record<PersonaKey, React.ComponentType<{ className?: string }>> = {
   originator: Handshake,
   investor: TrendingUp,
   developer: Building2,
+  principal: Landmark,
 };
+const PICKER_PERSONAS: PersonaKey[] = ["originator", "investor", "principal"];
 
 interface PersonaPickerProps {
   onClose: () => void;
 }
 
 export function PersonaPicker({ onClose }: PersonaPickerProps) {
+  const { capabilities } = useAppMode();
   const [selectedPersona, setSelectedPersona] = useState<PersonaKey | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleSelect = useCallback((persona: PersonaKey) => {
+    if (!capabilities.allowDemoFixtures) return;
     setIsTransitioning(true);
     // After flash animation completes, mount demo shell
     setTimeout(() => {
       setSelectedPersona(persona);
       setIsTransitioning(false);
     }, 500);
-  }, []);
+  }, [capabilities.allowDemoFixtures]);
+
+  useEffect(() => {
+    if (!capabilities.allowDemoFixtures) onClose();
+  }, [capabilities.allowDemoFixtures, onClose]);
+
+  if (!capabilities.allowDemoFixtures) return null;
 
   // Demo shell: full-screen dashboard with demo data + guided tour
   if (selectedPersona && !isTransitioning) {
@@ -84,9 +95,9 @@ export function PersonaPicker({ onClose }: PersonaPickerProps) {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {(Object.entries(PERSONAS) as [PersonaKey, typeof PERSONAS[PersonaKey]][]).map(
-              ([key, persona], i) => {
-                const Icon = ICONS[key];
+            {PICKER_PERSONAS.map((key, i) => {
+              const persona = PERSONAS[key];
+              const Icon = ICONS[key];
                 return (
                   <motion.button
                     key={key}
@@ -125,8 +136,7 @@ export function PersonaPicker({ onClose }: PersonaPickerProps) {
                     </div>
                   </motion.button>
                 );
-              }
-            )}
+            })}
           </div>
 
           <motion.button

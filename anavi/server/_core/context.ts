@@ -75,7 +75,12 @@ export async function createContext(
       const userId = payload.userId as number;
       if (userId) {
         user = (await db.getUserById(userId)) ?? null;
-        if (!user && userId === BYPASS_USER_ID && !ENV.isProduction) {
+        if (
+          !user &&
+          userId === BYPASS_USER_ID &&
+          ENV.appRuntimeCapabilities.allowSyntheticUser &&
+          !ENV.isProduction
+        ) {
           user = SYNTHETIC_BYPASS_USER;
         }
       }
@@ -84,8 +89,12 @@ export async function createContext(
     user = null;
   }
 
-  // Prelaunch: when no auth and not production, use synthetic user so all pages are ungated
-  if (!user && !ENV.isProduction) {
+  // Runtime mode can allow synthetic user when no auth (demo/hybrid only).
+  if (
+    !user &&
+    ENV.appRuntimeCapabilities.allowSyntheticUser &&
+    !ENV.isProduction
+  ) {
     user = SYNTHETIC_BYPASS_USER;
   }
 

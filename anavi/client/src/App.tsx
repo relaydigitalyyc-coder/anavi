@@ -38,6 +38,15 @@ import CryptoAssets from "./pages/CryptoAssets";
 import AIBrain from "./pages/AIBrain";
 import DealMatching from "./pages/DealMatching";
 import Verification from "./pages/Verification";
+import CustodyRegister from "./pages/CustodyRegister";
+import AttributionLedger from "./pages/AttributionLedger";
+import IntroductionPipeline from "./pages/IntroductionPipeline";
+import DealFlow from "./pages/DealFlow";
+import Portfolio from "./pages/Portfolio";
+import CounterpartyIntelligence from "./pages/CounterpartyIntelligence";
+import AssetRegister from "./pages/AssetRegister";
+import DemandRoom from "./pages/DemandRoom";
+import CloseTracker from "./pages/CloseTracker";
 import Onboarding from "./pages/Onboarding";
 import OnboardingFlow from "./pages/OnboardingFlow";
 import Login from "./pages/Login";
@@ -50,6 +59,7 @@ import { PageTransition } from "./components/PageTransition";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CursorGlow } from "./components/CursorGlow";
 import { TourProvider } from "./contexts/TourContext";
+import { AppModeProvider } from "./contexts/AppModeContext";
 
 function ShellRoute({ component: Component }: { component: React.ComponentType }) {
   return (
@@ -90,6 +100,33 @@ function Router() {
       </Route>
       <Route path="/dashboard">
         <ShellRoute component={Dashboard} />
+      </Route>
+      <Route path="/custody">
+        <ShellRoute component={CustodyRegister} />
+      </Route>
+      <Route path="/attribution">
+        <ShellRoute component={AttributionLedger} />
+      </Route>
+      <Route path="/pipeline">
+        <ShellRoute component={IntroductionPipeline} />
+      </Route>
+      <Route path="/deal-flow">
+        <ShellRoute component={DealFlow} />
+      </Route>
+      <Route path="/portfolio">
+        <ShellRoute component={Portfolio} />
+      </Route>
+      <Route path="/counterparty-intelligence">
+        <ShellRoute component={CounterpartyIntelligence} />
+      </Route>
+      <Route path="/assets">
+        <ShellRoute component={AssetRegister} />
+      </Route>
+      <Route path="/demand">
+        <ShellRoute component={DemandRoom} />
+      </Route>
+      <Route path="/close">
+        <ShellRoute component={CloseTracker} />
       </Route>
       <Route path="/relationships">
         <ShellRoute component={Relationships} />
@@ -197,14 +234,16 @@ function App() {
   return (
     <ErrorBoundary>
       <CursorGlow />
-      <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <TourProvider>
-            <Toaster />
-            <Router />
-          </TourProvider>
-        </TooltipProvider>
-      </ThemeProvider>
+      <AppModeProvider>
+        <ThemeProvider defaultTheme="light">
+          <TooltipProvider>
+            <TourProvider>
+              <Toaster />
+              <Router />
+            </TourProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </AppModeProvider>
     </ErrorBoundary>
   );
 }

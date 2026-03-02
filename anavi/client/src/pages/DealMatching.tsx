@@ -1,10 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
-import { FadeInView, StaggerContainer, StaggerItem, SlideIn } from "@/components/PageTransition";
+import {
+  FadeInView,
+  StaggerContainer,
+  StaggerItem,
+  SlideIn,
+} from "@/components/PageTransition";
 import { SmoothCounter } from "@/components/PremiumAnimations";
 import FVMCelebration from "@/components/FVMCelebration";
 import {
@@ -88,9 +93,18 @@ const TIMELINES = [
   "12+ months",
 ] as const;
 
-const VERIFICATION_TIERS = ["Any", "Basic", "Enhanced", "Institutional"] as const;
+const VERIFICATION_TIERS = [
+  "Any",
+  "Basic",
+  "Enhanced",
+  "Institutional",
+] as const;
 
-const MATCH_FREQUENCIES = ["Immediate", "Daily digest", "Weekly digest"] as const;
+const MATCH_FREQUENCIES = [
+  "Immediate",
+  "Daily digest",
+  "Weekly digest",
+] as const;
 
 const LOCATION_OPTIONS = [
   "North America",
@@ -123,7 +137,8 @@ function CompatibilityRing({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
-  const color = score >= 80 ? COLORS.green : score >= 60 ? COLORS.gold : COLORS.red;
+  const color =
+    score >= 80 ? COLORS.green : score >= 60 ? COLORS.gold : COLORS.red;
 
   return (
     <svg width={size} height={size} className="transform -rotate-90">
@@ -153,20 +168,29 @@ function CompatibilityRing({
 
 // ─── Main Component ───────────────────────────────────────────
 export default function DealMatching() {
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<TabKey>("intents");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [reviewMatchId, setReviewMatchId] = useState<number | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
 
-  const { data: intents, isLoading: intentsLoading, refetch: refetchIntents } = trpc.intent.list.useQuery();
-  const { data: matches, isLoading: matchesLoading, refetch: refetchMatches } = trpc.match.list.useQuery();
+  const {
+    data: intents,
+    isLoading: intentsLoading,
+    refetch: refetchIntents,
+  } = trpc.intent.list.useQuery();
+  const {
+    data: matches,
+    isLoading: matchesLoading,
+    refetch: refetchMatches,
+  } = trpc.match.list.useQuery();
 
   const updateIntentMutation = trpc.intent.update.useMutation({
     onSuccess: () => {
       toast.success("Intent updated");
       refetchIntents();
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   const declineMatchMutation = trpc.match.decline.useMutation({
@@ -174,7 +198,7 @@ export default function DealMatching() {
       toast.success("Match declined");
       refetchMatches();
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   const expressInterestMutation = trpc.match.expressInterest.useMutation({
@@ -186,46 +210,64 @@ export default function DealMatching() {
       }
       refetchMatches();
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   const createDealRoomMutation = trpc.match.createDealRoom.useMutation({
     onSuccess: () => {
       toast.success("Deal room created!");
       refetchMatches();
+      setLocation("/deal-rooms");
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   const incomingMatches = useMemo(
     () =>
       (matches ?? [])
-        .filter((m: any) => m.status === "pending" || m.status === "user1_interested" || m.status === "user2_interested")
-        .sort((a: any, b: any) => (b.compatibilityScore ?? 0) - (a.compatibilityScore ?? 0)),
-    [matches],
+        .filter(
+          (m: any) =>
+            m.status === "pending" ||
+            m.status === "user1_interested" ||
+            m.status === "user2_interested"
+        )
+        .sort(
+          (a: any, b: any) =>
+            (b.compatibilityScore ?? 0) - (a.compatibilityScore ?? 0)
+        ),
+    [matches]
   );
 
   const historyMatches = useMemo(
     () =>
       (matches ?? []).filter(
         (m: any) =>
-          m.status === "declined" || m.status === "deal_room_created" || m.status === "expired" || m.status === "mutual_interest",
+          m.status === "declined" ||
+          m.status === "deal_room_created" ||
+          m.status === "expired" ||
+          m.status === "mutual_interest"
       ),
-    [matches],
+    [matches]
   );
 
   const reviewMatch = useMemo(
     () => (matches ?? []).find((m: any) => m.id === reviewMatchId),
-    [matches, reviewMatchId],
+    [matches, reviewMatchId]
   );
 
   const tabs: { key: TabKey; label: string; count?: number }[] = [
     { key: "intents", label: "My Intents", count: intents?.length },
-    { key: "incoming" as const, label: "Incoming Matches", count: incomingMatches.length },
+    {
+      key: "incoming" as const,
+      label: "Incoming Matches",
+      count: incomingMatches.length,
+    },
     { key: "history", label: "Match History" },
   ];
 
-  useEffect(() => { document.title = "Deal Matching | ANAVI"; }, []);
+  useEffect(() => {
+    document.title = "Deal Matching | ANAVI";
+  }, []);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.surface }}>
@@ -234,39 +276,42 @@ export default function DealMatching() {
         <FadeInView>
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="dash-heading text-3xl">
-                Deal Matching
-              </h1>
+              <h1 className="dash-heading text-3xl">Deal Matching</h1>
               <p className="mt-1 text-sm text-gray-500">
                 Post intents and discover high-quality counterparties
               </p>
             </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="btn-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all active:scale-[0.97]"
-          >
-            <Plus className="w-4 h-4" />
-            Create Intent
-          </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all active:scale-[0.97]"
+            >
+              <Plus className="w-4 h-4" />
+              Create Intent
+            </button>
           </div>
         </FadeInView>
 
         {/* ── Tabs ────────────────────────────────── */}
         <div className="card-elevated p-1.5 flex gap-1 mb-6 w-fit">
-          {tabs.map((t) => (
+          {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className={activeTab === t.key
-                ? "rounded-md px-3 py-2 text-sm font-semibold bg-[#0A1628] text-white"
-                : "rounded-md px-3 py-2 text-sm font-medium text-[#1E3A5F]/60 hover:text-[#0A1628] hover:bg-[#0A1628]/5 transition-colors"}
+              className={
+                activeTab === t.key
+                  ? "rounded-md px-3 py-2 text-sm font-semibold bg-[#0A1628] text-white"
+                  : "rounded-md px-3 py-2 text-sm font-medium text-[#1E3A5F]/60 hover:text-[#0A1628] hover:bg-[#0A1628]/5 transition-colors"
+              }
             >
               {t.label}
               {t.count !== undefined && t.count > 0 && (
                 <span
                   className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
                   style={{
-                    backgroundColor: activeTab === t.key ? "rgba(255,255,255,0.15)" : "#F3F4F6",
+                    backgroundColor:
+                      activeTab === t.key
+                        ? "rgba(255,255,255,0.15)"
+                        : "#F3F4F6",
                     color: activeTab === t.key ? "white" : "#6B7280",
                   }}
                 >
@@ -289,6 +334,7 @@ export default function DealMatching() {
               })
             }
             onCreateIntent={() => setShowCreateModal(true)}
+            onViewMatches={() => setActiveTab("incoming")}
           />
         )}
         {activeTab === "incoming" && (
@@ -361,11 +407,13 @@ function IntentsTab({
   loading,
   onToggleStatus,
   onCreateIntent,
+  onViewMatches,
 }: {
   intents: any[];
   loading: boolean;
   onToggleStatus: (id: number, status: string) => void;
   onCreateIntent: () => void;
+  onViewMatches: () => void;
 }) {
   if (loading) return <LoadingSkeleton />;
 
@@ -380,7 +428,8 @@ function IntentsTab({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       {intents.map((intent: any) => {
-        const cfg = INTENT_TYPE_CONFIG[intent.intentType] ?? INTENT_TYPE_CONFIG.buy;
+        const cfg =
+          INTENT_TYPE_CONFIG[intent.intentType] ?? INTENT_TYPE_CONFIG.buy;
         return (
           <div
             key={intent.id}
@@ -389,9 +438,7 @@ function IntentsTab({
             {/* header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
-                <span
-                  className="bg-[#C4972A]/15 text-[#C4972A] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                >
+                <span className="bg-[#C4972A]/15 text-[#C4972A] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
                   {cfg.label}
                 </span>
               </div>
@@ -420,7 +467,8 @@ function IntentsTab({
               {(intent.minValue || intent.maxValue) && (
                 <span className="flex items-center gap-1">
                   <DollarSign className="w-3.5 h-3.5" />
-                  {formatCurrency(intent.minValue)} – {formatCurrency(intent.maxValue)}
+                  {formatCurrency(intent.minValue)} –{" "}
+                  {formatCurrency(intent.maxValue)}
                 </span>
               )}
             </div>
@@ -432,7 +480,9 @@ function IntentsTab({
             >
               <span>
                 {intent.createdAt
-                  ? formatDistanceToNow(new Date(intent.createdAt), { addSuffix: true })
+                  ? formatDistanceToNow(new Date(intent.createdAt), {
+                      addSuffix: true,
+                    })
                   : "—"}
               </span>
             </div>
@@ -461,6 +511,7 @@ function IntentsTab({
                 <Edit className="w-3.5 h-3.5" /> Edit
               </button>
               <button
+                onClick={onViewMatches}
                 className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium text-white transition-colors hover:opacity-90"
                 style={{ backgroundColor: COLORS.blue }}
               >
@@ -509,18 +560,21 @@ function IncomingTab({
           <div
             key={m.id}
             className={`card-elevated p-6 flex flex-col sm:flex-row gap-6 hover:translate-y-[-2px] transition-transform ${index === 0 ? "border-[#22D4F5]/25" : ""}`}
-            style={index === 0 ? { boxShadow: "0 4px 24px rgb(10 22 40 / 0.08), 0 0 0 1px rgb(34 212 245 / 0.20)" } : undefined}
+            style={
+              index === 0
+                ? {
+                    boxShadow:
+                      "0 4px 24px rgb(10 22 40 / 0.08), 0 0 0 1px rgb(34 212 245 / 0.20)",
+                  }
+                : undefined
+            }
           >
             {/* score column */}
             <div className="flex flex-col items-center justify-center shrink-0 w-28">
-              <span
-                className="bg-[#C4972A]/15 text-[#C4972A] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-2"
-              >
+              <span className="bg-[#C4972A]/15 text-[#C4972A] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-2">
                 MATCH
               </span>
-              <span
-                className="font-data-hud text-2xl font-bold text-[#22D4F5]"
-              >
+              <span className="font-data-hud text-2xl font-bold text-[#22D4F5]">
                 {score}%
               </span>
               <div
@@ -539,8 +593,12 @@ function IncomingTab({
 
             {/* details */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1" style={{ color: COLORS.navy }}>
-                {m.matchReason || "AI-identified opportunity based on your intents"}
+              <p
+                className="text-sm font-medium mb-1"
+                style={{ color: COLORS.navy }}
+              >
+                {m.matchReason ||
+                  "AI-identified opportunity based on your intents"}
               </p>
               {m.aiAnalysis && (
                 <p className="text-xs text-gray-500 line-clamp-2 mb-3">
@@ -552,8 +610,13 @@ function IncomingTab({
                 className="flex items-center gap-3 text-xs text-gray-500 mb-3 p-3 rounded-md"
                 style={{ backgroundColor: COLORS.surface }}
               >
-                <Shield className="w-3.5 h-3.5 shrink-0" style={{ color: COLORS.green }} />
-                <span className="capitalize">{m.counterpartyVerificationTier ?? "none"}</span>
+                <Shield
+                  className="w-3.5 h-3.5 shrink-0"
+                  style={{ color: COLORS.green }}
+                />
+                <span className="capitalize">
+                  {m.counterpartyVerificationTier ?? "none"}
+                </span>
                 <span className="text-gray-300">|</span>
                 <span>{m.counterpartyDealCount ?? 0} deals completed</span>
               </div>
@@ -563,19 +626,31 @@ function IncomingTab({
                   className="rounded-md p-3"
                   style={{ backgroundColor: "#EFF6FF" }}
                 >
-                  <span className="font-semibold block mb-1" style={{ color: COLORS.blue }}>
+                  <span
+                    className="font-semibold block mb-1"
+                    style={{ color: COLORS.blue }}
+                  >
                     Your Intent
                   </span>
-                  <span className="text-gray-600">Intent #{m.intent1Id != null ? String(m.intent1Id).slice(-6) : "—"}</span>
+                  <span className="text-gray-600">
+                    Intent #
+                    {m.intent1Id != null ? String(m.intent1Id).slice(-6) : "—"}
+                  </span>
                 </div>
                 <div
                   className="rounded-md p-3"
                   style={{ backgroundColor: "#FFFBEB" }}
                 >
-                  <span className="font-semibold block mb-1" style={{ color: COLORS.gold }}>
+                  <span
+                    className="font-semibold block mb-1"
+                    style={{ color: COLORS.gold }}
+                  >
                     Their Intent
                   </span>
-                  <span className="text-gray-600">Intent #{m.intent2Id != null ? String(m.intent2Id).slice(-6) : "—"}</span>
+                  <span className="text-gray-600">
+                    Intent #
+                    {m.intent2Id != null ? String(m.intent2Id).slice(-6) : "—"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -598,7 +673,9 @@ function IncomingTab({
               </button>
               <span className="text-xs text-gray-400 text-right mt-auto">
                 {m.createdAt
-                  ? formatDistanceToNow(new Date(m.createdAt), { addSuffix: true })
+                  ? formatDistanceToNow(new Date(m.createdAt), {
+                      addSuffix: true,
+                    })
                   : ""}
               </span>
             </div>
@@ -612,7 +689,13 @@ function IncomingTab({
 // ═══════════════════════════════════════════════════════════════
 // TAB 3 – Match History
 // ═══════════════════════════════════════════════════════════════
-function HistoryTab({ matches, loading }: { matches: any[]; loading: boolean }) {
+function HistoryTab({
+  matches,
+  loading,
+}: {
+  matches: any[];
+  loading: boolean;
+}) {
   if (loading) return <LoadingSkeleton />;
 
   if (matches.length === 0) {
@@ -627,10 +710,17 @@ function HistoryTab({ matches, loading }: { matches: any[]; loading: boolean }) 
     );
   }
 
-  const historyStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  const historyStatusConfig: Record<
+    string,
+    { label: string; color: string; bg: string }
+  > = {
     declined: { label: "Declined", color: COLORS.red, bg: "#FEF2F2" },
     mutual_interest: { label: "Accepted", color: COLORS.green, bg: "#ECFDF5" },
-    deal_room_created: { label: "Deal Room Created", color: COLORS.blue, bg: "#EFF6FF" },
+    deal_room_created: {
+      label: "Deal Room Created",
+      color: COLORS.blue,
+      bg: "#EFF6FF",
+    },
     expired: { label: "Expired", color: "#6B7280", bg: "#F3F4F6" },
   };
 
@@ -658,7 +748,8 @@ function HistoryTab({ matches, loading }: { matches: any[]; loading: boolean }) 
         </thead>
         <tbody className="divide-y" style={{ borderColor: COLORS.border }}>
           {matches.map((m: any) => {
-            const cfg = historyStatusConfig[m.status] ?? historyStatusConfig.expired;
+            const cfg =
+              historyStatusConfig[m.status] ?? historyStatusConfig.expired;
             return (
               <tr key={m.id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-5 py-4 font-mono text-xs text-gray-600">
@@ -666,11 +757,16 @@ function HistoryTab({ matches, loading }: { matches: any[]; loading: boolean }) 
                 </td>
                 <td className="px-5 py-4 text-gray-600">
                   {m.createdAt
-                    ? formatDistanceToNow(new Date(m.createdAt), { addSuffix: true })
+                    ? formatDistanceToNow(new Date(m.createdAt), {
+                        addSuffix: true,
+                      })
                     : "—"}
                 </td>
                 <td className="px-5 py-4">
-                  <span className="font-semibold" style={{ color: COLORS.navy }}>
+                  <span
+                    className="font-semibold"
+                    style={{ color: COLORS.navy }}
+                  >
                     {m.compatibilityScore ?? 0}%
                   </span>
                 </td>
@@ -738,17 +834,17 @@ function CreateIntentModal({
       toast.success("Intent activated! AI matching is now active.");
       onCreated();
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   const patch = (updates: Partial<typeof form>) =>
-    setForm((f) => ({ ...f, ...updates }));
+    setForm(f => ({ ...f, ...updates }));
 
   const toggleInList = (key: "locations" | "geoRestrictions", val: string) =>
-    setForm((f) => ({
+    setForm(f => ({
       ...f,
       [key]: f[key].includes(val)
-        ? f[key].filter((v) => v !== val)
+        ? f[key].filter(v => v !== val)
         : [...f[key], val],
     }));
 
@@ -760,10 +856,26 @@ function CreateIntentModal({
 
   const handleActivate = () => {
     createMutation.mutate({
-      intentType: form.intentType as "buy" | "sell" | "invest" | "seek_investment" | "partner",
+      intentType: form.intentType as
+        | "buy"
+        | "sell"
+        | "invest"
+        | "seek_investment"
+        | "partner",
       title: form.title,
       description: form.description,
-      assetType: form.assetType as "commodity" | "real_estate" | "equity" | "debt" | "infrastructure" | "renewable_energy" | "mining" | "oil_gas" | "business" | "other" | undefined,
+      assetType: form.assetType as
+        | "commodity"
+        | "real_estate"
+        | "equity"
+        | "debt"
+        | "infrastructure"
+        | "renewable_energy"
+        | "mining"
+        | "oil_gas"
+        | "business"
+        | "other"
+        | undefined,
       minValue: form.minValue || undefined,
       maxValue: form.maxValue || undefined,
       targetTimeline: form.targetTimeline || undefined,
@@ -772,17 +884,42 @@ function CreateIntentModal({
   };
 
   const intentTypeOptions = [
-    { value: "buy", label: "Buy", icon: DollarSign, desc: "Acquire assets or businesses" },
-    { value: "sell", label: "Sell", icon: TrendingUp, desc: "Sell assets or equity positions" },
-    { value: "invest", label: "Invest", icon: Briefcase, desc: "Deploy capital into opportunities" },
-    { value: "seek_investment", label: "Raise Capital", icon: Building2, desc: "Seek funding for ventures" },
-    { value: "partner", label: "Co-Invest", icon: Users, desc: "Find co-investment partners" },
+    {
+      value: "buy",
+      label: "Buy",
+      icon: DollarSign,
+      desc: "Acquire assets or businesses",
+    },
+    {
+      value: "sell",
+      label: "Sell",
+      icon: TrendingUp,
+      desc: "Sell assets or equity positions",
+    },
+    {
+      value: "invest",
+      label: "Invest",
+      icon: Briefcase,
+      desc: "Deploy capital into opportunities",
+    },
+    {
+      value: "seek_investment",
+      label: "Raise Capital",
+      icon: Building2,
+      desc: "Seek funding for ventures",
+    },
+    {
+      value: "partner",
+      label: "Co-Invest",
+      icon: Users,
+      desc: "Find co-investment partners",
+    },
   ];
 
   const estimatedMatches = useMemo(
     () => Math.floor(Math.random() * 21) + 5,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [form.intentType, form.assetType],
+    [form.intentType, form.assetType]
   );
 
   return (
@@ -801,9 +938,15 @@ function CreateIntentModal({
         </div>
 
         {/* header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: COLORS.border }}>
+        <div
+          className="flex items-center justify-between px-6 py-4 border-b"
+          style={{ borderColor: COLORS.border }}
+        >
           <div>
-            <h2 className="text-lg font-semibold" style={{ color: COLORS.navy }}>
+            <h2
+              className="text-lg font-semibold"
+              style={{ color: COLORS.navy }}
+            >
               Create Intent
             </h2>
             <p className="text-xs text-gray-500">Step {step} of 5</p>
@@ -820,14 +963,17 @@ function CreateIntentModal({
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {step === 1 && (
             <div>
-              <h3 className="text-base font-semibold mb-1" style={{ color: COLORS.navy }}>
+              <h3
+                className="text-base font-semibold mb-1"
+                style={{ color: COLORS.navy }}
+              >
                 What type of deal are you looking for?
               </h3>
               <p className="text-sm text-gray-500 mb-5">
                 Select the intent that best describes your goal.
               </p>
               <div className="grid grid-cols-1 gap-3">
-                {intentTypeOptions.map((opt) => {
+                {intentTypeOptions.map(opt => {
                   const selected = form.intentType === opt.value;
                   return (
                     <button
@@ -842,7 +988,9 @@ function CreateIntentModal({
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
                         style={{
-                          backgroundColor: selected ? COLORS.blue : COLORS.surface,
+                          backgroundColor: selected
+                            ? COLORS.blue
+                            : COLORS.surface,
                         }}
                       >
                         <opt.icon
@@ -851,13 +999,21 @@ function CreateIntentModal({
                         />
                       </div>
                       <div>
-                        <span className="font-medium text-sm" style={{ color: COLORS.navy }}>
+                        <span
+                          className="font-medium text-sm"
+                          style={{ color: COLORS.navy }}
+                        >
                           {opt.label}
                         </span>
-                        <span className="block text-xs text-gray-500">{opt.desc}</span>
+                        <span className="block text-xs text-gray-500">
+                          {opt.desc}
+                        </span>
                       </div>
                       {selected && (
-                        <Check className="ml-auto w-5 h-5 shrink-0" style={{ color: COLORS.blue }} />
+                        <Check
+                          className="ml-auto w-5 h-5 shrink-0"
+                          style={{ color: COLORS.blue }}
+                        />
                       )}
                     </button>
                   );
@@ -868,40 +1024,49 @@ function CreateIntentModal({
 
           {step === 2 && (
             <div className="flex flex-col gap-5">
-              <h3 className="text-base font-semibold" style={{ color: COLORS.navy }}>
+              <h3
+                className="text-base font-semibold"
+                style={{ color: COLORS.navy }}
+              >
                 Deal Parameters
               </h3>
 
               <div>
-                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">Title</Label>
+                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                  Title
+                </Label>
                 <Input
                   value={form.title}
-                  onChange={(e) => patch({ title: e.target.value })}
+                  onChange={e => patch({ title: e.target.value })}
                   placeholder="e.g. Acquiring renewable energy assets in Southeast Asia"
                 />
               </div>
 
               <div>
-                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</Label>
+                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                  Description
+                </Label>
                 <Textarea
                   value={form.description}
-                  onChange={(e) => patch({ description: e.target.value })}
+                  onChange={e => patch({ description: e.target.value })}
                   placeholder="Describe your deal intent in detail…"
                   rows={3}
                 />
               </div>
 
               <div>
-                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">Asset Type</Label>
+                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                  Asset Type
+                </Label>
                 <Select
                   value={form.assetType}
-                  onValueChange={(v) => patch({ assetType: v })}
+                  onValueChange={v => patch({ assetType: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select asset type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ASSET_TYPES.map((a) => (
+                    {ASSET_TYPES.map(a => (
                       <SelectItem key={a} value={a}>
                         {a}
                       </SelectItem>
@@ -912,16 +1077,18 @@ function CreateIntentModal({
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-1">
-                  <Label className="text-xs font-medium text-gray-600 mb-1.5 block">Currency</Label>
+                  <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                    Currency
+                  </Label>
                   <Select
                     value={form.currency}
-                    onValueChange={(v) => patch({ currency: v })}
+                    onValueChange={v => patch({ currency: v })}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {["USD", "EUR", "GBP", "CHF", "AED"].map((c) => (
+                      {["USD", "EUR", "GBP", "CHF", "AED"].map(c => (
                         <SelectItem key={c} value={c}>
                           {c}
                         </SelectItem>
@@ -930,36 +1097,42 @@ function CreateIntentModal({
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs font-medium text-gray-600 mb-1.5 block">Min Value</Label>
+                  <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                    Min Value
+                  </Label>
                   <Input
                     type="number"
                     value={form.minValue}
-                    onChange={(e) => patch({ minValue: e.target.value })}
+                    onChange={e => patch({ minValue: e.target.value })}
                     placeholder="0"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-medium text-gray-600 mb-1.5 block">Max Value</Label>
+                  <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                    Max Value
+                  </Label>
                   <Input
                     type="number"
                     value={form.maxValue}
-                    onChange={(e) => patch({ maxValue: e.target.value })}
+                    onChange={e => patch({ maxValue: e.target.value })}
                     placeholder="0"
                   />
                 </div>
               </div>
 
               <div>
-                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">Target Timeline</Label>
+                <Label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                  Target Timeline
+                </Label>
                 <Select
                   value={form.targetTimeline}
-                  onValueChange={(v) => patch({ targetTimeline: v })}
+                  onValueChange={v => patch({ targetTimeline: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select timeline" />
                   </SelectTrigger>
                   <SelectContent>
-                    {TIMELINES.map((t) => (
+                    {TIMELINES.map(t => (
                       <SelectItem key={t} value={t}>
                         {t}
                       </SelectItem>
@@ -973,7 +1146,7 @@ function CreateIntentModal({
                   Target Locations
                 </Label>
                 <div className="flex flex-wrap gap-2">
-                  {LOCATION_OPTIONS.map((loc) => {
+                  {LOCATION_OPTIONS.map(loc => {
                     const selected = form.locations.includes(loc);
                     return (
                       <button
@@ -997,7 +1170,10 @@ function CreateIntentModal({
 
           {step === 3 && (
             <div className="flex flex-col gap-5">
-              <h3 className="text-base font-semibold" style={{ color: COLORS.navy }}>
+              <h3
+                className="text-base font-semibold"
+                style={{ color: COLORS.navy }}
+              >
                 Matching Preferences
               </h3>
 
@@ -1006,7 +1182,7 @@ function CreateIntentModal({
                   Minimum Verification Tier
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
-                  {VERIFICATION_TIERS.map((tier) => {
+                  {VERIFICATION_TIERS.map(tier => {
                     const selected = form.verificationTier === tier;
                     return (
                       <button
@@ -1022,7 +1198,11 @@ function CreateIntentModal({
                           className="w-4 h-4"
                           style={{ color: selected ? COLORS.blue : "#9CA3AF" }}
                         />
-                        <span style={{ color: selected ? COLORS.blue : COLORS.navy }}>
+                        <span
+                          style={{
+                            color: selected ? COLORS.blue : COLORS.navy,
+                          }}
+                        >
                           {tier}
                         </span>
                       </button>
@@ -1036,7 +1216,7 @@ function CreateIntentModal({
                   Geographic Restrictions
                 </Label>
                 <div className="flex flex-wrap gap-2">
-                  {LOCATION_OPTIONS.map((loc) => {
+                  {LOCATION_OPTIONS.map(loc => {
                     const selected = form.geoRestrictions.includes(loc);
                     return (
                       <button
@@ -1065,7 +1245,9 @@ function CreateIntentModal({
                   min={1}
                   max={50}
                   value={form.maxMatches}
-                  onChange={(e) => patch({ maxMatches: parseInt(e.target.value) || 5 })}
+                  onChange={e =>
+                    patch({ maxMatches: parseInt(e.target.value) || 5 })
+                  }
                   className="w-24"
                 />
               </div>
@@ -1074,7 +1256,10 @@ function CreateIntentModal({
 
           {step === 4 && (
             <div className="flex flex-col gap-5">
-              <h3 className="text-base font-semibold" style={{ color: COLORS.navy }}>
+              <h3
+                className="text-base font-semibold"
+                style={{ color: COLORS.navy }}
+              >
                 Notification Settings
               </h3>
 
@@ -1086,18 +1271,22 @@ function CreateIntentModal({
                   <label className="flex items-center gap-3 cursor-pointer">
                     <Checkbox
                       checked={form.notifyInApp}
-                      onCheckedChange={(v) => patch({ notifyInApp: !!v })}
+                      onCheckedChange={v => patch({ notifyInApp: !!v })}
                     />
                     <Bell className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm" style={{ color: COLORS.navy }}>In-app notifications</span>
+                    <span className="text-sm" style={{ color: COLORS.navy }}>
+                      In-app notifications
+                    </span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <Checkbox
                       checked={form.notifyEmail}
-                      onCheckedChange={(v) => patch({ notifyEmail: !!v })}
+                      onCheckedChange={v => patch({ notifyEmail: !!v })}
                     />
                     <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm" style={{ color: COLORS.navy }}>Email notifications</span>
+                    <span className="text-sm" style={{ color: COLORS.navy }}>
+                      Email notifications
+                    </span>
                   </label>
                 </div>
               </div>
@@ -1107,7 +1296,7 @@ function CreateIntentModal({
                   Match Frequency
                 </Label>
                 <div className="flex flex-col gap-2">
-                  {MATCH_FREQUENCIES.map((freq) => {
+                  {MATCH_FREQUENCIES.map(freq => {
                     const selected = form.matchFrequency === freq;
                     return (
                       <button
@@ -1144,19 +1333,32 @@ function CreateIntentModal({
 
           {step === 5 && (
             <div className="flex flex-col gap-5">
-              <h3 className="text-base font-semibold" style={{ color: COLORS.navy }}>
+              <h3
+                className="text-base font-semibold"
+                style={{ color: COLORS.navy }}
+              >
                 Review & Activate
               </h3>
 
               <div
                 className="rounded-lg p-4 flex flex-col gap-3"
-                style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
+                style={{
+                  backgroundColor: COLORS.surface,
+                  border: `1px solid ${COLORS.border}`,
+                }}
               >
-                <SummaryRow label="Intent Type" value={
-                  intentTypeOptions.find((o) => o.value === form.intentType)?.label ?? "—"
-                } />
+                <SummaryRow
+                  label="Intent Type"
+                  value={
+                    intentTypeOptions.find(o => o.value === form.intentType)
+                      ?.label ?? "—"
+                  }
+                />
                 <SummaryRow label="Title" value={form.title || "—"} />
-                <SummaryRow label="Description" value={form.description || "—"} />
+                <SummaryRow
+                  label="Description"
+                  value={form.description || "—"}
+                />
                 <SummaryRow label="Asset Type" value={form.assetType || "—"} />
                 <SummaryRow
                   label="Value Range"
@@ -1166,21 +1368,44 @@ function CreateIntentModal({
                       : "—"
                   }
                 />
-                <SummaryRow label="Timeline" value={form.targetTimeline || "—"} />
-                <SummaryRow label="Locations" value={form.locations.join(", ") || "Any"} />
-                <SummaryRow label="Min Verification" value={form.verificationTier} />
-                <SummaryRow label="Max Matches" value={String(form.maxMatches)} />
-                <SummaryRow label="Notifications" value={
-                  [form.notifyInApp && "In-app", form.notifyEmail && "Email"].filter(Boolean).join(", ") || "None"
-                } />
+                <SummaryRow
+                  label="Timeline"
+                  value={form.targetTimeline || "—"}
+                />
+                <SummaryRow
+                  label="Locations"
+                  value={form.locations.join(", ") || "Any"}
+                />
+                <SummaryRow
+                  label="Min Verification"
+                  value={form.verificationTier}
+                />
+                <SummaryRow
+                  label="Max Matches"
+                  value={String(form.maxMatches)}
+                />
+                <SummaryRow
+                  label="Notifications"
+                  value={
+                    [form.notifyInApp && "In-app", form.notifyEmail && "Email"]
+                      .filter(Boolean)
+                      .join(", ") || "None"
+                  }
+                />
                 <SummaryRow label="Frequency" value={form.matchFrequency} />
               </div>
 
               <div
                 className="rounded-lg p-4 text-center"
-                style={{ backgroundColor: "#ECFDF5", border: `1px solid ${COLORS.green}33` }}
+                style={{
+                  backgroundColor: "#ECFDF5",
+                  border: `1px solid ${COLORS.green}33`,
+                }}
               >
-                <p className="text-sm font-medium" style={{ color: COLORS.green }}>
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: COLORS.green }}
+                >
                   Estimated match pool: {estimatedMatches} opportunities
                 </p>
               </div>
@@ -1235,7 +1460,10 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-sm">
       <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-right max-w-[60%] truncate" style={{ color: COLORS.navy }}>
+      <span
+        className="font-medium text-right max-w-[60%] truncate"
+        style={{ color: COLORS.navy }}
+      >
         {value}
       </span>
     </div>
@@ -1258,222 +1486,325 @@ function MatchReviewPanel({
 }) {
   const score = match.compatibilityScore ?? 0;
 
-  const breakdownScores = useMemo(() => ({
-    dealParam: Math.min(100, Math.max(40, score + Math.floor(Math.random() * 10) - 5)),
-    verification: Math.min(100, Math.max(50, score + Math.floor(Math.random() * 15) - 8)),
-    historical: Math.min(100, Math.max(30, score + Math.floor(Math.random() * 20) - 10)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [match.id]);
+  const breakdownScores = useMemo(
+    () => ({
+      dealParam: Math.min(
+        100,
+        Math.max(40, score + Math.floor(Math.random() * 10) - 5)
+      ),
+      verification: Math.min(
+        100,
+        Math.max(50, score + Math.floor(Math.random() * 15) - 8)
+      ),
+      historical: Math.min(
+        100,
+        Math.max(30, score + Math.floor(Math.random() * 20) - 10)
+      ),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }),
+    [match.id]
+  );
 
   return (
     <>
       {/* backdrop */}
-      <div
-        className="fixed inset-0 z-50 bg-black/40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-50 bg-black/40" onClick={onClose} />
 
       {/* panel */}
-      <SlideIn direction="right" className="fixed top-0 right-0 z-50 h-full shadow-2xl flex flex-col w-full md:w-1/2" >
-      <div
-        style={{ borderLeft: `1px solid ${COLORS.border}`, height: "100%", display: "flex", flexDirection: "column" }}
+      <SlideIn
+        direction="right"
+        className="fixed top-0 right-0 z-50 h-full shadow-2xl flex flex-col w-full md:w-1/2"
       >
-        {/* header */}
         <div
-          className="flex items-center justify-between px-6 py-4 border-b shrink-0"
-          style={{ borderColor: COLORS.border }}
+          style={{
+            borderLeft: `1px solid ${COLORS.border}`,
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
-          <h2 className="text-lg font-semibold" style={{ color: COLORS.navy }}>
-            Match Review
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          {/* header */}
+          <div
+            className="flex items-center justify-between px-6 py-4 border-b shrink-0"
+            style={{ borderColor: COLORS.border }}
           >
-            <X className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
+            <h2
+              className="text-lg font-semibold"
+              style={{ color: COLORS.navy }}
+            >
+              Match Review
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
 
-        {/* content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
-          {/* score ring */}
-          <div className="flex flex-col items-center">
-            <div className="relative">
-              <CompatibilityRing score={score} size={140} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span
-                  className="font-data-hud text-2xl font-bold text-[#22D4F5]"
+          {/* content */}
+          <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
+            {/* score ring */}
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <CompatibilityRing score={score} size={140} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-data-hud text-2xl font-bold text-[#22D4F5]">
+                    {score}%
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Overall Compatibility
+              </p>
+            </div>
+
+            {/* score breakdown */}
+            <div
+              className="rounded-lg p-4 flex flex-col gap-3"
+              style={{
+                backgroundColor: COLORS.surface,
+                border: `1px solid ${COLORS.border}`,
+              }}
+            >
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Score Breakdown
+              </h4>
+              <ScoreBar
+                label="Deal Parameter Match"
+                value={breakdownScores.dealParam}
+              />
+              <ScoreBar
+                label="Verification Alignment"
+                value={breakdownScores.verification}
+              />
+              <ScoreBar
+                label="Historical Pattern"
+                value={breakdownScores.historical}
+              />
+            </div>
+
+            {/* counterparty card */}
+            <div
+              className="rounded-lg p-4"
+              style={{
+                backgroundColor: COLORS.surface,
+                border: `1px solid ${COLORS.border}`,
+              }}
+            >
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
+                Counterparty Profile
+              </h4>
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                  style={{ backgroundColor: COLORS.navy }}
                 >
-                  {score}%
+                  ?
+                </div>
+                <div>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: COLORS.navy }}
+                  >
+                    Anonymous Member
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Identity revealed upon mutual acceptance
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span
+                  className="px-2.5 py-1 rounded-full capitalize"
+                  style={{ backgroundColor: "#ECFDF5", color: COLORS.green }}
+                >
+                  <Shield className="w-3 h-3 inline mr-1" />
+                  {match.counterpartyVerificationTier ?? "none"} verified
+                </span>
+                <span
+                  className="px-2.5 py-1 rounded-full"
+                  style={{ backgroundColor: "#EFF6FF", color: COLORS.blue }}
+                >
+                  {match.counterpartyDealCount ?? 0} deals completed
                 </span>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-2">Overall Compatibility</p>
-          </div>
 
-          {/* score breakdown */}
-          <div
-            className="rounded-lg p-4 flex flex-col gap-3"
-            style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
-          >
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Score Breakdown
-            </h4>
-            <ScoreBar label="Deal Parameter Match" value={breakdownScores.dealParam} />
-            <ScoreBar label="Verification Alignment" value={breakdownScores.verification} />
-            <ScoreBar label="Historical Pattern" value={breakdownScores.historical} />
-          </div>
-
-          {/* counterparty card */}
-          <div
-            className="rounded-lg p-4"
-            style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
-          >
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-              Counterparty Profile
-            </h4>
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                style={{ backgroundColor: COLORS.navy }}
-              >
-                ?
-              </div>
-              <div>
-                <p className="text-sm font-medium" style={{ color: COLORS.navy }}>
-                  Anonymous Member
-                </p>
-                <p className="text-xs text-gray-500">Identity revealed upon mutual acceptance</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span
-                className="px-2.5 py-1 rounded-full capitalize"
-                style={{ backgroundColor: "#ECFDF5", color: COLORS.green }}
-              >
-                <Shield className="w-3 h-3 inline mr-1" />
-                {match.counterpartyVerificationTier ?? "none"} verified
-              </span>
-              <span
-                className="px-2.5 py-1 rounded-full"
-                style={{ backgroundColor: "#EFF6FF", color: COLORS.blue }}
-              >
-                {match.counterpartyDealCount ?? 0} deals completed
-              </span>
-            </div>
-          </div>
-
-          {/* deal parameter comparison */}
-          <div
-            className="rounded-lg p-4"
-            style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
-          >
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-              Deal Parameter Comparison
-            </h4>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-gray-500">
-                  <th className="text-left pb-2 font-medium">Parameter</th>
-                  <th className="text-left pb-2 font-medium" style={{ color: COLORS.blue }}>
-                    Your Intent
-                  </th>
-                  <th className="text-left pb-2 font-medium" style={{ color: COLORS.gold }}>
-                    Their Intent
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-xs">
-                <tr className="border-t" style={{ borderColor: COLORS.border }}>
-                  <td className="py-2 text-gray-500">Intent</td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>
-                    #{match.intent1Id?.slice(-6) ?? "—"}
-                  </td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>
-                    #{match.intent2Id?.slice(-6) ?? "—"}
-                  </td>
-                </tr>
-                <tr className="border-t" style={{ borderColor: COLORS.border }}>
-                  <td className="py-2 text-gray-500">Type</td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>Buy</td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>Sell</td>
-                </tr>
-                <tr className="border-t" style={{ borderColor: COLORS.border }}>
-                  <td className="py-2 text-gray-500">Asset</td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>Commodity</td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>Commodity</td>
-                </tr>
-                <tr className="border-t" style={{ borderColor: COLORS.border }}>
-                  <td className="py-2 text-gray-500">Value Range</td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>$1M – $5M</td>
-                  <td className="py-2 font-medium" style={{ color: COLORS.navy }}>$2M – $8M</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* match reason & analysis */}
-          {(match.matchReason || match.aiAnalysis) && (
+            {/* deal parameter comparison */}
             <div
               className="rounded-lg p-4"
-              style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
+              style={{
+                backgroundColor: COLORS.surface,
+                border: `1px solid ${COLORS.border}`,
+              }}
             >
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                AI Analysis
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
+                Deal Parameter Comparison
               </h4>
-              {match.matchReason && (
-                <p className="text-sm mb-2" style={{ color: COLORS.navy }}>
-                  {match.matchReason}
-                </p>
-              )}
-              {match.aiAnalysis && (
-                <p className="text-xs text-gray-500">{match.aiAnalysis}</p>
-              )}
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-500">
+                    <th className="text-left pb-2 font-medium">Parameter</th>
+                    <th
+                      className="text-left pb-2 font-medium"
+                      style={{ color: COLORS.blue }}
+                    >
+                      Your Intent
+                    </th>
+                    <th
+                      className="text-left pb-2 font-medium"
+                      style={{ color: COLORS.gold }}
+                    >
+                      Their Intent
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="text-xs">
+                  <tr
+                    className="border-t"
+                    style={{ borderColor: COLORS.border }}
+                  >
+                    <td className="py-2 text-gray-500">Intent</td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      #{match.intent1Id?.slice(-6) ?? "—"}
+                    </td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      #{match.intent2Id?.slice(-6) ?? "—"}
+                    </td>
+                  </tr>
+                  <tr
+                    className="border-t"
+                    style={{ borderColor: COLORS.border }}
+                  >
+                    <td className="py-2 text-gray-500">Type</td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      Buy
+                    </td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      Sell
+                    </td>
+                  </tr>
+                  <tr
+                    className="border-t"
+                    style={{ borderColor: COLORS.border }}
+                  >
+                    <td className="py-2 text-gray-500">Asset</td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      Commodity
+                    </td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      Commodity
+                    </td>
+                  </tr>
+                  <tr
+                    className="border-t"
+                    style={{ borderColor: COLORS.border }}
+                  >
+                    <td className="py-2 text-gray-500">Value Range</td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      $1M – $5M
+                    </td>
+                    <td
+                      className="py-2 font-medium"
+                      style={{ color: COLORS.navy }}
+                    >
+                      $2M – $8M
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
 
-        {/* footer actions */}
-        <div
-          className="shrink-0 px-6 py-4 border-t flex gap-3"
-          style={{ borderColor: COLORS.border }}
-        >
-          <button
-            onClick={onAccept}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-colors hover:opacity-90"
-            style={{ backgroundColor: COLORS.gold }}
+            {/* match reason & analysis */}
+            {(match.matchReason || match.aiAnalysis) && (
+              <div
+                className="rounded-lg p-4"
+                style={{
+                  backgroundColor: COLORS.surface,
+                  border: `1px solid ${COLORS.border}`,
+                }}
+              >
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                  AI Analysis
+                </h4>
+                {match.matchReason && (
+                  <p className="text-sm mb-2" style={{ color: COLORS.navy }}>
+                    {match.matchReason}
+                  </p>
+                )}
+                {match.aiAnalysis && (
+                  <p className="text-xs text-gray-500">{match.aiAnalysis}</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* footer actions */}
+          <div
+            className="shrink-0 px-6 py-4 border-t flex gap-3"
+            style={{ borderColor: COLORS.border }}
           >
-            <ArrowRight className="w-4 h-4" />
-            Accept Match → Enter Deal Room
-          </button>
-          <button
-            onClick={onDecline}
-            className="px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors hover:bg-red-50"
-            style={{ borderColor: COLORS.red, color: COLORS.red }}
-          >
-            Decline
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors hover:bg-blue-50"
-            style={{ borderColor: COLORS.blue, color: COLORS.blue }}
-          >
-            Request More Info
-          </button>
+            <button
+              onClick={onAccept}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-colors hover:opacity-90"
+              style={{ backgroundColor: COLORS.gold }}
+            >
+              <ArrowRight className="w-4 h-4" />
+              Accept Match → Enter Deal Room
+            </button>
+            <button
+              onClick={onDecline}
+              className="px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors hover:bg-red-50"
+              style={{ borderColor: COLORS.red, color: COLORS.red }}
+            >
+              Decline
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors hover:bg-blue-50"
+              style={{ borderColor: COLORS.blue, color: COLORS.blue }}
+            >
+              Request More Info
+            </button>
+          </div>
         </div>
-      </div>
       </SlideIn>
     </>
   );
 }
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
-  const color = value >= 80 ? COLORS.green : value >= 60 ? COLORS.gold : COLORS.red;
+  const color =
+    value >= 80 ? COLORS.green : value >= 60 ? COLORS.gold : COLORS.red;
   return (
     <div>
       <div className="flex justify-between text-xs mb-1">
         <span className="text-gray-600">{label}</span>
-        <span className="font-semibold" style={{ color }}>{value}%</span>
+        <span className="font-semibold" style={{ color }}>
+          {value}%
+        </span>
       </div>
       <div className="h-1.5 rounded-full bg-gray-200">
         <div
@@ -1495,9 +1826,11 @@ function StatusPill({ status }: { status: string }) {
   const isActive = status === "active";
   return (
     <span
-      className={isActive
-        ? "bg-[#22D4F5]/10 text-[#22D4F5]/80 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-        : "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"}
+      className={
+        isActive
+          ? "bg-[#22D4F5]/10 text-[#22D4F5]/80 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+          : "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+      }
       style={isActive ? undefined : { color: c.color, backgroundColor: c.bg }}
     >
       {c.label}
@@ -1508,11 +1841,8 @@ function StatusPill({ status }: { status: string }) {
 function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="card-elevated p-6 animate-pulse"
-        >
+      {[1, 2, 3].map(i => (
+        <div key={i} className="card-elevated p-6 animate-pulse">
           <div className="h-5 w-16 rounded bg-gray-200 mb-4" />
           <div className="h-5 w-3/4 rounded bg-gray-200 mb-3" />
           <div className="h-4 w-full rounded bg-gray-100 mb-2" />

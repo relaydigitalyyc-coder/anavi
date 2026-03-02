@@ -21,8 +21,9 @@ ANAVI is intended to be a private-market operating system with five core pillars
 - Functional MVP: partial (core entities and flows exist, many advanced modules remain demo/static)
 - Production readiness: early (security/compliance/provider integrations are incomplete)
 
-For the current source-of-truth build tracker, see:
-- `anavi/todo.md`
+For current execution tracking, see:
+- `anavi/docs/ops/TODO_BOARD.md`
+- `anavi/docs/ops/ENGINEERING_MEMORY.md`
 
 ## Tech Stack
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS, Framer Motion
@@ -51,6 +52,8 @@ pnpm start
 At minimum, configure these for realistic behavior:
 
 - `DATABASE_URL` (required for DB-backed features)
+- `APP_RUNTIME_MODE` (`demo`, `hybrid`, or `live`)
+- `VITE_APP_RUNTIME_MODE` (optional frontend override; should normally match `APP_RUNTIME_MODE`)
 - `JWT_SECRET`
 - `VITE_APP_ID`
 - `OAUTH_SERVER_URL`
@@ -58,6 +61,24 @@ At minimum, configure these for realistic behavior:
 - `BUILT_IN_FORGE_API_URL` (for storage proxy)
 - `BUILT_IN_FORGE_API_KEY` (for storage proxy)
 - `ANTHROPIC_API_KEY` (for Claude-backed AI endpoints)
+- `DOCUSIGN_ENV` (`demo` or `prod`)
+- `DOCUSIGN_INTEGRATION_KEY`
+- `DOCUSIGN_ACCOUNT_ID`
+- `DOCUSIGN_BASE_URI`
+- `DOCUSIGN_IMPERSONATED_USER_ID`
+- `DOCUSIGN_RSA_PRIVATE_KEY`
+- `DOCUSIGN_CONNECT_HMAC_SECRET`
+- `DOCUSIGN_EXECUTION_MODE` (`api` or `mcp`)
+- `DOCUSIGN_MCP_URL` (for remote MCP server, e.g. `https://mcp-d.docusign.com/mcp`)
+- `DOCUSIGN_MCP_CLIENT_ID` (DocuSign Integration Key)
+- `DOCUSIGN_MCP_CLIENT_SECRET` (DocuSign Secret Key)
+- `DOCUSIGN_OAUTH_CLIENT_SECRET` (for Authorization Code Grant)
+- `DOCUSIGN_OAUTH_REDIRECT_URI` (e.g. `http://localhost:3000/api/integrations/docusign/oauth/callback`)
+
+Runtime mode semantics:
+- `demo`: synthetic auth + demo fixtures enabled.
+- `hybrid`: prelaunch behavior (synthetic fallback in non-production; demo fixtures enabled).
+- `live`: no synthetic auth and no demo fixtures; auth redirect required.
 
 ## Deployment
 This repo is configured for Vercel static frontend output from the app directory:
@@ -71,5 +92,6 @@ This repo is configured for Vercel static frontend output from the app directory
 - CI and integration test coverage are currently limited
 
 ## Documentation Notes
-- Legacy optimistic task list is retained at `anavi/docs/todo_legacy_2026-02-15.md`
-- Use `anavi/todo.md` for current delivery truth
+- Top-level docs index: `docs/README.md`
+- App docs index: `anavi/docs/README.md`
+- Legacy checklist retained at `anavi/docs/todo_legacy_2026-02-15.md`

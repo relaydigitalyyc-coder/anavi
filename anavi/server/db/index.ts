@@ -25,3 +25,4 @@ export * from "./trading";
 export * from "./fees";
 export * from "./members";
 export * from "./crypto";
+export * from "./docusign";

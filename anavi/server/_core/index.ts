@@ -9,7 +9,27 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { sql } from "drizzle-orm";
-import { getDb, seedDefaultNdaTemplate } from "../db";
+import {
+  findWebhookEventByProviderEventId,
+  getDb,
+  getDealRoomAccessByRoom,
+  getDocusignEnvelopeByProviderId,
+  getUserByEmail,
+  insertWebhookEvent,
+  logAuditEvent,
+  markWebhookEventFailed,
+  markWebhookEventProcessed,
+  seedDefaultNdaTemplate,
+  updateDealRoomAccess,
+  updateDocusignEnvelopeStatusMonotonic,
+} from "../db";
+import {
+  createDocusignOauthAuthorizeUrl,
+  exchangeDocusignOauthCode,
+  mapEnvelopeEventToStatus,
+  verifyDocusignConnectSignature,
+} from "../services/docusign";
+import { ENV } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -61,6 +81,109 @@ async function startServer() {
       res.status(400).json({ error: `Webhook Error: ${err.message}` });
     }
   });
+  // DocuSign Connect webhook - raw body for signature verification
+  app.post("/api/webhooks/docusign", express.raw({ type: "*/*" }), async (req, res) => {
+    try {
+      const signature = req.headers["x-docusign-signature-1"] as string | undefined;
+      const isValid = verifyDocusignConnectSignature(req.body, signature);
+      if (!isValid) {
+        return res.status(401).json({ error: "Invalid DocuSign signature" });
+      }
+
+      const payload = JSON.parse(req.body.toString("utf8")) as Record<string, unknown>;
+      const eventType = String(payload.event ?? payload.eventType ?? "unknown");
+      const envelopeId = String(
+        (payload.data as Record<string, unknown> | undefined)?.envelopeId ??
+          payload.envelopeId ??
+          ""
+      );
+      if (!envelopeId) {
+        return res.status(400).json({ error: "Missing envelopeId" });
+      }
+
+      const providerEventId = String(
+        payload.eventId ??
+          payload.configurationId ??
+          `${envelopeId}:${eventType}:${Date.now()}`
+      );
+
+      const existing = await findWebhookEventByProviderEventId(providerEventId);
+      if (existing) return res.status(200).json({ received: true, duplicate: true });
+
+      const inserted = await insertWebhookEvent({
+        providerEventId,
+        providerEnvelopeId: envelopeId,
+        eventType,
+        payloadJson: payload,
+      });
+
+      try {
+        const envelope = await getDocusignEnvelopeByProviderId(envelopeId);
+        if (envelope) {
+          const status = mapEnvelopeEventToStatus(eventType);
+          await updateDocusignEnvelopeStatusMonotonic({
+            envelopeId: envelope.id,
+            status,
+          });
+          if (status === "completed") {
+            const accessRows = await getDealRoomAccessByRoom(envelope.dealRoomId);
+            const recipientsContainer = (payload.data as Record<string, unknown> | undefined)?.recipients as
+              | Record<string, unknown>
+              | undefined;
+            const recipientsRaw = Array.isArray(recipientsContainer?.signers)
+              ? (recipientsContainer?.signers as Array<Record<string, unknown>>)
+              : [];
+
+            if (recipientsRaw.length > 0) {
+              for (const signer of recipientsRaw) {
+                const signed =
+                  String(signer.status ?? "").toLowerCase().includes("signed") ||
+                  String(signer.status ?? "").toLowerCase().includes("completed");
+                const email = String(signer.email ?? "");
+                if (!signed || !email) continue;
+                const user = await getUserByEmail(email);
+                if (!user) continue;
+                const hasAccess = accessRows.some((row) => row.userId === user.id);
+                if (!hasAccess) continue;
+                await updateDealRoomAccess(envelope.dealRoomId, user.id, {
+                  ndaSigned: true,
+                  ndaSignedAt: new Date(),
+                });
+              }
+            } else {
+              // Fallback path when recipient details are unavailable in webhook payload.
+              await Promise.all(
+                accessRows.map((row) =>
+                  updateDealRoomAccess(envelope.dealRoomId, row.userId, {
+                    ndaSigned: true,
+                    ndaSignedAt: new Date(),
+                  })
+                )
+              );
+            }
+          }
+          await logAuditEvent({
+            userId: envelope.createdByUserId,
+            action: `docusign_${eventType.toLowerCase().replace(/\\s+/g, "_")}`,
+            entityType: "deal_room",
+            entityId: envelope.dealRoomId,
+            newState: {
+              providerEnvelopeId: envelope.providerEnvelopeId,
+              status,
+            },
+          });
+        }
+        await markWebhookEventProcessed(inserted);
+        return res.status(200).json({ received: true });
+      } catch (error) {
+        await markWebhookEventFailed(inserted, String(error));
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("DocuSign webhook error:", error?.message ?? error);
+      return res.status(400).json({ error: "DocuSign webhook processing failed" });
+    }
+  });
 
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
@@ -83,6 +206,59 @@ async function startServer() {
   // Email/password auth routes
   registerAuthRoutes(app);
   registerVerificationRoutes(app);
+  app.get("/api/integrations/docusign/oauth/start", async (req, res) => {
+    try {
+      const ctx = await createContext({ req, res, info: {} as any });
+      if (!ctx.user) return res.status(401).json({ error: "Unauthorized" });
+      const redirectUri =
+        typeof req.query.redirectUri === "string"
+          ? req.query.redirectUri
+          : ENV.docusignOauthRedirectUri;
+      const authorizeUrl = await createDocusignOauthAuthorizeUrl({
+        userId: ctx.user.id,
+        redirectUri: redirectUri || undefined,
+      });
+      return res.redirect(authorizeUrl);
+    } catch (error: any) {
+      console.error("DocuSign OAuth start failed:", error?.message ?? error);
+      return res.status(400).json({ error: error?.message ?? "OAuth start failed" });
+    }
+  });
+  app.get("/api/integrations/docusign/oauth/callback", async (req, res) => {
+    try {
+      const ctx = await createContext({ req, res, info: {} as any });
+      if (!ctx.user) return res.status(401).json({ error: "Unauthorized" });
+
+      const state = String(req.query.state ?? "");
+      const code = String(req.query.code ?? "");
+      const error = String(req.query.error ?? "");
+      const returnUrl =
+        typeof req.query.returnUrl === "string"
+          ? req.query.returnUrl
+          : "/settings?docusign=connected";
+      const redirectUri =
+        typeof req.query.redirectUri === "string"
+          ? req.query.redirectUri
+          : ENV.docusignOauthRedirectUri;
+
+      if (error) {
+        return res.redirect(`${returnUrl}${returnUrl.includes("?") ? "&" : "?"}docusign_error=${encodeURIComponent(error)}`);
+      }
+      if (!state || !code) {
+        return res.status(400).json({ error: "Missing OAuth state/code" });
+      }
+      await exchangeDocusignOauthCode({
+        userId: ctx.user.id,
+        state,
+        code,
+        redirectUri: redirectUri || undefined,
+      });
+      return res.redirect(`${returnUrl}${returnUrl.includes("?") ? "&" : "?"}docusign=connected`);
+    } catch (error: any) {
+      console.error("DocuSign OAuth callback failed:", error?.message ?? error);
+      return res.status(400).json({ error: error?.message ?? "OAuth callback failed" });
+    }
+  });
   // tRPC API
   app.use(
     "/api/trpc",

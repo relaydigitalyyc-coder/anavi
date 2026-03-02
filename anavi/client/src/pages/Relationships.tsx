@@ -2,17 +2,48 @@ import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import {
-  Shield, Lock, Copy, LayoutGrid, List, Plus, Search,
-  Filter, Check, Upload, Users, Briefcase, TrendingUp,
-  DollarSign, Globe, ChevronDown, X, Loader2, UserPlus, ShieldCheck,
-  Mail, Phone, Linkedin, Save, QrCode, ExternalLink,
+  Shield,
+  Lock,
+  Copy,
+  LayoutGrid,
+  List,
+  Plus,
+  Search,
+  Filter,
+  Check,
+  Upload,
+  Users,
+  Briefcase,
+  TrendingUp,
+  DollarSign,
+  Globe,
+  ChevronDown,
+  X,
+  Loader2,
+  UserPlus,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Linkedin,
+  Save,
+  QrCode,
+  ExternalLink,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { FadeInView, ScaleHover, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import {
+  FadeInView,
+  ScaleHover,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/PageTransition";
 import { GlowingBorder } from "@/components/PremiumAnimations";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { CUSTODY_RECEIPT } from "@/lib/copy";
 
@@ -25,8 +56,23 @@ const COLORS = {
   border: "#D1DCF0",
 };
 
-const SECTORS = ["Oil & Gas", "Solar", "Real Estate", "Mining", "Infrastructure", "M&A", "Other"];
-const REGIONS = ["North America", "Europe", "Asia", "Middle East", "Africa", "Latin America"];
+const SECTORS = [
+  "Oil & Gas",
+  "Solar",
+  "Real Estate",
+  "Mining",
+  "Infrastructure",
+  "M&A",
+  "Other",
+];
+const REGIONS = [
+  "North America",
+  "Europe",
+  "Asia",
+  "Middle East",
+  "Africa",
+  "Latin America",
+];
 const REL_TYPES = [
   { value: "buyer", label: "Buyer", icon: Briefcase },
   { value: "seller", label: "Seller", icon: TrendingUp },
@@ -50,7 +96,10 @@ function formatCurrency(val: number) {
 
 function generateFakeHash() {
   const chars = "abcdef0123456789";
-  return Array.from({ length: 64 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return Array.from(
+    { length: 64 },
+    () => chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
 }
 
 export default function Relationships() {
@@ -74,7 +123,11 @@ export default function Relationships() {
   const [formAutoMatch, setFormAutoMatch] = useState(true);
 
   const utils = trpc.useUtils();
-  const { data: relationships, isLoading, refetch } = trpc.relationship.list.useQuery();
+  const {
+    data: relationships,
+    isLoading,
+    refetch,
+  } = trpc.relationship.list.useQuery();
   const [proofModal, setProofModal] = useState<number | null>(null);
   const { data: stats } = trpc.user.getStats.useQuery();
   const createMutation = trpc.relationship.create.useMutation({
@@ -82,12 +135,12 @@ export default function Relationships() {
       refetch();
       setModalStep(5);
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
 
-  const filteredRelationships = (relationships || []).filter((rel) => {
+  const filteredRelationships = (relationships || []).filter(rel => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       !q ||
@@ -103,11 +156,21 @@ export default function Relationships() {
       !matchFilter ||
       (matchFilter === "active" && (rel.dealCount || 0) > 0) ||
       (matchFilter === "dormant" && (rel.dealCount || 0) === 0);
-    return matchesSearch && matchesSector && matchesVerification && matchesMatch;
+    return (
+      matchesSearch && matchesSector && matchesVerification && matchesMatch
+    );
   });
 
-  const totalValue = relationships?.reduce((s, r) => s + parseFloat(r.totalDealValue || "0"), 0) || 0;
-  const totalEarnings = relationships?.reduce((s, r) => s + parseFloat(r.totalEarnings || "0"), 0) || 0;
+  const totalValue =
+    relationships?.reduce(
+      (s, r) => s + parseFloat(r.totalDealValue || "0"),
+      0
+    ) || 0;
+  const totalEarnings =
+    relationships?.reduce(
+      (s, r) => s + parseFloat(r.totalEarnings || "0"),
+      0
+    ) || 0;
   const activeMatches = (stats as any)?.activeMatches ?? 12;
 
   const copyHash = (hash: string) => {
@@ -140,7 +203,7 @@ export default function Relationships() {
 
   const submitRelationship = () => {
     createMutation.mutate({
-      contactId: Math.floor(Math.random() * 100000),
+      contactId: 0,
       relationshipType: (formType || "direct") as any,
       notes: formRequirements,
       tags: [...formSectors, ...formRegions],
@@ -149,7 +212,10 @@ export default function Relationships() {
 
   const statCards = [
     { label: "CUSTODIED RELATIONSHIPS", value: relationships?.length || 0 },
-    { label: "PORTFOLIO VALUE", value: totalValue > 0 ? formatCurrency(totalValue) : "$2.4M" },
+    {
+      label: "PORTFOLIO VALUE",
+      value: totalValue > 0 ? formatCurrency(totalValue) : "$2.4M",
+    },
     { label: "TOTAL ATTRIBUTION EARNED", value: formatCurrency(totalEarnings) },
     { label: "ACTIVE MATCHES", value: activeMatches },
   ];
@@ -157,21 +223,31 @@ export default function Relationships() {
   const confirmationId = `REL-${Math.floor(Math.random() * 90000) + 10000}`;
   const confirmationHash = generateFakeHash();
 
-  useEffect(() => { document.title = "Relationships | ANAVI"; }, []);
+  useEffect(() => {
+    document.title = "Relationships | ANAVI";
+  }, []);
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.surface }}>
       {/* Page Heading */}
       <div style={{ padding: "32px 32px 12px" }}>
         <h1 className="dash-heading text-3xl">Relationship Custody</h1>
-        <p className="text-lg text-[#6B7A90] mt-2">Timestamped introductions with cryptographic proof of custody.</p>
+        <p className="text-lg text-[#6B7A90] mt-2">
+          Timestamped introductions with cryptographic proof of custody.
+        </p>
       </div>
 
       {/* Header Stats Bar */}
       <FadeInView>
         <div style={{ padding: "0 32px 0" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
-            {statCards.map((s) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 20,
+            }}
+          >
+            {statCards.map(s => (
               <div
                 key={s.label}
                 className="hover-lift card-elevated"
@@ -179,21 +255,25 @@ export default function Relationships() {
                   padding: "24px 28px",
                 }}
               >
-                <div style={{ fontSize: 28, fontWeight: 700, color: COLORS.navy }}>{s.value}</div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                  textTransform: "uppercase" as const,
-                  color: "#6B7A90",
-                  marginTop: 6,
-                }}
-              >
-                {s.label}
+                <div
+                  style={{ fontSize: 28, fontWeight: 700, color: COLORS.navy }}
+                >
+                  {s.value}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase" as const,
+                    color: "#6B7A90",
+                    marginTop: 6,
+                  }}
+                >
+                  {s.label}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
           </div>
         </div>
       </FadeInView>
@@ -210,117 +290,134 @@ export default function Relationships() {
             flexWrap: "wrap",
           }}
         >
-        <div style={{ position: "relative", width: 300 }}>
-          <Search
-            size={16}
-            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }}
+          <div style={{ position: "relative", width: 300 }}>
+            <Search
+              size={16}
+              style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#94A3B8",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search relationships..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                height: 42,
+                paddingLeft: 38,
+                paddingRight: 12,
+                borderRadius: 8,
+                border: `1px solid ${COLORS.border}`,
+                background: "#fff",
+                fontSize: 14,
+                outline: "none",
+              }}
+            />
+          </div>
+
+          <FilterDropdown
+            label="Sector"
+            value={sectorFilter}
+            onChange={setSectorFilter}
+            options={SECTORS}
           />
-          <input
-            type="text"
-            placeholder="Search relationships..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+          <FilterDropdown
+            label="Custody Status"
+            value={verificationFilter}
+            onChange={setVerificationFilter}
+            options={[
+              { value: "custodied", label: "Custodied" },
+              { value: "open", label: "Open" },
+            ]}
+          />
+          <FilterDropdown
+            label="Match Activity"
+            value={matchFilter}
+            onChange={setMatchFilter}
+            options={[
+              { value: "active", label: "Active" },
+              { value: "dormant", label: "Dormant" },
+            ]}
+          />
+
+          <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>
+            <button
+              onClick={() => setViewMode("grid")}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 8,
+                border: `1px solid ${COLORS.border}`,
+                background: viewMode === "grid" ? COLORS.blue : "#fff",
+                color: viewMode === "grid" ? "#fff" : "#6B7A90",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 8,
+                border: `1px solid ${COLORS.border}`,
+                background: viewMode === "list" ? COLORS.blue : "#fff",
+                color: viewMode === "list" ? "#fff" : "#6B7A90",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <List size={16} />
+            </button>
+          </div>
+
+          <div style={{ flex: 1 }} />
+
+          <button
+            onClick={openModal}
             style={{
-              width: "100%",
               height: 42,
-              paddingLeft: 38,
-              paddingRight: 12,
+              padding: "0 24px",
               borderRadius: 8,
-              border: `1px solid ${COLORS.border}`,
-              background: "#fff",
+              background: COLORS.gold,
+              color: "#fff",
+              fontWeight: 600,
               fontSize: 14,
-              outline: "none",
-            }}
-          />
-        </div>
-
-        <FilterDropdown label="Sector" value={sectorFilter} onChange={setSectorFilter} options={SECTORS} />
-        <FilterDropdown
-          label="Custody Status"
-          value={verificationFilter}
-          onChange={setVerificationFilter}
-          options={[
-            { value: "custodied", label: "Custodied" },
-            { value: "open", label: "Open" },
-          ]}
-        />
-        <FilterDropdown
-          label="Match Activity"
-          value={matchFilter}
-          onChange={setMatchFilter}
-          options={[
-            { value: "active", label: "Active" },
-            { value: "dormant", label: "Dormant" },
-          ]}
-        />
-
-        <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>
-          <button
-            onClick={() => setViewMode("grid")}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 8,
-              border: `1px solid ${COLORS.border}`,
-              background: viewMode === "grid" ? COLORS.blue : "#fff",
-              color: viewMode === "grid" ? "#fff" : "#6B7A90",
+              border: "none",
+              cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
+              gap: 8,
             }}
           >
-            <LayoutGrid size={16} />
+            <Shield size={16} />
+            Protect a Relationship
           </button>
-          <button
-            onClick={() => setViewMode("list")}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 8,
-              border: `1px solid ${COLORS.border}`,
-              background: viewMode === "list" ? COLORS.blue : "#fff",
-              color: viewMode === "list" ? "#fff" : "#6B7A90",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-            }}
-          >
-            <List size={16} />
-          </button>
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        <button
-          onClick={openModal}
-          style={{
-            height: 42,
-            padding: "0 24px",
-            borderRadius: 8,
-            background: COLORS.gold,
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 14,
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <Shield size={16} />
-          Protect a Relationship
-        </button>
         </div>
       </div>
 
       {/* Content */}
       <div style={{ padding: "0 32px 48px" }}>
         {isLoading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-            {[1, 2, 3].map((i) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 20,
+            }}
+          >
+            {[1, 2, 3].map(i => (
               <div
                 key={i}
                 className="card-elevated"
@@ -329,7 +426,14 @@ export default function Relationships() {
                   height: 220,
                 }}
               >
-                <div style={{ background: "#E2E8F0", borderRadius: 8, height: "100%", animation: "pulse 2s infinite" }} />
+                <div
+                  style={{
+                    background: "#E2E8F0",
+                    borderRadius: 8,
+                    height: "100%",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -341,9 +445,23 @@ export default function Relationships() {
               textAlign: "center",
             }}
           >
-            <Users size={48} style={{ color: "#94A3B8", margin: "0 auto 16px" }} />
-            <h3 style={{ fontSize: 22, fontWeight: 600, color: COLORS.navy, marginBottom: 8 }}>No Relationships Yet</h3>
-            <p style={{ color: "#6B7A90", marginBottom: 24 }}>Start protecting your network with custody timestamps</p>
+            <Users
+              size={48}
+              style={{ color: "#94A3B8", margin: "0 auto 16px" }}
+            />
+            <h3
+              style={{
+                fontSize: 22,
+                fontWeight: 600,
+                color: COLORS.navy,
+                marginBottom: 8,
+              }}
+            >
+              No Relationships Yet
+            </h3>
+            <p style={{ color: "#6B7A90", marginBottom: 24 }}>
+              Start protecting your network with custody timestamps
+            </p>
             <button
               onClick={openModal}
               style={{
@@ -362,25 +480,50 @@ export default function Relationships() {
             </button>
           </div>
         ) : viewMode === "grid" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 20,
+            }}
+          >
             {filteredRelationships.map((rel, idx) => (
               <ScaleHover key={rel.id}>
-                <RelationshipCard rel={rel} onCopyHash={copyHash} onExportProof={() => setProofModal(rel.id)} onSelect={() => setSelectedRelId(rel.id)} isFirst={idx === 0} />
+                <RelationshipCard
+                  rel={rel}
+                  onCopyHash={copyHash}
+                  onExportProof={() => setProofModal(rel.id)}
+                  onSelect={() => setSelectedRelId(rel.id)}
+                  isFirst={idx === 0}
+                />
               </ScaleHover>
             ))}
           </div>
         ) : (
-          <RelationshipTable relationships={filteredRelationships} onCopyHash={copyHash} onExportProof={setProofModal} onSelect={setSelectedRelId} />
+          <RelationshipTable
+            relationships={filteredRelationships}
+            onCopyHash={copyHash}
+            onExportProof={setProofModal}
+            onSelect={setSelectedRelId}
+          />
         )}
       </div>
 
       {/* F6: Export Proof Modal */}
       {proofModal !== null && (
-        <ProofModal relationshipId={proofModal} onClose={() => setProofModal(null)} />
+        <ProofModal
+          relationshipId={proofModal}
+          onClose={() => setProofModal(null)}
+        />
       )}
 
       {/* Detail Sheet */}
-      <Sheet open={selectedRelId !== null} onOpenChange={(open) => { if (!open) setSelectedRelId(null); }}>
+      <Sheet
+        open={selectedRelId !== null}
+        onOpenChange={open => {
+          if (!open) setSelectedRelId(null);
+        }}
+      >
         <SheetContent className="w-full sm:w-[480px] sm:max-w-[480px] overflow-y-auto">
           {selectedRelId !== null && (
             <RelationshipDetailPanel
@@ -404,7 +547,7 @@ export default function Relationships() {
             background: "rgba(10, 22, 40, 0.6)",
             backdropFilter: "blur(4px)",
           }}
-          onClick={(e) => {
+          onClick={e => {
             if (e.target === e.currentTarget) closeModal();
           }}
         >
@@ -426,16 +569,37 @@ export default function Relationships() {
               }}
             >
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.navy }}>Protect a Relationship</h2>
-                <p style={{ fontSize: 13, color: "#6B7A90", marginTop: 4 }}>Step {modalStep} of 5</p>
+                <h2
+                  style={{ fontSize: 20, fontWeight: 700, color: COLORS.navy }}
+                >
+                  Protect a Relationship
+                </h2>
+                <p style={{ fontSize: 13, color: "#6B7A90", marginTop: 4 }}>
+                  Step {modalStep} of 5
+                </p>
               </div>
-              <button onClick={closeModal} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}>
+              <button
+                onClick={closeModal}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#94A3B8",
+                }}
+              >
                 <X size={20} />
               </button>
             </div>
 
             {/* Progress bar */}
-            <div style={{ margin: "16px 28px", height: 4, background: "#E2E8F0", borderRadius: 2 }}>
+            <div
+              style={{
+                margin: "16px 28px",
+                height: 4,
+                background: "#E2E8F0",
+                borderRadius: 2,
+              }}
+            >
               <div
                 style={{
                   height: "100%",
@@ -466,7 +630,10 @@ export default function Relationships() {
                 />
               )}
               {modalStep === 3 && (
-                <ModalStepVerification level={formVerification} onLevelChange={setFormVerification} />
+                <ModalStepVerification
+                  level={formVerification}
+                  onLevelChange={setFormVerification}
+                />
               )}
               {modalStep === 4 && (
                 <ModalStepCustody
@@ -477,11 +644,21 @@ export default function Relationships() {
                 />
               )}
               {modalStep === 5 && (
-                <ModalStepConfirmation id={confirmationId} hash={confirmationHash} onDone={closeModal} />
+                <ModalStepConfirmation
+                  id={confirmationId}
+                  hash={confirmationHash}
+                  onDone={closeModal}
+                />
               )}
 
               {modalStep < 5 && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginTop: 24,
+                  }}
+                >
                   <button
                     onClick={() => setModalStep(Math.max(1, modalStep - 1))}
                     disabled={modalStep === 1}
@@ -520,7 +697,11 @@ export default function Relationships() {
                       cursor: "pointer",
                     }}
                   >
-                    {modalStep === 4 ? (createMutation.isPending ? "Protecting..." : "Protect Relationship") : "Continue"}
+                    {modalStep === 4
+                      ? createMutation.isPending
+                        ? "Protecting..."
+                        : "Protect Relationship"
+                      : "Continue"}
                   </button>
                 </div>
               )}
@@ -551,7 +732,7 @@ function FilterDropdown({
     <div style={{ position: "relative" }}>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         style={{
           height: 42,
           padding: "0 32px 0 14px",
@@ -566,7 +747,7 @@ function FilterDropdown({
         }}
       >
         <option value="">{label}</option>
-        {options.map((opt) => {
+        {options.map(opt => {
           const v = typeof opt === "string" ? opt : opt.value;
           const l = typeof opt === "string" ? opt : opt.label;
           return (
@@ -578,7 +759,14 @@ function FilterDropdown({
       </select>
       <ChevronDown
         size={14}
-        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94A3B8" }}
+        style={{
+          position: "absolute",
+          right: 10,
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+          color: "#94A3B8",
+        }}
       />
     </div>
   );
@@ -588,7 +776,7 @@ function QRCanvas({ url }: { url: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (canvasRef.current && url) {
-      QRCode.toCanvas(canvasRef.current, url, { width: 200 }, (err) => {
+      QRCode.toCanvas(canvasRef.current, url, { width: 200 }, err => {
         if (err) console.error("QR generation error:", err);
       });
     }
@@ -596,7 +784,13 @@ function QRCanvas({ url }: { url: string }) {
   return <canvas ref={canvasRef} />;
 }
 
-function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClose: () => void }) {
+function ProofModal({
+  relationshipId,
+  onClose,
+}: {
+  relationshipId: number;
+  onClose: () => void;
+}) {
   const { data: proof, isLoading } = trpc.relationship.getProof.useQuery(
     { id: relationshipId },
     { enabled: !!relationshipId }
@@ -611,8 +805,12 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
 
   const timestampHash = proof?.timestampHash;
   const establishedAt = proof?.establishedAt;
-  const truncated = timestampHash ? `${timestampHash.slice(0, 8)}...${timestampHash.slice(-8)}` : "—";
-  const verifyUrl = timestampHash ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/verify/relationship/${timestampHash}` : "";
+  const truncated = timestampHash
+    ? `${timestampHash.slice(0, 8)}...${timestampHash.slice(-8)}`
+    : "—";
+  const verifyUrl = timestampHash
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/verify/relationship/${timestampHash}`
+    : "";
 
   return (
     <div
@@ -626,12 +824,32 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
         background: "rgba(10, 22, 40, 0.6)",
         backdropFilter: "blur(4px)",
       }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={e => e.target === e.currentTarget && onClose()}
     >
-      <div className="card-elevated" style={{ width: 420, maxHeight: "80vh", overflow: "auto" }}>
-        <div style={{ padding: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: COLORS.navy }}>Relationship Proof</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}>
+      <div
+        className="card-elevated"
+        style={{ width: 420, maxHeight: "80vh", overflow: "auto" }}
+      >
+        <div
+          style={{
+            padding: 24,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: COLORS.navy }}>
+            Relationship Proof
+          </h3>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#94A3B8",
+            }}
+          >
             <X size={20} />
           </button>
         </div>
@@ -641,13 +859,46 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
           ) : proof ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
-                <p style={{ fontSize: 11, color: "#6B7A90", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Custody Proof</p>
-                <code className="font-data-mono" style={{ fontSize: 13, color: COLORS.gold, wordBreak: "break-all" }}>{truncated}</code>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "#6B7A90",
+                    marginBottom: 4,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Custody Proof
+                </p>
+                <code
+                  className="font-data-mono"
+                  style={{
+                    fontSize: 13,
+                    color: COLORS.gold,
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {truncated}
+                </code>
               </div>
               <div>
-                <p style={{ fontSize: 11, color: "#6B7A90", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Established</p>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "#6B7A90",
+                    marginBottom: 4,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Established
+                </p>
                 <p style={{ fontSize: 13, color: COLORS.navy }}>
-                  {establishedAt instanceof Date ? establishedAt.toLocaleString() : establishedAt ? new Date(establishedAt).toLocaleString() : "—"}
+                  {establishedAt instanceof Date
+                    ? establishedAt.toLocaleString()
+                    : establishedAt
+                      ? new Date(establishedAt).toLocaleString()
+                      : "—"}
                 </p>
               </div>
               {verifyUrl && (
@@ -713,7 +964,19 @@ function ProofModal({ relationshipId, onClose }: { relationshipId: number; onClo
   );
 }
 
-function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = false }: { rel: any; onCopyHash: (h: string) => void; onExportProof?: () => void; onSelect?: () => void; isFirst?: boolean }) {
+function RelationshipCard({
+  rel,
+  onCopyHash,
+  onExportProof,
+  onSelect,
+  isFirst = false,
+}: {
+  rel: any;
+  onCopyHash: (h: string) => void;
+  onExportProof?: () => void;
+  onSelect?: () => void;
+  isFirst?: boolean;
+}) {
   const sectorTag = rel.tags?.[0];
   const isActive = (rel.dealCount || 0) > 0;
   const [flipped, setFlipped] = useState(false);
@@ -744,20 +1007,60 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
           flexDirection: "column",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 15, color: COLORS.navy }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "monospace",
+              fontWeight: 700,
+              fontSize: 15,
+              color: COLORS.navy,
+            }}
+          >
             Custody Receipt
           </span>
-          <button onClick={() => setFlipped(false)} style={{ background: "none", border: "none", cursor: "pointer", color: COLORS.blue, fontSize: 13, fontWeight: 600 }}>
+          <button
+            onClick={() => setFlipped(false)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: COLORS.blue,
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
             ← Back
           </button>
         </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div
+          style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}
+        >
           <ReceiptRow label="Custody ID" value={`REL-${rel.id}`} mono />
-          <ReceiptRow label="Timestamp" value={new Date(rel.createdAt).toLocaleString()} />
-          <ReceiptRow label="Custody Proof" value={rel.timestampHash?.slice(0, 32) + "..."} mono />
-          <ReceiptRow label="Verification" value={rel.isBlind ? "Custodied" : "Open"} />
-          <ReceiptRow label="Attribution" value={formatCurrency(parseFloat(rel.totalEarnings || "0"))} last />
+          <ReceiptRow
+            label="Timestamp"
+            value={new Date(rel.createdAt).toLocaleString()}
+          />
+          <ReceiptRow
+            label="Custody Proof"
+            value={rel.timestampHash?.slice(0, 32) + "..."}
+            mono
+          />
+          <ReceiptRow
+            label="Verification"
+            value={rel.isBlind ? "Custodied" : "Open"}
+          />
+          <ReceiptRow
+            label="Attribution"
+            value={formatCurrency(parseFloat(rel.totalEarnings || "0"))}
+            last
+          />
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <button
@@ -814,18 +1117,32 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
         cursor: "pointer",
       }}
       onClick={() => onSelect?.()}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         e.currentTarget.style.transform = "translateY(-2px)";
         e.currentTarget.style.boxShadow = "0 8px 24px rgba(10,22,40,0.08)";
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={e => {
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow = "none";
       }}
     >
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-        <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 15, color: COLORS.navy }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: 16,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "monospace",
+            fontWeight: 700,
+            fontSize: 15,
+            color: COLORS.navy,
+          }}
+        >
           REL-{rel.id}
         </span>
         {sectorTag && (
@@ -846,21 +1163,44 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
       </div>
 
       {/* Body */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-        <Pill color={COLORS.navy}>{(rel.relationshipType || "direct").charAt(0).toUpperCase() + (rel.relationshipType || "direct").slice(1)}</Pill>
+      <div
+        style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}
+      >
+        <Pill color={COLORS.navy}>
+          {(rel.relationshipType || "direct").charAt(0).toUpperCase() +
+            (rel.relationshipType || "direct").slice(1)}
+        </Pill>
         {rel.totalDealValue && parseFloat(rel.totalDealValue) > 0 && (
-          <Pill color="#6B7A90">{formatCurrency(parseFloat(rel.totalDealValue))}</Pill>
+          <Pill color="#6B7A90">
+            {formatCurrency(parseFloat(rel.totalDealValue))}
+          </Pill>
         )}
       </div>
       <div style={{ fontSize: 13, color: "#6B7A90", marginBottom: 16 }}>
-        Uploaded {new Date(rel.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        Uploaded{" "}
+        {new Date(rel.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}
       </div>
 
       {/* Status Row */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          marginBottom: 16,
+        }}
+      >
         <StatusItem
           label="Match Activity"
-          value={isActive ? `Active — ${rel.dealCount} deal${rel.dealCount > 1 ? "s" : ""}` : "Dormant"}
+          value={
+            isActive
+              ? `Active — ${rel.dealCount} deal${rel.dealCount > 1 ? "s" : ""}`
+              : "Dormant"
+          }
           color={isActive ? COLORS.green : "#94A3B8"}
         />
         <StatusItem
@@ -868,12 +1208,22 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
           value={`${formatCurrency(parseFloat(rel.totalEarnings || "0"))} earned`}
           color={COLORS.gold}
         />
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 13,
+          }}
+        >
           <span style={{ color: "#6B7A90" }}>Custody</span>
           {rel.isBlind ? (
-            <span className="bg-[#059669]/15 text-[#059669] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Custodied</span>
+            <span className="bg-[#059669]/15 text-[#059669] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              Custodied
+            </span>
           ) : (
-            <span className="bg-[#F59E0B]/15 text-[#F59E0B] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Open</span>
+            <span className="bg-[#F59E0B]/15 text-[#F59E0B] rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              Open
+            </span>
           )}
         </div>
       </div>
@@ -888,9 +1238,21 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
       )}
 
       {/* E30: Mini timeline */}
-      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.border}` }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          marginTop: 12,
+          paddingTop: 12,
+          borderTop: `1px solid ${COLORS.border}`,
+        }}
+      >
         {timelineSteps.map((step, i) => (
-          <div key={step.label} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+          <div
+            key={step.label}
+            style={{ display: "flex", alignItems: "center", flex: 1 }}
+          >
             <div
               title={step.label}
               style={{
@@ -903,18 +1265,36 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
               }}
             />
             {i < timelineSteps.length - 1 && (
-              <div style={{ flex: 1, height: 1, background: step.done ? COLORS.green : COLORS.border, marginLeft: 2, marginRight: 2 }} />
+              <div
+                style={{
+                  flex: 1,
+                  height: 1,
+                  background: step.done ? COLORS.green : COLORS.border,
+                  marginLeft: 2,
+                  marginRight: 2,
+                }}
+              />
             )}
           </div>
         ))}
-        <span style={{ fontSize: 10, color: "#94A3B8", marginLeft: 4, whiteSpace: "nowrap" }}>
+        <span
+          style={{
+            fontSize: 10,
+            color: "#94A3B8",
+            marginLeft: 4,
+            whiteSpace: "nowrap",
+          }}
+        >
           {timelineSteps.filter(s => s.done).length}/{timelineSteps.length}
         </span>
       </div>
 
       {/* E27: View Receipt button */}
       <button
-        onClick={(e) => { e.stopPropagation(); setFlipped(true); }}
+        onClick={e => {
+          e.stopPropagation();
+          setFlipped(true);
+        }}
         style={{
           marginTop: 8,
           width: "100%",
@@ -934,7 +1314,13 @@ function RelationshipCard({ rel, onCopyHash, onExportProof, onSelect, isFirst = 
   );
 }
 
-function CustodyHashRow({ hash, onCopy }: { hash: string; onCopy: (h: string) => void }) {
+function CustodyHashRow({
+  hash,
+  onCopy,
+}: {
+  hash: string;
+  onCopy: (h: string) => void;
+}) {
   return (
     <div
       style={{
@@ -947,11 +1333,18 @@ function CustodyHashRow({ hash, onCopy }: { hash: string; onCopy: (h: string) =>
         gap: 8,
       }}
     >
-      <span className="font-data-mono text-[10px] text-[#1E3A5F]/50" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <span
+        className="font-data-mono text-[10px] text-[#1E3A5F]/50"
+        style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
         Custody Proof: {hash?.slice(0, 8)}...{hash?.slice(-6)}
       </span>
       <button
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation();
           onCopy(hash);
         }}
@@ -971,7 +1364,13 @@ function CustodyHashRow({ hash, onCopy }: { hash: string; onCopy: (h: string) =>
   );
 }
 
-function Pill({ children, color }: { children: React.ReactNode; color: string }) {
+function Pill({
+  children,
+  color,
+}: {
+  children: React.ReactNode;
+  color: string;
+}) {
   return (
     <span
       style={{
@@ -988,22 +1387,52 @@ function Pill({ children, color }: { children: React.ReactNode; color: string })
   );
 }
 
-function StatusItem({ label, value, color }: { label: string; value: string; color: string }) {
+function StatusItem({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color: string;
+}) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+    <div
+      style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}
+    >
       <span style={{ color: "#6B7A90" }}>{label}</span>
       <span style={{ fontWeight: 600, color }}>{value}</span>
     </div>
   );
 }
 
-function RelationshipTable({ relationships, onCopyHash, onExportProof, onSelect }: { relationships: any[]; onCopyHash: (h: string) => void; onExportProof?: (id: number) => void; onSelect?: (id: number) => void }) {
+function RelationshipTable({
+  relationships,
+  onCopyHash,
+  onExportProof,
+  onSelect,
+}: {
+  relationships: any[];
+  onCopyHash: (h: string) => void;
+  onExportProof?: (id: number) => void;
+  onSelect?: (id: number) => void;
+}) {
   return (
     <div className="card-elevated" style={{ overflow: "hidden" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+      <table
+        style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
+      >
         <thead>
           <tr style={{ background: COLORS.surface }}>
-            {["ID", "Type", "Sector", "Custody Date", "Match Status", "Attribution", "Actions"].map((h) => (
+            {[
+              "ID",
+              "Type",
+              "Sector",
+              "Custody Date",
+              "Match Status",
+              "Attribution",
+              "Actions",
+            ].map(h => (
               <th
                 key={h}
                 style={{
@@ -1023,26 +1452,59 @@ function RelationshipTable({ relationships, onCopyHash, onExportProof, onSelect 
           </tr>
         </thead>
         <tbody>
-          {relationships.map((rel) => {
+          {relationships.map(rel => {
             const isActive = (rel.dealCount || 0) > 0;
             return (
-              <tr key={rel.id} onClick={() => onSelect?.(rel.id)} style={{ borderBottom: `1px solid ${COLORS.border}`, cursor: "pointer" }} className="hover:bg-[#F3F7FC] transition-colors">
-                <td style={{ padding: "14px 16px", fontFamily: "monospace", fontWeight: 600, color: COLORS.navy }}>
+              <tr
+                key={rel.id}
+                onClick={() => onSelect?.(rel.id)}
+                style={{
+                  borderBottom: `1px solid ${COLORS.border}`,
+                  cursor: "pointer",
+                }}
+                className="hover:bg-[#F3F7FC] transition-colors"
+              >
+                <td
+                  style={{
+                    padding: "14px 16px",
+                    fontFamily: "monospace",
+                    fontWeight: 600,
+                    color: COLORS.navy,
+                  }}
+                >
                   REL-{rel.id}
                 </td>
                 <td style={{ padding: "14px 16px", color: COLORS.navy }}>
-                  {(rel.relationshipType || "direct").charAt(0).toUpperCase() + (rel.relationshipType || "direct").slice(1)}
+                  {(rel.relationshipType || "direct").charAt(0).toUpperCase() +
+                    (rel.relationshipType || "direct").slice(1)}
                 </td>
-                <td style={{ padding: "14px 16px", color: "#6B7A90" }}>{rel.tags?.[0] || "—"}</td>
                 <td style={{ padding: "14px 16px", color: "#6B7A90" }}>
-                  {new Date(rel.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  {rel.tags?.[0] || "—"}
+                </td>
+                <td style={{ padding: "14px 16px", color: "#6B7A90" }}>
+                  {new Date(rel.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </td>
                 <td style={{ padding: "14px 16px" }}>
-                  <span style={{ color: isActive ? COLORS.green : "#94A3B8", fontWeight: 600 }}>
+                  <span
+                    style={{
+                      color: isActive ? COLORS.green : "#94A3B8",
+                      fontWeight: 600,
+                    }}
+                  >
                     {isActive ? "Active" : "Dormant"}
                   </span>
                 </td>
-                <td style={{ padding: "14px 16px", fontWeight: 600, color: COLORS.gold }}>
+                <td
+                  style={{
+                    padding: "14px 16px",
+                    fontWeight: 600,
+                    color: COLORS.gold,
+                  }}
+                >
                   {formatCurrency(parseFloat(rel.totalEarnings || "0"))}
                 </td>
                 <td style={{ padding: "14px 16px" }}>
@@ -1096,22 +1558,33 @@ function RelationshipTable({ relationships, onCopyHash, onExportProof, onSelect 
    Relationship Detail Panel (Sheet)
    ------------------------------------------------------------------------- */
 
-function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: number; onClose: () => void }) {
+function RelationshipDetailPanel({
+  relationshipId,
+  onClose,
+}: {
+  relationshipId: number;
+  onClose: () => void;
+}) {
   const utils = trpc.useUtils();
   const { data: rel, isLoading } = trpc.relationship.get.useQuery(
     { id: relationshipId },
-    { enabled: !!relationshipId },
+    { enabled: !!relationshipId }
   );
 
-  const { data: contacts, refetch: refetchContacts } = trpc.contact.getByRelationship.useQuery(
-    { relationshipId },
-    { enabled: !!relationshipId },
-  );
+  const { data: contacts, refetch: refetchContacts } =
+    trpc.contact.getByRelationship.useQuery(
+      { relationshipId },
+      { enabled: !!relationshipId }
+    );
 
   const [editNotes, setEditNotes] = useState("");
   const [editStrength, setEditStrength] = useState("");
   const [notesDirty, setNotesDirty] = useState(false);
-  const [contactForm, setContactForm] = useState({ displayName: "", platform: "email" as string, handle: "" });
+  const [contactForm, setContactForm] = useState({
+    displayName: "",
+    platform: "email" as string,
+    handle: "",
+  });
   const [showContactForm, setShowContactForm] = useState(false);
 
   useEffect(() => {
@@ -1128,7 +1601,7 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
       utils.relationship.get.invalidate({ id: relationshipId });
       utils.relationship.list.invalidate();
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   const grantConsentMutation = trpc.relationship.grantConsent.useMutation({
@@ -1137,7 +1610,7 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
       utils.relationship.get.invalidate({ id: relationshipId });
       utils.relationship.list.invalidate();
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   const addContactMutation = trpc.contact.add.useMutation({
@@ -1147,19 +1620,26 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
       setContactForm({ displayName: "", platform: "email", handle: "" });
       setShowContactForm(false);
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => toast.error(e.message),
   });
 
   if (isLoading) {
     return (
       <div className="py-12 flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.blue }} />
+        <Loader2
+          className="w-6 h-6 animate-spin"
+          style={{ color: COLORS.blue }}
+        />
       </div>
     );
   }
 
   if (!rel) {
-    return <p className="py-8 text-center text-muted-foreground text-sm">Relationship not found</p>;
+    return (
+      <p className="py-8 text-center text-muted-foreground text-sm">
+        Relationship not found
+      </p>
+    );
   }
 
   return (
@@ -1169,22 +1649,47 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
           REL-{rel.id}
         </SheetTitle>
         <SheetDescription>
-          {(rel.relationshipType || "direct").charAt(0).toUpperCase() + (rel.relationshipType || "direct").slice(1)} relationship
+          {(rel.relationshipType || "direct").charAt(0).toUpperCase() +
+            (rel.relationshipType || "direct").slice(1)}{" "}
+          relationship
         </SheetDescription>
       </SheetHeader>
 
       {/* Metadata */}
       <section className="space-y-3">
-        <DetailRow label="Type" value={(rel.relationshipType || "direct").charAt(0).toUpperCase() + (rel.relationshipType || "direct").slice(1)} />
-        <DetailRow label="Status" value={rel.isBlind ? "Custodied (Blind)" : "Open"} />
-        <DetailRow label="Custody Timestamp" value={new Date(rel.createdAt).toLocaleString()} />
-        <DetailRow label="Established" value={rel.establishedAt ? new Date(rel.establishedAt).toLocaleDateString() : "—"} />
+        <DetailRow
+          label="Type"
+          value={
+            (rel.relationshipType || "direct").charAt(0).toUpperCase() +
+            (rel.relationshipType || "direct").slice(1)
+          }
+        />
+        <DetailRow
+          label="Status"
+          value={rel.isBlind ? "Custodied (Blind)" : "Open"}
+        />
+        <DetailRow
+          label="Custody Timestamp"
+          value={new Date(rel.createdAt).toLocaleString()}
+        />
+        <DetailRow
+          label="Established"
+          value={
+            rel.establishedAt
+              ? new Date(rel.establishedAt).toLocaleDateString()
+              : "—"
+          }
+        />
         {rel.tags && rel.tags.length > 0 && (
           <div className="flex items-center justify-between text-sm">
             <span style={{ color: "#6B7A90" }}>Tags</span>
             <div className="flex gap-1 flex-wrap justify-end">
               {rel.tags.map((t: string) => (
-                <span key={t} className="px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: `${COLORS.blue}10`, color: COLORS.blue }}>
+                <span
+                  key={t}
+                  className="px-2 py-0.5 rounded-full text-[11px] font-medium"
+                  style={{ background: `${COLORS.blue}10`, color: COLORS.blue }}
+                >
                   {t}
                 </span>
               ))}
@@ -1202,19 +1707,28 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
           style={{ background: COLORS.green }}
         >
           {grantConsentMutation.isPending ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Granting...</>
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Granting...
+            </>
           ) : (
-            <><ShieldCheck className="w-4 h-4" /> Grant Consent</>
+            <>
+              <ShieldCheck className="w-4 h-4" /> Grant Consent
+            </>
           )}
         </button>
       )}
 
       {/* Inline Editing: Strength */}
       <section>
-        <label className="block text-xs font-semibold mb-1.5" style={{ color: COLORS.navy }}>Strength</label>
+        <label
+          className="block text-xs font-semibold mb-1.5"
+          style={{ color: COLORS.navy }}
+        >
+          Strength
+        </label>
         <select
           value={editStrength}
-          onChange={(e) => {
+          onChange={e => {
             setEditStrength(e.target.value);
             updateMutation.mutate({
               id: relationshipId,
@@ -1233,10 +1747,18 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
 
       {/* Inline Editing: Notes */}
       <section>
-        <label className="block text-xs font-semibold mb-1.5" style={{ color: COLORS.navy }}>Notes</label>
+        <label
+          className="block text-xs font-semibold mb-1.5"
+          style={{ color: COLORS.navy }}
+        >
+          Notes
+        </label>
         <textarea
           value={editNotes}
-          onChange={(e) => { setEditNotes(e.target.value); setNotesDirty(true); }}
+          onChange={e => {
+            setEditNotes(e.target.value);
+            setNotesDirty(true);
+          }}
           className="w-full rounded-lg border p-3 text-sm resize-none focus:outline-none focus:ring-2"
           style={{ borderColor: COLORS.border, minHeight: 80 }}
           placeholder="Add notes..."
@@ -1251,7 +1773,11 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
             className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
             style={{ background: COLORS.blue }}
           >
-            {updateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+            {updateMutation.isPending ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <Save className="w-3 h-3" />
+            )}
             Save Notes
           </button>
         )}
@@ -1260,7 +1786,9 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
       {/* Contacts */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold" style={{ color: COLORS.navy }}>Contacts</h4>
+          <h4 className="text-sm font-semibold" style={{ color: COLORS.navy }}>
+            Contacts
+          </h4>
           <button
             onClick={() => setShowContactForm(!showContactForm)}
             className="inline-flex items-center gap-1 text-xs font-semibold"
@@ -1274,10 +1802,17 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
         {contacts && contacts.length > 0 ? (
           <div className="space-y-2">
             {contacts.map((c: any) => (
-              <div key={c.id} className="flex items-center gap-3 p-2.5 rounded-lg" style={{ background: COLORS.surface }}>
+              <div
+                key={c.id}
+                className="flex items-center gap-3 p-2.5 rounded-lg"
+                style={{ background: COLORS.surface }}
+              >
                 <ContactIcon platform={c.platform} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: COLORS.navy }}>
+                  <p
+                    className="text-sm font-medium truncate"
+                    style={{ color: COLORS.navy }}
+                  >
                     {c.displayName || c.handle}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
@@ -1288,22 +1823,31 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
             ))}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">No contacts linked yet.</p>
+          <p className="text-xs text-muted-foreground">
+            No contacts linked yet.
+          </p>
         )}
 
         {showContactForm && (
-          <div className="mt-3 p-3 rounded-lg border space-y-2.5" style={{ borderColor: COLORS.border }}>
+          <div
+            className="mt-3 p-3 rounded-lg border space-y-2.5"
+            style={{ borderColor: COLORS.border }}
+          >
             <input
               type="text"
               placeholder="Display name"
               value={contactForm.displayName}
-              onChange={(e) => setContactForm({ ...contactForm, displayName: e.target.value })}
+              onChange={e =>
+                setContactForm({ ...contactForm, displayName: e.target.value })
+              }
               className="w-full h-8 px-3 rounded border text-sm"
               style={{ borderColor: COLORS.border }}
             />
             <select
               value={contactForm.platform}
-              onChange={(e) => setContactForm({ ...contactForm, platform: e.target.value })}
+              onChange={e =>
+                setContactForm({ ...contactForm, platform: e.target.value })
+              }
               className="w-full h-8 px-3 rounded border text-sm"
               style={{ borderColor: COLORS.border, color: COLORS.navy }}
             >
@@ -1320,13 +1864,18 @@ function RelationshipDetailPanel({ relationshipId, onClose }: { relationshipId: 
               type="text"
               placeholder="Handle / value"
               value={contactForm.handle}
-              onChange={(e) => setContactForm({ ...contactForm, handle: e.target.value })}
+              onChange={e =>
+                setContactForm({ ...contactForm, handle: e.target.value })
+              }
               className="w-full h-8 px-3 rounded border text-sm"
               style={{ borderColor: COLORS.border }}
             />
             <button
               onClick={() => {
-                if (!contactForm.handle) { toast.error("Handle is required"); return; }
+                if (!contactForm.handle) {
+                  toast.error("Handle is required");
+                  return;
+                }
                 addContactMutation.mutate({
                   platform: contactForm.platform as any,
                   handle: contactForm.handle,
@@ -1350,7 +1899,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between text-sm">
       <span style={{ color: "#6B7A90" }}>{label}</span>
-      <span className="font-medium" style={{ color: COLORS.navy }}>{value}</span>
+      <span className="font-medium" style={{ color: COLORS.navy }}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -1359,10 +1910,14 @@ function ContactIcon({ platform }: { platform: string }) {
   const cls = "w-4 h-4";
   const style = { color: COLORS.blue };
   switch (platform) {
-    case "email": return <Mail className={cls} style={style} />;
-    case "phone": return <Phone className={cls} style={style} />;
-    case "linkedin": return <Linkedin className={cls} style={style} />;
-    default: return <Users className={cls} style={style} />;
+    case "email":
+      return <Mail className={cls} style={style} />;
+    case "phone":
+      return <Phone className={cls} style={style} />;
+    case "linkedin":
+      return <Linkedin className={cls} style={style} />;
+    default:
+      return <Users className={cls} style={style} />;
   }
 }
 
@@ -1370,13 +1925,30 @@ function ContactIcon({ platform }: { platform: string }) {
    Modal Steps
    ------------------------------------------------------------------------- */
 
-function ModalStepType({ selected, onSelect }: { selected: string; onSelect: (v: string) => void }) {
+function ModalStepType({
+  selected,
+  onSelect,
+}: {
+  selected: string;
+  onSelect: (v: string) => void;
+}) {
   return (
     <div>
-      <h3 style={{ fontSize: 16, fontWeight: 600, color: COLORS.navy, marginBottom: 4 }}>Relationship Type</h3>
-      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>Select the type of relationship you want to protect.</p>
+      <h3
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: COLORS.navy,
+          marginBottom: 4,
+        }}
+      >
+        Relationship Type
+      </h3>
+      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>
+        Select the type of relationship you want to protect.
+      </p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        {REL_TYPES.map((t) => {
+        {REL_TYPES.map(t => {
           const Icon = t.icon;
           const isSelected = selected === t.value;
           return (
@@ -1406,10 +1978,22 @@ function ModalStepType({ selected, onSelect }: { selected: string; onSelect: (v:
                   justifyContent: "center",
                 }}
               >
-                <Icon size={18} style={{ color: isSelected ? "#fff" : "#6B7A90" }} />
+                <Icon
+                  size={18}
+                  style={{ color: isSelected ? "#fff" : "#6B7A90" }}
+                />
               </div>
-              <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}>{t.label}</span>
-              {isSelected && <Check size={16} style={{ marginLeft: "auto", color: COLORS.gold }} />}
+              <span
+                style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}
+              >
+                {t.label}
+              </span>
+              {isSelected && (
+                <Check
+                  size={16}
+                  style={{ marginLeft: "auto", color: COLORS.gold }}
+                />
+              )}
             </button>
           );
         })}
@@ -1419,29 +2003,62 @@ function ModalStepType({ selected, onSelect }: { selected: string; onSelect: (v:
 }
 
 function ModalStepProfile({
-  sectors, onSectorsChange,
-  dealMin, dealMax, onDealMinChange, onDealMaxChange,
-  regions, onRegionsChange,
-  requirements, onRequirementsChange,
+  sectors,
+  onSectorsChange,
+  dealMin,
+  dealMax,
+  onDealMinChange,
+  onDealMaxChange,
+  regions,
+  onRegionsChange,
+  requirements,
+  onRequirementsChange,
 }: {
-  sectors: string[]; onSectorsChange: (v: string[]) => void;
-  dealMin: string; dealMax: string; onDealMinChange: (v: string) => void; onDealMaxChange: (v: string) => void;
-  regions: string[]; onRegionsChange: (v: string[]) => void;
-  requirements: string; onRequirementsChange: (v: string) => void;
+  sectors: string[];
+  onSectorsChange: (v: string[]) => void;
+  dealMin: string;
+  dealMax: string;
+  onDealMinChange: (v: string) => void;
+  onDealMaxChange: (v: string) => void;
+  regions: string[];
+  onRegionsChange: (v: string[]) => void;
+  requirements: string;
+  onRequirementsChange: (v: string) => void;
 }) {
-  const toggleChip = (list: string[], setter: (v: string[]) => void, val: string) => {
-    setter(list.includes(val) ? list.filter((v) => v !== val) : [...list, val]);
+  const toggleChip = (
+    list: string[],
+    setter: (v: string[]) => void,
+    val: string
+  ) => {
+    setter(list.includes(val) ? list.filter(v => v !== val) : [...list, val]);
   };
 
   return (
     <div>
-      <h3 style={{ fontSize: 16, fontWeight: 600, color: COLORS.navy, marginBottom: 4 }}>Deal Profile</h3>
-      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>Define the deal profile for this relationship.</p>
+      <h3
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: COLORS.navy,
+          marginBottom: 4,
+        }}
+      >
+        Deal Profile
+      </h3>
+      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>
+        Define the deal profile for this relationship.
+      </p>
 
       <FieldLabel>Sector</FieldLabel>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-        {SECTORS.map((s) => (
-          <ChipButton key={s} active={sectors.includes(s)} onClick={() => toggleChip(sectors, onSectorsChange, s)}>
+      <div
+        style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}
+      >
+        {SECTORS.map(s => (
+          <ChipButton
+            key={s}
+            active={sectors.includes(s)}
+            onClick={() => toggleChip(sectors, onSectorsChange, s)}
+          >
             {s}
           </ChipButton>
         ))}
@@ -1453,22 +2070,28 @@ function ModalStepProfile({
           type="text"
           placeholder="Min ($)"
           value={dealMin}
-          onChange={(e) => onDealMinChange(e.target.value)}
+          onChange={e => onDealMinChange(e.target.value)}
           style={inputStyle}
         />
         <input
           type="text"
           placeholder="Max ($)"
           value={dealMax}
-          onChange={(e) => onDealMaxChange(e.target.value)}
+          onChange={e => onDealMaxChange(e.target.value)}
           style={inputStyle}
         />
       </div>
 
       <FieldLabel>Geographic Focus</FieldLabel>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-        {REGIONS.map((r) => (
-          <ChipButton key={r} active={regions.includes(r)} onClick={() => toggleChip(regions, onRegionsChange, r)}>
+      <div
+        style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}
+      >
+        {REGIONS.map(r => (
+          <ChipButton
+            key={r}
+            active={regions.includes(r)}
+            onClick={() => toggleChip(regions, onRegionsChange, r)}
+          >
             {r}
           </ChipButton>
         ))}
@@ -1479,24 +2102,46 @@ function ModalStepProfile({
         rows={3}
         placeholder="Add any specific requirements..."
         value={requirements}
-        onChange={(e) => onRequirementsChange(e.target.value)}
-        style={{ ...inputStyle, height: "auto", resize: "vertical" as const, padding: 12 }}
+        onChange={e => onRequirementsChange(e.target.value)}
+        style={{
+          ...inputStyle,
+          height: "auto",
+          resize: "vertical" as const,
+          padding: 12,
+        }}
       />
     </div>
   );
 }
 
-function ModalStepVerification({ level, onLevelChange }: { level: string; onLevelChange: (v: string) => void }) {
+function ModalStepVerification({
+  level,
+  onLevelChange,
+}: {
+  level: string;
+  onLevelChange: (v: string) => void;
+}) {
   return (
     <div>
-      <h3 style={{ fontSize: 16, fontWeight: 600, color: COLORS.navy, marginBottom: 4 }}>Verification Level</h3>
-      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>What level of verification can you provide?</p>
+      <h3
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: COLORS.navy,
+          marginBottom: 4,
+        }}
+      >
+        Verification Level
+      </h3>
+      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>
+        What level of verification can you provide?
+      </p>
 
       <FieldLabel>What can you confirm?</FieldLabel>
       <div style={{ position: "relative", marginBottom: 20 }}>
         <select
           value={level}
-          onChange={(e) => onLevelChange(e.target.value)}
+          onChange={e => onLevelChange(e.target.value)}
           style={{
             ...inputStyle,
             appearance: "none",
@@ -1506,13 +2151,22 @@ function ModalStepVerification({ level, onLevelChange }: { level: string; onLeve
           }}
         >
           <option value="">Select verification level</option>
-          {VERIFICATION_LEVELS.map((v) => (
-            <option key={v} value={v}>{v}</option>
+          {VERIFICATION_LEVELS.map(v => (
+            <option key={v} value={v}>
+              {v}
+            </option>
           ))}
         </select>
         <ChevronDown
           size={14}
-          style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94A3B8" }}
+          style={{
+            position: "absolute",
+            right: 12,
+            top: "50%",
+            transform: "translateY(-50%)",
+            pointerEvents: "none",
+            color: "#94A3B8",
+          }}
         />
       </div>
 
@@ -1528,34 +2182,72 @@ function ModalStepVerification({ level, onLevelChange }: { level: string; onLeve
         }}
       >
         <Upload size={28} style={{ margin: "0 auto 8px", display: "block" }} />
-        <div style={{ fontSize: 14, fontWeight: 500 }}>Drop files here or click to upload</div>
-        <div style={{ fontSize: 12, marginTop: 4 }}>PDF, DOC, or images up to 10MB</div>
+        <div style={{ fontSize: 14, fontWeight: 500 }}>
+          Drop files here or click to upload
+        </div>
+        <div style={{ fontSize: 12, marginTop: 4 }}>
+          PDF, DOC, or images up to 10MB
+        </div>
       </div>
     </div>
   );
 }
 
 function ModalStepCustody({
-  exposure, onExposureChange,
-  autoMatch, onAutoMatchChange,
+  exposure,
+  onExposureChange,
+  autoMatch,
+  onAutoMatchChange,
 }: {
-  exposure: string; onExposureChange: (v: string) => void;
-  autoMatch: boolean; onAutoMatchChange: (v: boolean) => void;
+  exposure: string;
+  onExposureChange: (v: string) => void;
+  autoMatch: boolean;
+  onAutoMatchChange: (v: boolean) => void;
 }) {
   const exposureOptions = [
-    { value: "full", label: "Full", desc: "Complete profile visible to matches" },
-    { value: "sector-only", label: "Sector-only", desc: "Only sector and deal size visible" },
-    { value: "hidden", label: "Hidden", desc: "No details shared until you approve" },
+    {
+      value: "full",
+      label: "Full",
+      desc: "Complete profile visible to matches",
+    },
+    {
+      value: "sector-only",
+      label: "Sector-only",
+      desc: "Only sector and deal size visible",
+    },
+    {
+      value: "hidden",
+      label: "Hidden",
+      desc: "No details shared until you approve",
+    },
   ];
 
   return (
     <div>
-      <h3 style={{ fontSize: 16, fontWeight: 600, color: COLORS.navy, marginBottom: 4 }}>Custody Settings</h3>
-      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>Control how your relationship data is shared.</p>
+      <h3
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: COLORS.navy,
+          marginBottom: 4,
+        }}
+      >
+        Custody Settings
+      </h3>
+      <p style={{ fontSize: 13, color: "#6B7A90", marginBottom: 20 }}>
+        Control how your relationship data is shared.
+      </p>
 
       <FieldLabel>Match Exposure</FieldLabel>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-        {exposureOptions.map((opt) => (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          marginBottom: 24,
+        }}
+      >
+        {exposureOptions.map(opt => (
           <label
             key={opt.value}
             style={{
@@ -1574,11 +2266,15 @@ function ModalStepCustody({
               name="exposure"
               value={opt.value}
               checked={exposure === opt.value}
-              onChange={(e) => onExposureChange(e.target.value)}
+              onChange={e => onExposureChange(e.target.value)}
               style={{ accentColor: COLORS.gold }}
             />
             <div>
-              <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}>{opt.label}</div>
+              <div
+                style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}
+              >
+                {opt.label}
+              </div>
               <div style={{ fontSize: 12, color: "#6B7A90" }}>{opt.desc}</div>
             </div>
           </label>
@@ -1597,8 +2293,12 @@ function ModalStepCustody({
         }}
       >
         <div>
-          <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}>Auto-match consent</div>
-          <div style={{ fontSize: 12, color: "#6B7A90" }}>Allow automatic matching with compatible deals</div>
+          <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}>
+            Auto-match consent
+          </div>
+          <div style={{ fontSize: 12, color: "#6B7A90" }}>
+            Allow automatic matching with compatible deals
+          </div>
         </div>
         <button
           onClick={() => onAutoMatchChange(!autoMatch)}
@@ -1637,16 +2337,34 @@ function ModalStepCustody({
           background: COLORS.surface,
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy, marginBottom: 4 }}>Attribution Split</div>
+        <div
+          style={{
+            fontWeight: 600,
+            fontSize: 14,
+            color: COLORS.navy,
+            marginBottom: 4,
+          }}
+        >
+          Attribution Split
+        </div>
         <div style={{ fontSize: 13, color: "#6B7A90" }}>
-          Team attribution splitting will be available for team accounts. Contact support to upgrade.
+          Team attribution splitting will be available for team accounts.
+          Contact support to upgrade.
         </div>
       </div>
     </div>
   );
 }
 
-function ModalStepConfirmation({ id, hash, onDone }: { id: string; hash: string; onDone: () => void }) {
+function ModalStepConfirmation({
+  id,
+  hash,
+  onDone,
+}: {
+  id: string;
+  hash: string;
+  onDone: () => void;
+}) {
   const now = new Date().toLocaleString("en-US", {
     month: "long",
     day: "numeric",
@@ -1672,10 +2390,19 @@ function ModalStepConfirmation({ id, hash, onDone }: { id: string; hash: string;
         <Shield size={32} style={{ color: COLORS.green }} />
       </div>
 
-      <h3 style={{ fontSize: 20, fontWeight: 700, color: COLORS.navy, marginBottom: 8 }}>
+      <h3
+        style={{
+          fontSize: 20,
+          fontWeight: 700,
+          color: COLORS.navy,
+          marginBottom: 8,
+        }}
+      >
         {CUSTODY_RECEIPT.title}
       </h3>
-      <p style={{ fontSize: 14, color: "#6B7A90", marginBottom: 28 }}>{CUSTODY_RECEIPT.body}</p>
+      <p style={{ fontSize: 14, color: "#6B7A90", marginBottom: 28 }}>
+        {CUSTODY_RECEIPT.body}
+      </p>
 
       <div
         className="card-elevated"
@@ -1687,7 +2414,12 @@ function ModalStepConfirmation({ id, hash, onDone }: { id: string; hash: string;
       >
         <ReceiptRow label="Timestamp" value={now} />
         <ReceiptRow label="Custody ID" value={id} mono />
-        <ReceiptRow label="Custody Proof" value={hash.slice(0, 32) + "..."} mono last />
+        <ReceiptRow
+          label="Custody Proof"
+          value={hash.slice(0, 32) + "..."}
+          mono
+          last
+        />
       </div>
 
       <button
@@ -1710,7 +2442,17 @@ function ModalStepConfirmation({ id, hash, onDone }: { id: string; hash: string;
   );
 }
 
-function ReceiptRow({ label, value, mono, last }: { label: string; value: string; mono?: boolean; last?: boolean }) {
+function ReceiptRow({
+  label,
+  value,
+  mono,
+  last,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  last?: boolean;
+}) {
   return (
     <div
       style={{
@@ -1722,8 +2464,16 @@ function ReceiptRow({ label, value, mono, last }: { label: string; value: string
     >
       <span style={{ fontSize: 13, color: "#6B7A90" }}>{label}</span>
       <span
-        className={mono ? "font-data-mono text-[10px] text-[#1E3A5F]/50 font-semibold" : ""}
-        style={!mono ? { fontSize: 13, fontWeight: 600, color: COLORS.navy } : undefined}
+        className={
+          mono
+            ? "font-data-mono text-[10px] text-[#1E3A5F]/50 font-semibold"
+            : ""
+        }
+        style={
+          !mono
+            ? { fontSize: 13, fontWeight: 600, color: COLORS.navy }
+            : undefined
+        }
       >
         {value}
       </span>
@@ -1737,11 +2487,28 @@ function ReceiptRow({ label, value, mono, last }: { label: string; value: string
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.navy, marginBottom: 8 }}>{children}</div>
+    <div
+      style={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: COLORS.navy,
+        marginBottom: 8,
+      }}
+    >
+      {children}
+    </div>
   );
 }
 
-function ChipButton({ children, active, onClick }: { children: React.ReactNode; active: boolean; onClick: () => void }) {
+function ChipButton({
+  children,
+  active,
+  onClick,
+}: {
+  children: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}

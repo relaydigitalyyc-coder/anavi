@@ -23,6 +23,10 @@ export const users = mysqlTable("users", {
   
   // Onboarding
   participantType: mysqlEnum("participantType", ["originator", "investor", "developer", "institutional", "acquirer"]),
+  // Persona System
+  primaryPersona: mysqlEnum("primaryPersona", ["originator", "investor", "principal"]),
+  enabledPersonas: json("enabledPersonas").$type<Array<"originator" | "investor" | "principal">>(),
+  primaryIndustries: json("primaryIndustries").$type<string[]>(),
   onboardingStep: int("onboardingStep").default(0),
   onboardingCompleted: boolean("onboardingCompleted").default(false),
   

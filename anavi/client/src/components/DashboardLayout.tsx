@@ -1,5 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useDemoContext } from "@/contexts/DemoContext";
+import { useAppMode } from "@/contexts/AppModeContext";
+import { PERSONAS, type PersonaKey } from "@/lib/copy";
 import {
   BarChart3,
   Bell,
@@ -45,47 +47,77 @@ import { formatDistanceToNow } from "date-fns";
 
 interface NavItem { icon: LucideIcon; label: string; path: string; tourId?: string }
 interface NavSection { label: string; items: NavItem[] }
+type WorkflowBeat = {
+  key: string;
+  label: string;
+  paths: string[];
+};
 
-const navSections: NavSection[] = [
-  { label: "OVERVIEW", items: [
+const personaPrimaryNav: Record<PersonaKey, NavItem[]> = {
+  originator: [
+    { icon: Handshake, label: "Custody Register", path: "/custody" },
+    { icon: Wallet, label: "Attribution Ledger", path: "/attribution" },
+    { icon: Target, label: "Introduction Pipeline", path: "/pipeline" },
+  ],
+  investor: [
+    { icon: Target, label: "Deal Flow", path: "/deal-flow" },
+    { icon: PieChart, label: "Portfolio", path: "/portfolio" },
+    { icon: Users, label: "Counterparty Intelligence", path: "/counterparty-intelligence" },
+  ],
+  principal: [
+    { icon: Briefcase, label: "Asset Register", path: "/assets" },
+    { icon: Users, label: "Demand Room", path: "/demand" },
+    { icon: CheckCircle2, label: "Close Tracker", path: "/close" },
+  ],
+  developer: [
+    { icon: Briefcase, label: "Asset Register", path: "/assets" },
+    { icon: Users, label: "Demand Room", path: "/demand" },
+    { icon: CheckCircle2, label: "Close Tracker", path: "/close" },
+  ],
+};
+
+const coreNavSections: NavSection[] = [
+  { label: "CORE", items: [
     { icon: Home, label: "Dashboard", path: "/dashboard" },
-    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
+    { icon: Target, label: "Blind Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
   ]},
-  { label: "TRUST & IDENTITY", items: [
+  { label: "TRUST", items: [
     { icon: Shield, label: "Verification", path: "/verification" },
     { icon: CheckCircle, label: "Compliance", path: "/compliance" },
     { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
   ]},
-  { label: "RELATIONSHIPS", items: [
+  { label: "NETWORK", items: [
     { icon: Users, label: "Relationships", path: "/relationships", tourId: "nav-relationships" },
-    { icon: Building2, label: "Family Offices", path: "/family-offices" },
-    { icon: Crosshair, label: "Targeting", path: "/targeting" },
-    { icon: Network, label: "Network Graph", path: "/network" },
-  ]},
-  { label: "DEALS", items: [
-    { icon: Target, label: "Blind Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
-    { icon: Handshake, label: "Intents", path: "/intents" },
-    { icon: CheckCircle2, label: "Matches", path: "/matches" },
-    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
-    { icon: Briefcase, label: "Deals", path: "/deals" },
-    { icon: Lightbulb, label: "Deal Intelligence", path: "/deal-intelligence" },
-  ]},
-  { label: "ECONOMICS", items: [
     { icon: Wallet, label: "Payouts", path: "/payouts", tourId: "nav-payouts" },
-    { icon: PieChart, label: "LP Portal", path: "/lp-portal" },
-    { icon: DollarSign, label: "Fee Management", path: "/fee-management" },
-  ]},
-  { label: "INTELLIGENCE", items: [
-    { icon: Brain, label: "AI Brain", path: "/ai-brain" },
-    { icon: TrendingUp, label: "Intelligence", path: "/intelligence" },
-  ]},
-  { label: "SETTINGS", items: [
-    { icon: CalendarIcon, label: "Calendar", path: "/calendar" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ]},
 ];
 
-const allNavItems = navSections.flatMap(s => s.items);
+const exploreNavSection: NavSection = {
+  label: "EXPLORE",
+  items: [
+    { icon: Handshake, label: "Intents", path: "/intents" },
+    { icon: CheckCircle2, label: "Matches", path: "/matches" },
+    { icon: Briefcase, label: "Deals", path: "/deals" },
+    { icon: Building2, label: "Family Offices", path: "/family-offices" },
+    { icon: Crosshair, label: "Targeting", path: "/targeting" },
+    { icon: Network, label: "Network Graph", path: "/network" },
+    { icon: PieChart, label: "LP Portal", path: "/lp-portal" },
+    { icon: DollarSign, label: "Fee Management", path: "/fee-management" },
+    { icon: CalendarIcon, label: "Calendar", path: "/calendar" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+    { icon: Brain, label: "AI Brain", path: "/ai-brain" },
+    { icon: TrendingUp, label: "Intelligence", path: "/intelligence" },
+    { icon: Lightbulb, label: "Deal Intelligence", path: "/deal-intelligence" },
+  ],
+};
+
+const allNavItems = [
+  ...Object.values(personaPrimaryNav).flat(),
+  ...coreNavSections.flatMap((s) => s.items),
+  ...exploreNavSection.items,
+];
 
 const pageTitles: Record<string, string> = Object.fromEntries(
   allNavItems.map((item) => [item.path, item.label])
@@ -120,13 +152,13 @@ function TrustScoreChip({ score }: { score: number }) {
   );
 }
 
-const mobileNavItems = [
-  { icon: Home,   label: "Dashboard",     path: "/dashboard" },
+const defaultMobileNavItems = [
+  { icon: Home, label: "Dashboard", path: "/dashboard" },
   { icon: Target, label: "Blind Matching", path: "/deal-matching" },
-  { icon: Users,  label: "Relationships",  path: "/relationships" },
-  { icon: Wallet, label: "Payouts",        path: "/payouts" },
-  { icon: Shield, label: "Verification",   path: "/verification" },
-  { icon: User,   label: "Profile",        path: "/settings" },
+  { icon: Users, label: "Relationships", path: "/relationships" },
+  { icon: Wallet, label: "Payouts", path: "/payouts" },
+  { icon: Shield, label: "Verification", path: "/verification" },
+  { icon: User, label: "Profile", path: "/settings" },
 ] as const;
 
 const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: string }> = {
@@ -141,11 +173,52 @@ const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: str
 };
 
 const TOUR_BANNER_DISMISSED_KEY = "anavi_tour_banner_dismissed";
+const INDUSTRY_OPTIONS = ["Infrastructure", "Commodities", "Real Estate", "Private Equity", "Energy"] as const;
+const PERSONA_TABS: Array<{ key: PersonaKey; short: string }> = [
+  { key: "originator", short: "ORI" },
+  { key: "investor", short: "INV" },
+  { key: "principal", short: "PRI" },
+];
+
+const workflowByPersona: Record<PersonaKey, WorkflowBeat[]> = {
+  originator: [
+    { key: "custody", label: "Custody", paths: ["/dashboard", "/custody"] },
+    { key: "match", label: "Match", paths: ["/pipeline", "/deal-matching", "/matches"] },
+    { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
+    { key: "economics", label: "Economics", paths: ["/attribution", "/payouts"] },
+  ],
+  investor: [
+    { key: "intelligence", label: "Intelligence", paths: ["/dashboard", "/counterparty-intelligence"] },
+    { key: "match", label: "Match", paths: ["/deal-flow", "/deal-matching", "/matches"] },
+    { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
+    { key: "deployment", label: "Deployment", paths: ["/portfolio", "/payouts"] },
+  ],
+  principal: [
+    { key: "assets", label: "Assets", paths: ["/dashboard", "/assets"] },
+    { key: "demand", label: "Demand", paths: ["/demand", "/deal-matching", "/matches"] },
+    { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
+    { key: "close", label: "Close", paths: ["/close", "/payouts"] },
+  ],
+  developer: [
+    { key: "assets", label: "Assets", paths: ["/dashboard", "/assets"] },
+    { key: "demand", label: "Demand", paths: ["/demand", "/deal-matching", "/matches"] },
+    { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
+    { key: "close", label: "Close", paths: ["/close", "/payouts"] },
+  ],
+};
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
-  const { isDemo, fixtures: demoFixtures } = useDemoContext();
+  const { mode } = useAppMode();
+  const {
+    isDemo,
+    activePersona,
+    activeIndustry,
+    fixtures: demoFixtures,
+    switchPersona,
+    switchIndustry,
+  } = useDemoContext();
   const [notifOpen, setNotifOpen] = useState(false);
   const tour = useTourContext();
   const [bannerDismissed, setBannerDismissed] = useState(() => {
@@ -238,7 +311,44 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const markAllRead = () => markAllReadMutation.mutate();
 
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    EXPLORE: true,
+  });
+  const [livePersona, setLivePersona] = useState<PersonaKey>(() => {
+    if (typeof window === "undefined") return "originator";
+    const stored = localStorage.getItem("anavi_active_persona");
+    if (stored === "investor" || stored === "principal" || stored === "originator") return stored;
+    return "originator";
+  });
+  const [liveIndustry, setLiveIndustry] = useState<string>(() => {
+    if (typeof window === "undefined") return "Infrastructure";
+    return localStorage.getItem("anavi_active_industry") ?? "Infrastructure";
+  });
+  const resolvedPersona: PersonaKey = activePersona ?? "originator";
+  const sidebarPersona = isDemo ? resolvedPersona : livePersona;
+  const sidebarIndustry = isDemo ? activeIndustry : liveIndustry;
+  const flow = workflowByPersona[sidebarPersona] ?? workflowByPersona.originator;
+  const nowIndex = Math.max(0, flow.findIndex((beat) => beat.paths.some((path) => location.startsWith(path))));
+  const nextBeat = flow[nowIndex + 1]?.label ?? "Complete";
+  const mobilePersonaItems = (personaPrimaryNav[sidebarPersona] ?? personaPrimaryNav.originator).slice(0, 2);
+  const mobileNavItems = [
+    { icon: Home, label: "Home", path: "/dashboard" },
+    ...mobilePersonaItems.map((item) => ({
+      icon: item.icon,
+      label: item.label.split(" ")[0],
+      path: item.path,
+    })),
+    { icon: FolderOpen, label: "Rooms", path: "/deal-rooms" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+  ] as const;
+  const navSections: NavSection[] = [
+    {
+      label: `${PERSONAS[sidebarPersona].role.toUpperCase()} FLOW`,
+      items: personaPrimaryNav[sidebarPersona],
+    },
+    ...coreNavSections,
+    exploreNavSection,
+  ];
 
   const toggleSection = useCallback((label: string) => {
     setCollapsedSections(prev => ({ ...prev, [label]: !prev[label] }));
@@ -246,6 +356,60 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const SidebarNav = () => (
     <>
+      <div className="px-3 pt-3 pb-2 border-b border-white/10">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-white/45">Active Flow</p>
+          <p className="mt-1 text-sm font-semibold text-white">{PERSONAS[sidebarPersona].label}</p>
+          <div className="mt-2 flex items-center gap-2 text-[10px] text-white/65">
+            <span className="rounded-full bg-[#22D4F5]/20 px-2 py-0.5 text-[#7EE8FF]">Now: {flow[nowIndex]?.label}</span>
+            <span className="rounded-full bg-white/10 px-2 py-0.5">Next: {nextBeat}</span>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {PERSONA_TABS.map((tab) => {
+              const active = tab.key === sidebarPersona;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => {
+                    if (isDemo) switchPersona(tab.key);
+                    else {
+                      localStorage.setItem("anavi_active_persona", tab.key);
+                      setLivePersona(tab.key);
+                    }
+                  }}
+                  className={`h-7 rounded text-[10px] font-semibold tracking-wider transition-colors ${
+                    active ? "bg-[#C4972A] text-white" : "bg-white/8 text-white/65 hover:bg-white/14"
+                  }`}
+                >
+                  {tab.short}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {INDUSTRY_OPTIONS.map((industry) => {
+              const active = industry === sidebarIndustry;
+              return (
+                <button
+                  key={industry}
+                  onClick={() => {
+                    if (isDemo) switchIndustry(industry);
+                    else {
+                      localStorage.setItem("anavi_active_industry", industry);
+                      setLiveIndustry(industry);
+                    }
+                  }}
+                  className={`rounded px-2 py-0.5 text-[10px] transition-colors ${
+                    active ? "bg-[#2563EB]/25 text-[#9BC3FF]" : "bg-white/8 text-white/55 hover:bg-white/14"
+                  }`}
+                >
+                  {industry}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
       <nav data-tour="demo-nav" aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         {navSections.map((section) => {
           const isCollapsed = collapsedSections[section.label];
@@ -254,7 +418,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div key={section.label} className="mb-1">
               <button
                 onClick={() => toggleSection(section.label)}
-                className="flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/30 hover:text-white/50 transition-colors"
+                className="flex w-full items-center justify-between px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/30 hover:text-white/50 transition-colors"
               >
                 <span>{section.label}</span>
                 <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
@@ -265,7 +429,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <Link key={item.path} href={item.path}>
                     <a
                       data-tour-id={item.tourId}
-                      className={`group flex min-h-[40px] cursor-pointer items-center gap-3 rounded-r-md px-3 text-sm transition-all duration-200 ${
+                      className={`group flex min-h-[38px] cursor-pointer items-center gap-2.5 rounded-r-md px-3 text-[13px] transition-all duration-200 ${
                         isActive
                           ? "bg-white/8 text-white"
                           : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
@@ -369,6 +533,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-4">
+            <span className="hidden rounded-full border border-[#1E3A5F]/20 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#1E3A5F]/70 sm:inline-block">
+              {mode} mode
+            </span>
             <button
               data-tour-id="tour-search"
               onClick={() => setSearchOpen(true)}
@@ -499,13 +666,24 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
 
+      {/* Mobile flow strip */}
+      <div
+        className="fixed inset-x-0 bottom-16 z-40 border-t border-white/10 bg-[#060A12]/95 px-3 py-2 backdrop-blur lg:hidden"
+        style={{ paddingBottom: "max(0px, calc(env(safe-area-inset-bottom) - 8px))" }}
+      >
+        <div className="mx-auto flex w-full max-w-[680px] items-center justify-between rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] text-white/75">
+          <span className="truncate">Now: {flow[nowIndex]?.label ?? "Flow"}</span>
+          <span className="truncate text-white/55">Next: {nextBeat}</span>
+        </div>
+      </div>
+
       {/* Mobile bottom navigation — 44px tap targets */}
       <nav
         aria-label="Mobile navigation"
         className="fixed inset-x-0 bottom-0 z-50 flex h-16 min-h-[56px] items-center justify-around border-t border-white/10 bg-[#060A12] lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        {mobileNavItems.map((item) => {
+        {(mobileNavItems.length > 0 ? mobileNavItems : defaultMobileNavItems).map((item) => {
           const isActive = location === item.path;
           return (
             <Link key={item.path} href={item.path}>

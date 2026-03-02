@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { getDemoData, type DemoPersona, type DemoData } from './demoData';
+import { useAppMode } from "@/contexts/AppModeContext";
 
 interface DemoContextValue {
   isDemo: boolean;
@@ -20,6 +21,7 @@ const DemoContext = createContext<DemoContextValue>({
 });
 
 export function DemoProvider({ children }: { children: ReactNode }) {
+  const { capabilities } = useAppMode();
   const [persona, setPersonaState] = useState<DemoPersona | null>(null);
   const [demoData, setDemoData] = useState<DemoData | null>(null);
   const [demoUserName, setDemoUserName] = useState('');
@@ -32,9 +34,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   return (
     <DemoContext.Provider
       value={{
-        isDemo: true,
+        isDemo: capabilities.allowDemoFixtures,
         persona,
-        demoData,
+        demoData: capabilities.allowDemoFixtures ? demoData : null,
         setPersona,
         demoUserName,
         setDemoUserName,

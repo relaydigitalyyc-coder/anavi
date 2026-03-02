@@ -72,6 +72,40 @@
 
 ---
 
+## PRD Additions (Feb 2026) → Code Map
+
+### Demo Mode, Tooltips, and Tours (MVP-1)
+
+| PRD Concept | Code Location | Notes |
+|-------------|---------------|-------|
+| **Demo Mode** | `client/src/pages/Demo.tsx` | Demo surface; guided tour content in PRD |
+| **Tooltip System** | `client/src/components/*` + `contexts/*` | PRD defines 5 tooltip types; verify coverage |
+| **Guided Tour Engine** | `contexts/TourContext` + guided tour components | PRD specifies 7-step onboarding tour + 6-step demo tour |
+| **Persona Library** | Demo data in pages | PRD defines 4 personas for demos |
+
+### Relationship Custody Enhancements
+
+| PRD Concept | Code Location | Notes |
+|-------------|---------------|-------|
+| **RFC 3161 timestamping** | `server/_core/hashchain.ts` | Ensure RFC3161-compatible flow |
+| **Zero-knowledge custody** | Not yet implemented | PRD requires encryption-at-rest and controlled disclosure |
+| **Circumvention detection** | Not yet implemented | PRD requires detection of off-platform transactions |
+| **Inheritance/transfer of relationships** | Not yet implemented | PRD describes transfer/licensing model |
+
+### Novel Features (White Paper)
+
+| Concept | Code Location | Notes |
+|---------|---------------|-------|
+| **Relationship Intelligence Graph (RIG)** | `client/src/pages/KnowledgeGraphPage.tsx` | UI exists; real ingestion pipeline TBD |
+| **Trust Inheritance Protocol (TIP)** | Not yet implemented | PRD/whitepaper |
+| **Intent Market Depth** | Not yet implemented | PRD/whitepaper |
+| **AI Deal Structuring Co‑Pilot** | `server/routers/ai.ts` | Partial; PRD calls for term sheets, risk flags, comps |
+| **Compliance Passport** | Not yet implemented | PRD/whitepaper |
+| **ANAVI Intelligence Data Product** | `client/src/pages/Intelligence.tsx` | UI surface; backend TBD |
+| **Relationship Portfolio Tokenization** | Not yet implemented | Phase 3+ |
+
+---
+
 ## Terminology Reference (Use Consistently)
 
 | Prefer | Avoid |

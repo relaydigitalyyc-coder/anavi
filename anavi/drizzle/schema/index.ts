@@ -3,3 +3,4 @@ export * from './matching';
 export * from './deals';
 export * from './compliance';
 export * from './assets';
+export * from './docusign';

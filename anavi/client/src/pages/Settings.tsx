@@ -10,14 +10,20 @@ import { Switch } from "@/components/ui/switch";
 import { 
   User, Shield, Bell, Key, 
   Upload, CheckCircle2, Clock, Save,
-  Compass
+  Compass,
+  Link2,
+  PlugZap,
+  Unplug,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTourContext } from "@/contexts/TourContext";
+import { useAppMode } from "@/contexts/AppModeContext";
 
 export default function Settings() {
   const tour = useTourContext();
+  const { mode: appMode } = useAppMode();
   const { data: user, refetch } = trpc.user.getProfile.useQuery();
+  const { data: runtime } = trpc.system.runtime.useQuery();
   const [profile, setProfile] = useState({
     name: user?.name || "",
     company: user?.company || "",
@@ -36,6 +42,23 @@ export default function Settings() {
       toast.error(error.message);
     },
   });
+  const { data: docusignConfig, refetch: refetchDocusignConfig } = trpc.docusign.getConfigStatus.useQuery();
+  const { data: docusignOauthStatus, refetch: refetchDocusignOauth } = trpc.docusign.getOauthStatus.useQuery();
+  const {
+    data: docusignDiagnostics,
+    refetch: runDocusignDiagnostics,
+    isFetching: docusignDiagnosticsRunning,
+  } = trpc.docusign.runDiagnostics.useQuery(undefined, { enabled: false });
+  const disconnectDocusignOauth = trpc.docusign.disconnectOauth.useMutation({
+    onSuccess: async () => {
+      toast.success("DocuSign OAuth disconnected");
+      await refetchDocusignOauth();
+      await refetchDocusignConfig();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate(profile);
@@ -49,6 +72,16 @@ export default function Settings() {
         <p className="mt-1.5 text-sm text-[#1E3A5F]/60">
           Manage your account, verification, and preferences
         </p>
+        <div className="mt-3 flex items-center gap-2">
+          <Badge variant="outline" className="uppercase tracking-wide">
+            App mode: {runtime?.mode ?? appMode}
+          </Badge>
+          {runtime?.nodeEnv ? (
+            <Badge variant="secondary" className="uppercase tracking-wide">
+              {runtime.nodeEnv}
+            </Badge>
+          ) : null}
+        </div>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
@@ -391,6 +424,99 @@ export default function Settings() {
                   <div className="text-sm text-muted-foreground">Manage API access for integrations</div>
                 </div>
                 <Button variant="outline" className="hover:border-primary hover:text-primary">Manage Keys</Button>
+              </div>
+
+              <div className="p-4 rounded-xl border border-border">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-semibold flex items-center gap-2">
+                      <Link2 className="w-4 h-4" />
+                      DocuSign Integration
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      Configure signature workflow using {docusignConfig?.executionMode === "mcp" ? "MCP" : docusignConfig?.executionMode === "oauth" ? "OAuth API" : "JWT API"} mode.
+                    </div>
+                  </div>
+                  <Badge variant={docusignConfig?.configured ? "default" : "secondary"}>
+                    {docusignConfig?.configured ? "Configured" : "Not Configured"}
+                  </Badge>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  {[
+                    { label: "Execution", value: docusignConfig?.executionMode ?? "-" },
+                    { label: "Mode", value: docusignConfig?.env ?? "-" },
+                    { label: "OAuth", value: docusignOauthStatus?.connected ? "Connected" : "Disconnected" },
+                    { label: "MCP URL", value: docusignConfig?.mcpUrlPresent ? "Set" : "Missing" },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-lg border border-border px-2 py-2">
+                      <div className="uppercase tracking-wider text-[10px] text-muted-foreground">{item.label}</div>
+                      <div className="mt-1 font-semibold">{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="hover:border-primary hover:text-primary"
+                    onClick={() => {
+                      const returnUrl = `${window.location.origin}/settings`;
+                      const redirectUri = `${window.location.origin}/api/integrations/docusign/oauth/callback`;
+                      window.location.href = `/api/integrations/docusign/oauth/start?returnUrl=${encodeURIComponent(returnUrl)}&redirectUri=${encodeURIComponent(redirectUri)}`;
+                    }}
+                  >
+                    <PlugZap className="w-4 h-4 mr-2" />
+                    Connect OAuth
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="hover:border-red-300 hover:text-red-600"
+                    onClick={() => disconnectDocusignOauth.mutate()}
+                    disabled={!docusignOauthStatus?.connected || disconnectDocusignOauth.isPending}
+                  >
+                    <Unplug className="w-4 h-4 mr-2" />
+                    Disconnect OAuth
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      refetchDocusignConfig();
+                      refetchDocusignOauth();
+                    }}
+                  >
+                    Refresh Status
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => runDocusignDiagnostics()}
+                    disabled={docusignDiagnosticsRunning}
+                  >
+                    {docusignDiagnosticsRunning ? "Running..." : "Run Diagnostics"}
+                  </Button>
+                </div>
+                {docusignDiagnostics && (
+                  <div className="mt-3 rounded-lg border border-border p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[#1E3A5F]/60">
+                        Diagnostics
+                      </p>
+                      <Badge variant={docusignDiagnostics.ok ? "default" : "secondary"}>
+                        {docusignDiagnostics.ok ? "Healthy" : "Needs Attention"}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1.5">
+                      {docusignDiagnostics.checks.map((item) => (
+                        <div key={item.check} className="flex items-center justify-between text-xs">
+                          <span className="font-medium">{item.check}</span>
+                          <span className={item.ok ? "text-emerald-600" : "text-red-600"}>
+                            {item.detail}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between p-4 rounded-xl border border-red-200 bg-red-50/50">
