@@ -260,7 +260,7 @@ def chat(messages: list, api_key: str) -> dict:
         "messages": messages,
         "tools": TOOLS,
         "tool_choice": "auto",
-        "max_tokens": 8192,
+        "max_tokens": 32768,
     }).encode()
     req = urllib.request.Request(
         API_URL,
