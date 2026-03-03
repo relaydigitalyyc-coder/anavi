@@ -16,6 +16,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import type { Relationship } from "@shared/types";
 
 export default function CustodyRegister() {
   const demo = useDemoFixtures();
@@ -25,18 +26,11 @@ export default function CustodyRegister() {
     undefined,
     { enabled: !demo }
   );
-  const rawRelationships = (demo?.relationships ??
+  const rawRelationships: Relationship[] = (demo?.relationships ??
     liveRelationships ??
-    []) as unknown as Array<
-    {
-      id: number;
-    } & Record<string, unknown>
-  >;
+    []) as Relationship[];
 
-  const getCustodyAge = (relationship: {
-    custodyAge?: string;
-    establishedAt?: string | Date | null;
-  }) => {
+  const getCustodyAge = (relationship: Relationship & { custodyAge?: string }) => {
     if (relationship.custodyAge) return relationship.custodyAge;
     if (!relationship.establishedAt) return "Unknown";
     return formatDistanceToNow(new Date(relationship.establishedAt), {
@@ -44,7 +38,7 @@ export default function CustodyRegister() {
     });
   };
 
-  const items: Array<{
+  interface CustodyItem {
     id: number;
     name: string;
     company: string;
@@ -53,39 +47,27 @@ export default function CustodyRegister() {
     attributionStatus: string;
     assetClass: string;
     trustScore: number;
-  }> = rawRelationships.map(relationship => {
-    const name =
-      "name" in relationship && relationship.name
-        ? relationship.name
-        : `Contact #${"contactId" in relationship ? relationship.contactId : relationship.id}`;
-    const company =
-      "company" in relationship && relationship.company
-        ? relationship.company
-        : "Unknown";
-    const hash =
-      "hash" in relationship
-        ? relationship.hash
-        : "timestampHash" in relationship
-          ? relationship.timestampHash
-          : "";
-    const custodyAge = getCustodyAge(
-      relationship as {
-        custodyAge?: string;
-        establishedAt?: string | Date | null;
-      }
-    );
-    const attributionStatus =
-      "attributionStatus" in relationship && relationship.attributionStatus
-        ? relationship.attributionStatus
-        : "pending";
-    const assetClass =
-      "assetClass" in relationship && relationship.assetClass
-        ? relationship.assetClass
-        : "Unknown";
-    const trustScore =
-      "trustScore" in relationship && typeof relationship.trustScore === "number"
-        ? relationship.trustScore
-        : 70;
+  }
+
+  const items: CustodyItem[] = rawRelationships.map(relationship => {
+    // Handle demo fixture data which has different structure
+    const demoRelationship = relationship as Relationship & {
+      name?: string;
+      company?: string;
+      hash?: string;
+      custodyAge?: string;
+      attributionStatus?: string;
+      assetClass?: string;
+      trustScore?: number;
+    };
+
+    const name = demoRelationship.name || `Contact #${demoRelationship.contactId || demoRelationship.id}`;
+    const company = demoRelationship.company || "Unknown";
+    const hash = demoRelationship.hash || demoRelationship.timestampHash || "";
+    const custodyAge = getCustodyAge(demoRelationship);
+    const attributionStatus = demoRelationship.attributionStatus || "pending";
+    const assetClass = demoRelationship.assetClass || "Unknown";
+    const trustScore = typeof demoRelationship.trustScore === "number" ? demoRelationship.trustScore : 70;
 
     return {
       id: relationship.id,

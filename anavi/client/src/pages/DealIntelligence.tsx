@@ -24,8 +24,64 @@ import {
 } from '@/components/ui/dialog';
 import { trpc } from '@/lib/trpc';
 
-// TODO: Wire to dedicated backend endpoint when available
-const extractedDeals = [
+// Type for backend deal data (from trpc.intelligence.dealIntelligence)
+// TODO: Replace with richDealIntelligence endpoint that returns AI-extracted deal intelligence
+// Required endpoint: trpc.intelligence.richDealIntelligence (protectedProcedure with input)
+// Input schema: z.object({ limit: z.number().optional(), includeTranscripts: z.boolean().optional() })
+// Output shape: Array<DealIntelligence> (see interface below)
+interface BackendDeal {
+  id: number;
+  title: string;
+  stage: string | null;
+  value: string | null;
+  currency: string | null;
+}
+
+// Type for AI-extracted deal intelligence (what the UI needs)
+interface DealIntelligence {
+  id: string;
+  name: string;
+  icon: any; // Lucide icon component
+  status: 'ready' | 'primed' | 'in-progress' | 'stalled';
+  readinessScore: number;
+  category: string;
+  thesis: string;
+  capitalNeeded: string;
+  timeline: string;
+  keyPlayers: Array<{
+    name: string;
+    role: string;
+    avatar: string;
+    commitment: 'confirmed' | 'pending';
+  }>;
+  actionItems: Array<{
+    task: string;
+    assignee: string;
+    status: 'completed' | 'in-progress' | 'pending';
+    priority: 'high' | 'medium' | 'low';
+  }>;
+  signals: Array<{
+    type: 'commitment' | 'momentum' | 'blocker' | 'ready';
+    text: string;
+    date: string;
+  }>;
+  sourceTranscript: string;
+  lastActivity: string;
+}
+
+// TODO: Replace with backend endpoint when rich deal intelligence API is available
+// Required endpoint: trpc.intelligence.richDealIntelligence (protectedProcedure with input)
+// Input schema: z.object({ limit: z.number().optional(), includeTranscripts: z.boolean().optional() })
+// Output shape: Array<DealIntelligence> matching the interface below
+// The endpoint should:
+// 1. Analyze Fireflies transcripts and extract deal intelligence
+// 2. Calculate readiness scores based on deal stage, team commitment, and action completion
+// 3. Identify key players and their commitment status
+// 4. Extract action items with priorities and status
+// 5. Detect signals (commitment, momentum, blockers, ready indicators)
+// 6. Categorize deals by industry/sector
+// Current backend endpoint (trpc.intelligence.dealIntelligence) returns basic deal data only
+const extractedDeals: DealIntelligence[] = [
   {
     id: 'peptide-ecommerce',
     name: 'Peptide E-Commerce Platform',
@@ -163,7 +219,20 @@ const extractedDeals = [
   },
 ];
 
-// TODO: Wire to dedicated backend endpoint when available
+// TODO: Replace with backend endpoint when connection intelligence API is available
+// Required endpoint: trpc.intelligence.neededConnections (protectedProcedure with input)
+// Input schema: z.object({ dealIds: z.array(z.number()).optional(), limit: z.number().optional() })
+// Output shape: Array<{
+//   dealId: number;
+//   dealName: string;
+//   need: string;
+//   reason: string;
+//   urgency: 'high' | 'medium' | 'low';
+//   warmPath: string | null;
+//   suggestedContacts?: Array<{ id: number; name: string; matchScore: number }>;
+// }>
+// The endpoint should analyze deal requirements and identify missing connections
+// by comparing deal needs with user's network and suggesting potential matches
 const neededConnections = [
   {
     deal: 'Peptide E-Commerce',
@@ -249,23 +318,102 @@ const statusLabels: Record<string, string> = {
   stalled: 'Needs Attention',
 };
 
+// Helper function to transform backend deals to UI format
+// Note: This is a temporary transformation until backend provides rich deal intelligence data
+function transformBackendDeals(backendDeals: BackendDeal[]): DealIntelligence[] {
+  if (!backendDeals || backendDeals.length === 0) return [];
+  
+  // Map deal stages to UI statuses
+  const stageToStatus: Record<string, 'ready' | 'primed' | 'in-progress' | 'stalled'> = {
+    'closing': 'ready',
+    'negotiation': 'primed',
+    'due_diligence': 'in-progress',
+    'qualification': 'in-progress',
+    'lead': 'stalled',
+    'completed': 'ready',
+    'cancelled': 'stalled',
+    'documentation': 'in-progress'
+  };
+
+  // Map deal types to categories and icons
+  const dealTypeConfig: Record<string, { category: string; icon: any }> = {
+    'real_estate': { category: 'Real Estate', icon: Building2 },
+    'equity_investment': { category: 'Investment', icon: TrendingUp },
+    'debt_financing': { category: 'Finance', icon: CreditCard },
+    'commodity_trade': { category: 'Commodities', icon: Activity },
+    'joint_venture': { category: 'Partnership', icon: Users },
+    'acquisition': { category: 'M&A', icon: Target },
+    'partnership': { category: 'Partnership', icon: Network },
+    'other': { category: 'Other', icon: FileText }
+  };
+
+  return backendDeals.map((deal, index) => {
+    const dealStage = deal.stage || 'lead';
+    const config = dealTypeConfig[dealStage] || { category: 'Other', icon: FileText };
+    const status = stageToStatus[dealStage] || 'in-progress';
+    
+    // Generate a readiness score based on stage
+    const stageReadiness: Record<string, number> = {
+      'lead': 30,
+      'qualification': 50,
+      'due_diligence': 70,
+      'negotiation': 85,
+      'documentation': 90,
+      'closing': 95,
+      'completed': 100,
+      'cancelled': 0
+    };
+    
+    const readinessScore = stageReadiness[dealStage] || 50;
+    
+    return {
+      id: `backend-${deal.id}`,
+      name: deal.title,
+      icon: config.icon,
+      status,
+      readinessScore,
+      category: config.category,
+      thesis: `Deal in ${dealStage} stage${deal.value ? ` with estimated value of ${deal.value} ${deal.currency || 'USD'}` : ''}.`,
+      capitalNeeded: deal.value ? `${deal.value} ${deal.currency || 'USD'}` : 'Not specified',
+      timeline: 'To be determined',
+      keyPlayers: [
+        { name: 'Team Member', role: 'Lead', avatar: 'TM', commitment: 'confirmed' as const }
+      ],
+      actionItems: [
+        { task: 'Review deal details', assignee: 'Team', status: 'pending' as const, priority: 'medium' as const }
+      ],
+      signals: [
+        { type: 'momentum' as const, text: `Deal in ${deal.stage} stage`, date: 'Recent' }
+      ],
+      sourceTranscript: 'Backend system',
+      lastActivity: 'Recently updated'
+    };
+  });
+}
+
 export default function DealIntelligence() {
-  const [selectedDeal, setSelectedDeal] = useState<typeof extractedDeals[0] | null>(null);
+  const [selectedDeal, setSelectedDeal] = useState<DealIntelligence | null>(null);
   const [activeTab, setActiveTab] = useState('deals');
 
   const { data: sectorData, isLoading: loadingSector } = trpc.intelligence.sectorOverview.useQuery();
   const { data: marketData, isLoading: loadingDepth } = trpc.intelligence.marketDepth.useQuery();
-  const { data: dealIntelData } = trpc.intelligence.dealIntelligence.useQuery();
+  const { data: dealIntelData, isLoading: loadingDeals } = trpc.intelligence.dealIntelligence.useQuery();
   const sectorIntelMutation = trpc.ai.sectorIntelligence.useMutation();
 
   const marketInsights = sectorData ?? [];
-  const backendDealCount = dealIntelData?.totalDeals ?? 0;
-
-  const totalDeals = extractedDeals.length + backendDealCount;
-  const readyDeals = extractedDeals.filter(d => d.status === 'ready').length;
-  const primedDeals = extractedDeals.filter(d => d.status === 'primed').length;
-  const avgReadiness = extractedDeals.length > 0
-    ? Math.round(extractedDeals.reduce((acc, d) => acc + d.readinessScore, 0) / extractedDeals.length)
+  const backendDeals = dealIntelData?.deals ? transformBackendDeals(dealIntelData.deals) : [];
+  
+  // Combine mock data with backend data for now
+  // TODO: Replace with full backend data when rich deal intelligence API is available
+  // Replace extractedDeals with: const { data: richDealData } = trpc.intelligence.richDealIntelligence.useQuery({ limit: 20, includeTranscripts: false });
+  // Then: const allDeals = richDealData || [];
+  const allDeals = [...extractedDeals, ...backendDeals];
+  
+  const totalDeals = allDeals.length;
+  const readyDeals = allDeals.filter(d => d.status === 'ready').length;
+  const primedDeals = allDeals.filter(d => d.status === 'primed').length;
+  const avgReadiness = allDeals.length > 0
+    ? Math.round(allDeals.reduce((acc, d) => acc + d.readinessScore, 0) / allDeals.length)
     : 0;
 
   return (
@@ -519,7 +667,7 @@ export default function DealIntelligence() {
           {/* Deals Tab */}
           <TabsContent value="deals" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {extractedDeals.map((deal, index) => (
+              {allDeals.map((deal, index) => (
                 <motion.div
                   key={deal.id}
                   initial={{ opacity: 0, y: 20 }}

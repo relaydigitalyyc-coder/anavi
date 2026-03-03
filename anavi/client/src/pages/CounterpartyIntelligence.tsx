@@ -12,45 +12,50 @@ import {
   StatusPulse,
   StoryBeats,
 } from "@/components/PersonaSurface";
+import type { Relationship } from "@shared/types";
 
 export default function CounterpartyIntelligence() {
   const demo = useDemoFixtures();
   const [location] = useLocation();
   const industry = useActiveIndustry() ?? "Infrastructure";
   const { data: liveRelationships } = trpc.relationship.list.useQuery(undefined, { enabled: !demo });
-  const rawCounterparties = (demo?.relationships ?? liveRelationships ?? []) as Array<{
-    id: number;
-  } & Record<string, unknown>>;
+  const rawCounterparties: Relationship[] = (demo?.relationships ?? liveRelationships ?? []) as Relationship[];
 
-  const getCustodyAge = (relationship: { custodyAge?: string; establishedAt?: string | Date | null }) => {
+  const getCustodyAge = (relationship: Relationship & { custodyAge?: string }) => {
     if (relationship.custodyAge) return relationship.custodyAge;
     if (!relationship.establishedAt) return "Unknown";
     return formatDistanceToNow(new Date(relationship.establishedAt), { addSuffix: true });
   };
 
-  const items: Array<{
+  interface CounterpartyItem {
     id: number;
     name: string;
     company: string;
     trustScore: number | string;
     custodyAge: string;
     assetClass: string;
-  }> = rawCounterparties.map((counterparty) => {
-    const name =
-      "name" in counterparty && counterparty.name
-        ? counterparty.name
-        : `Contact #${"contactId" in counterparty ? counterparty.contactId : counterparty.id}`;
-    const company =
-      "company" in counterparty && counterparty.company ? counterparty.company : "Unknown";
-    const trustScore =
-      "trustScore" in counterparty && counterparty.trustScore != null
-        ? counterparty.trustScore
-        : "strengthScore" in counterparty
-          ? counterparty.strengthScore
-          : "-";
-    const custodyAge = getCustodyAge(counterparty as { custodyAge?: string; establishedAt?: string | Date | null });
-    const assetClass =
-      "assetClass" in counterparty && counterparty.assetClass ? counterparty.assetClass : "Unknown";
+  }
+
+  const items: CounterpartyItem[] = rawCounterparties.map((counterparty) => {
+    // Handle demo fixture data which has different structure
+    const demoCounterparty = counterparty as Relationship & {
+      name?: string;
+      company?: string;
+      trustScore?: number;
+      strengthScore?: number;
+      custodyAge?: string;
+      assetClass?: string;
+    };
+
+    const name = demoCounterparty.name || `Contact #${demoCounterparty.contactId || demoCounterparty.id}`;
+    const company = demoCounterparty.company || "Unknown";
+    const trustScore = demoCounterparty.trustScore != null
+      ? demoCounterparty.trustScore
+      : demoCounterparty.strengthScore != null
+        ? demoCounterparty.strengthScore
+        : "-";
+    const custodyAge = getCustodyAge(demoCounterparty);
+    const assetClass = demoCounterparty.assetClass || "Unknown";
 
     return {
       id: counterparty.id,

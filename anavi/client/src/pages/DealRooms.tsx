@@ -95,7 +95,7 @@ export default function DealRooms() {
       <FadeInView>
         <h1 className="dash-heading text-3xl">Deal Rooms</h1>
         {/* Subtitle added */}
-        <p className="text-lg text-[#1E3A5F]/80 mt-2">NDA-gated workspaces. Immutable audit trail active on every room.</p>
+        <p className="text-sm text-muted-foreground mt-1">NDA-gated workspaces. Immutable audit trail active on every room.</p>
       </FadeInView>
 
       {/* Stats Row */}
@@ -176,7 +176,7 @@ export default function DealRooms() {
                   </h3>
 
                   {/* New text line added */}
-                  <p className="text-[10px] text-[#1E3A5F]/50">Every document access and signature is cryptographically logged.</p>
+                  <p className="text-[10px] text-[#1E3A5F]/50 mt-0.5">Every document access and signature is cryptographically logged.</p>
 
                   {/* Parties (anonymized) */}
                   <div className="text-sm text-muted-foreground">

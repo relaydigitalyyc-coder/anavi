@@ -1,5 +1,6 @@
 import { useActiveIndustry, useDemoFixtures } from "@/contexts/DemoContext";
 import { trpc } from "@/lib/trpc";
+import { mapRawPayouts, type RawPayout } from "@/lib/payoutUtils";
 import {
   FadeInView,
   StaggerContainer,
@@ -18,42 +19,11 @@ export default function AttributionLedger() {
   const { data: livePayouts } = trpc.payout.list.useQuery(undefined, {
     enabled: !demo,
   });
-  const rawPayouts = (demo?.payouts ?? livePayouts ?? []) as unknown as Array<
-    {
-      id: number;
-      amount: number | string;
-    } & Record<string, unknown>
-  >;
-
-  const payouts: Array<{
-    id: number;
-    deal: string;
-    amount: number;
-    status: string;
-    originatorShare: number | null;
-  }> = rawPayouts.map(payout => {
-    const amount =
-      typeof payout.amount === "number"
-        ? payout.amount
-        : parseFloat(String(payout.amount));
-    const deal =
-      "deal" in payout && payout.deal
-        ? payout.deal
-        : `Deal #${"dealId" in payout ? payout.dealId : payout.id}`;
-    const status =
-      "status" in payout && payout.status ? payout.status : "pending";
-    const originatorShare =
-      "originatorShare" in payout && typeof payout.originatorShare === "number"
-        ? payout.originatorShare
-        : null;
-    return {
-      id: payout.id,
-      deal: String(deal),
-      amount,
-      status: String(status),
-      originatorShare,
-    };
-  });
+  const rawPayouts = (demo?.payouts ?? livePayouts ?? []) as unknown as RawPayout[];
+  const payouts = mapRawPayouts(rawPayouts).map(payout => ({
+    ...payout,
+    originatorShare: payout.originatorShare ?? null,
+  }));
 
   const lifetimeTotal = payouts.reduce((sum, payout) => sum + payout.amount, 0);
 

@@ -1,0 +1,8 @@
+[
+  {
+    "id": "split-demo-pages",
+    "description": "Complete the Demo.tsx split into demo/ subdirectory",
+    "prompt": "Complete the split of Demo.tsx. The demo/ subdirectory already exists with: atoms.tsx (C, ICON_MAP, useCountUp, getScoreColor, TrustRing, DashCard, NotifBadgeStyle, NotifBorderColor, ValuePropositionBanner), DemoBanner.tsx, PersonaSelector.tsx, types.ts.\n\nWhat is NOT yet extracted:\n- Lines 358-580: DemoDashboardContent\n- Lines 581-676: DemoRelationshipsContent\n- Lines 677-783: DemoMatchesContent\n- Lines 784-858: DemoVerificationContent\n- Lines 859-925: DemoPayoutsContent\n- Lines 926-1051: DemoDealRoomsContent\n- Lines 1052-1107: DealRoomInteriorModal\n- Lines 1108-1241: DemoDashboard\n- Lines 1242-1278: export default Demo (the root component)\n- Lines 1279-1322: DemoInner\n\nYour task:\n1. Read Demo.tsx fully to understand imports and all function signatures\n2. Create client/src/pages/demo/DemoContentPages.tsx with lines 358-1107 (DemoDashboardContent through DealRoomInteriorModal) — import shared helpers from './atoms' and types from './types' and DemoBanner from './DemoBanner'\n3. Create client/src/pages/demo/index.tsx with lines 1108-1322 (DemoDashboard + Demo + DemoInner) — import from './DemoContentPages', './PersonaSelector', './DemoBanner', './types'\n4. Convert Demo.tsx to a 1-line barrel: export { default } from './demo';\n5. Run pnpm check and fix any TypeScript errors\n\nAll files must be under 800 lines. Preserve all existing logic exactly — no behavior changes.",
+    "workdir": "/home/ariel/Documents/anavi-main/anavi"
+  }
+]

@@ -1,5 +1,20 @@
-import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence, MotionValue } from "framer-motion";
-import { ReactNode, useRef, useEffect, useState, createContext, useContext } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useInView,
+  AnimatePresence,
+  MotionValue,
+} from "framer-motion";
+import {
+  ReactNode,
+  useRef,
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+} from "react";
 
 // ============================================================================
 // AWWWARDS-LEVEL ANIMATION LIBRARY
@@ -16,7 +31,7 @@ export function ScrollProgress() {
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
-    restDelta: 0.001
+    restDelta: 0.001,
   });
 
   return (
@@ -37,7 +52,11 @@ interface MagneticProps {
   strength?: number;
 }
 
-export function Magnetic({ children, className = "", strength = 0.3 }: MagneticProps) {
+export function Magnetic({
+  children,
+  className = "",
+  strength = 0.3,
+}: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -78,7 +97,12 @@ interface TextRevealProps {
   type?: "char" | "word" | "line";
 }
 
-export function TextReveal({ children, className = "", delay = 0, type = "word" }: TextRevealProps) {
+export function TextReveal({
+  children,
+  className = "",
+  delay = 0,
+  type = "word",
+}: TextRevealProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -94,7 +118,7 @@ export function TextReveal({ children, className = "", delay = 0, type = "word" 
             transition={{
               duration: 0.5,
               delay: delay + i * 0.02,
-              ease: [0.215, 0.61, 0.355, 1]
+              ease: [0.215, 0.61, 0.355, 1],
             }}
             style={{ display: "inline-block" }}
           >
@@ -117,7 +141,7 @@ export function TextReveal({ children, className = "", delay = 0, type = "word" 
               transition={{
                 duration: 0.6,
                 delay: delay + i * 0.08,
-                ease: [0.215, 0.61, 0.355, 1]
+                ease: [0.215, 0.61, 0.355, 1],
               }}
               style={{ display: "inline-block" }}
             >
@@ -132,14 +156,18 @@ export function TextReveal({ children, className = "", delay = 0, type = "word" 
 
   // Line reveal
   return (
-    <span ref={ref} className={className} style={{ display: "block", overflow: "hidden" }}>
+    <span
+      ref={ref}
+      className={className}
+      style={{ display: "block", overflow: "hidden" }}
+    >
       <motion.span
         initial={{ y: "100%" }}
         animate={isInView ? { y: 0 } : {}}
         transition={{
           duration: 0.8,
           delay,
-          ease: [0.215, 0.61, 0.355, 1]
+          ease: [0.215, 0.61, 0.355, 1],
         }}
         style={{ display: "block" }}
       >
@@ -160,7 +188,12 @@ interface ParallaxProps {
   direction?: "up" | "down";
 }
 
-export function Parallax({ children, className = "", speed = 0.5, direction = "up" }: ParallaxProps) {
+export function Parallax({
+  children,
+  className = "",
+  speed = 0.5,
+  direction = "up",
+}: ParallaxProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const [elementTop, setElementTop] = useState(0);
@@ -173,14 +206,16 @@ export function Parallax({ children, className = "", speed = 0.5, direction = "u
       setClientHeight(window.innerHeight);
     };
     setValues();
-    window.addEventListener('resize', setValues);
-    return () => window.removeEventListener('resize', setValues);
+    window.addEventListener("resize", setValues);
+    return () => window.removeEventListener("resize", setValues);
   }, []);
 
   const y = useTransform(
     scrollY,
     [elementTop - clientHeight, elementTop + clientHeight],
-    direction === "up" ? [100 * speed, -100 * speed] : [-100 * speed, 100 * speed]
+    direction === "up"
+      ? [100 * speed, -100 * speed]
+      : [-100 * speed, 100 * speed]
   );
 
   return (
@@ -203,7 +238,13 @@ interface Particle {
   delay: number;
 }
 
-export function FloatingParticles({ count = 20, className = "" }: { count?: number; className?: string }) {
+export function FloatingParticles({
+  count = 20,
+  className = "",
+}: {
+  count?: number;
+  className?: string;
+}) {
   const [particles] = useState<Particle[]>(() =>
     Array.from({ length: count }, (_, i) => ({
       id: i,
@@ -211,13 +252,15 @@ export function FloatingParticles({ count = 20, className = "" }: { count?: numb
       y: Math.random() * 100,
       size: Math.random() * 4 + 2,
       duration: Math.random() * 10 + 15,
-      delay: Math.random() * 5
+      delay: Math.random() * 5,
     }))
   );
 
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
-      {particles.map((particle) => (
+    <div
+      className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}
+    >
+      {particles.map(particle => (
         <motion.div
           key={particle.id}
           className="absolute bg-accent/20"
@@ -225,18 +268,18 @@ export function FloatingParticles({ count = 20, className = "" }: { count?: numb
             left: `${particle.x}%`,
             top: `${particle.y}%`,
             width: particle.size,
-            height: particle.size
+            height: particle.size,
           }}
           animate={{
             y: [0, -30, 0],
             x: [0, 15, 0],
-            opacity: [0.2, 0.5, 0.2]
+            opacity: [0.2, 0.5, 0.2],
           }}
           transition={{
             duration: particle.duration,
             repeat: Infinity,
             delay: particle.delay,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         />
       ))}
@@ -250,7 +293,9 @@ export function FloatingParticles({ count = 20, className = "" }: { count?: numb
 
 export function MorphingShapes({ className = "" }: { className?: string }) {
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
+    <div
+      className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}
+    >
       {/* Shape 1 - Large floating square */}
       <motion.div
         className="absolute w-96 h-96 bg-accent/5 border border-accent/10"
@@ -259,57 +304,57 @@ export function MorphingShapes({ className = "" }: { className?: string }) {
           rotate: [0, 90, 180, 270, 360],
           scale: [1, 1.1, 1, 0.9, 1],
           x: [0, 30, 0, -30, 0],
-          y: [0, -20, 0, 20, 0]
+          y: [0, -20, 0, 20, 0],
         }}
         transition={{
           duration: 30,
           repeat: Infinity,
-          ease: "linear"
+          ease: "linear",
         }}
       />
-      
+
       {/* Shape 2 - Medium rectangle */}
       <motion.div
         className="absolute w-64 h-32 bg-foreground/3"
         style={{ bottom: "20%", left: "10%" }}
         animate={{
           rotate: [0, -45, 0, 45, 0],
-          scale: [1, 1.2, 1, 0.8, 1]
+          scale: [1, 1.2, 1, 0.8, 1],
         }}
         transition={{
           duration: 25,
           repeat: Infinity,
-          ease: "easeInOut"
+          ease: "easeInOut",
         }}
       />
-      
+
       {/* Shape 3 - Small accent square */}
       <motion.div
         className="absolute w-24 h-24 bg-accent/10"
         style={{ top: "40%", left: "30%" }}
         animate={{
           y: [0, -50, 0, 50, 0],
-          rotate: [0, 180, 360]
+          rotate: [0, 180, 360],
         }}
         transition={{
           duration: 20,
           repeat: Infinity,
-          ease: "easeInOut"
+          ease: "easeInOut",
         }}
       />
-      
+
       {/* Shape 4 - Outline square */}
       <motion.div
         className="absolute w-48 h-48 border-2 border-border"
         style={{ bottom: "10%", right: "20%" }}
         animate={{
           rotate: [0, 360],
-          scale: [1, 1.15, 1]
+          scale: [1, 1.15, 1],
         }}
         transition={{
           duration: 35,
           repeat: Infinity,
-          ease: "linear"
+          ease: "linear",
         }}
       />
     </div>
@@ -329,13 +374,13 @@ interface AnimatedCounterProps {
   decimals?: number;
 }
 
-export function AnimatedCounter({ 
-  value, 
-  duration = 2, 
-  prefix = "", 
-  suffix = "", 
+export function AnimatedCounter({
+  value,
+  duration = 2,
+  prefix = "",
+  suffix = "",
   className = "",
-  decimals = 0 
+  decimals = 0,
 }: AnimatedCounterProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -343,31 +388,33 @@ export function AnimatedCounter({
 
   useEffect(() => {
     if (!isInView) return;
-    
+
     let startTime: number;
     const startValue = 0;
-    
+
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
-      
+
       // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       const currentValue = startValue + (value - startValue) * easeOutQuart;
-      
+
       setDisplayValue(currentValue);
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       }
     };
-    
+
     requestAnimationFrame(animate);
   }, [isInView, value, duration]);
 
   return (
     <span ref={ref} className={className}>
-      {prefix}{decimals > 0 ? displayValue.toFixed(decimals) : Math.round(displayValue)}{suffix}
+      {prefix}
+      {decimals > 0 ? displayValue.toFixed(decimals) : Math.round(displayValue)}
+      {suffix}
     </span>
   );
 }
@@ -383,17 +430,22 @@ interface StaggeredGridProps {
   staggerDelay?: number;
 }
 
-export function StaggeredGrid({ children, className = "", columns = 3, staggerDelay = 0.1 }: StaggeredGridProps) {
+export function StaggeredGrid({
+  children,
+  className = "",
+  columns = 3,
+  staggerDelay = 0.1,
+}: StaggeredGridProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
-    <div 
-      ref={ref} 
+    <div
+      ref={ref}
       className={className}
-      style={{ 
-        display: "grid", 
-        gridTemplateColumns: `repeat(${columns}, 1fr)` 
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${columns}, 1fr)`,
       }}
     >
       {children.map((child, i) => (
@@ -404,7 +456,7 @@ export function StaggeredGrid({ children, className = "", columns = 3, staggerDe
           transition={{
             duration: 0.6,
             delay: i * staggerDelay,
-            ease: [0.215, 0.61, 0.355, 1]
+            ease: [0.215, 0.61, 0.355, 1],
           }}
         >
           {child}
@@ -466,7 +518,10 @@ interface AnimatedBorderProps {
   className?: string;
 }
 
-export function AnimatedBorder({ children, className = "" }: AnimatedBorderProps) {
+export function AnimatedBorder({
+  children,
+  className = "",
+}: AnimatedBorderProps) {
   return (
     <div className={`relative group ${className}`}>
       {/* Animated border */}
@@ -521,12 +576,12 @@ interface RevealOnScrollProps {
   duration?: number;
 }
 
-export function RevealOnScroll({ 
-  children, 
-  className = "", 
+export function RevealOnScroll({
+  children,
+  className = "",
   direction = "up",
   delay = 0,
-  duration = 0.6
+  duration = 0.6,
 }: RevealOnScrollProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -535,7 +590,7 @@ export function RevealOnScroll({
     up: { y: 60, x: 0 },
     down: { y: -60, x: 0 },
     left: { x: 60, y: 0 },
-    right: { x: -60, y: 0 }
+    right: { x: -60, y: 0 },
   };
 
   return (
@@ -546,7 +601,7 @@ export function RevealOnScroll({
       transition={{
         duration,
         delay,
-        ease: [0.215, 0.61, 0.355, 1]
+        ease: [0.215, 0.61, 0.355, 1],
       }}
       className={className}
     >
@@ -569,7 +624,7 @@ export function Skeleton({ className = "", variant = "rect" }: SkeletonProps) {
   const variantClass = {
     text: "h-4 rounded-none",
     rect: "rounded-none",
-    circle: "rounded-full"
+    circle: "rounded-full",
   };
 
   return (
@@ -585,9 +640,18 @@ export function Skeleton({ className = "", variant = "rect" }: SkeletonProps) {
 // PREMIUM LOADING SPINNER
 // ============================================================================
 
-export function PremiumSpinner({ size = 40, className = "" }: { size?: number; className?: string }) {
+export function PremiumSpinner({
+  size = 40,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) {
   return (
-    <div className={`relative ${className}`} style={{ width: size, height: size }}>
+    <div
+      className={`relative ${className}`}
+      style={{ width: size, height: size }}
+    >
       <motion.div
         className="absolute inset-0 border border-border"
         animate={{ rotate: 360 }}
@@ -622,19 +686,19 @@ export function CursorFollower() {
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('button, a, [data-cursor-hover]')) {
+      if (target.closest("button, a, [data-cursor-hover]")) {
         setIsHovering(true);
       } else {
         setIsHovering(false);
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseover', handleMouseOver);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseover", handleMouseOver);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseover", handleMouseOver);
     };
   }, []);
 
@@ -646,7 +710,7 @@ export function CursorFollower() {
         animate={{
           x: position.x - 4,
           y: position.y - 4,
-          scale: isHovering ? 3 : 1
+          scale: isHovering ? 3 : 1,
         }}
         transition={{ type: "spring", stiffness: 500, damping: 28 }}
       />
@@ -657,7 +721,7 @@ export function CursorFollower() {
           x: position.x - 16,
           y: position.y - 16,
           scale: isHovering ? 1.5 : 1,
-          opacity: isHovering ? 0 : 1
+          opacity: isHovering ? 0 : 1,
         }}
         transition={{ type: "spring", stiffness: 150, damping: 15 }}
       />
@@ -674,14 +738,17 @@ interface AnimatedDividerProps {
   direction?: "left" | "right" | "center";
 }
 
-export function AnimatedDivider({ className = "", direction = "left" }: AnimatedDividerProps) {
+export function AnimatedDivider({
+  className = "",
+  direction = "left",
+}: AnimatedDividerProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
   const origins = {
     left: "left",
     right: "right",
-    center: "center"
+    center: "center",
   };
 
   return (
@@ -706,7 +773,11 @@ interface MarqueeProps {
   className?: string;
 }
 
-export function Marquee({ children, speed = 20, className = "" }: MarqueeProps) {
+export function Marquee({
+  children,
+  speed = 20,
+  className = "",
+}: MarqueeProps) {
   return (
     <div className={`overflow-hidden ${className}`}>
       <motion.div
@@ -715,7 +786,7 @@ export function Marquee({ children, speed = 20, className = "" }: MarqueeProps) 
         transition={{
           duration: speed,
           repeat: Infinity,
-          ease: "linear"
+          ease: "linear",
         }}
       >
         <span className="flex-shrink-0">{children}</span>
@@ -735,17 +806,18 @@ interface GlowProps {
   color?: string;
 }
 
-export function Glow({ children, className = "", color = "oklch(0.72 0.14 70)" }: GlowProps) {
+export function Glow({
+  children,
+  className = "",
+  color = "oklch(0.72 0.14 70)",
+}: GlowProps) {
   return (
-    <motion.div
-      className={`relative ${className}`}
-      whileHover="hover"
-    >
+    <motion.div className={`relative ${className}`} whileHover="hover">
       <motion.div
         className="absolute inset-0 blur-xl opacity-0"
         style={{ backgroundColor: color }}
         variants={{
-          hover: { opacity: 0.3 }
+          hover: { opacity: 0.3 },
         }}
         transition={{ duration: 0.3 }}
       />
@@ -764,7 +836,11 @@ interface SplitTextProps {
   delay?: number;
 }
 
-export function SplitText({ children, className = "", delay = 0 }: SplitTextProps) {
+export function SplitText({
+  children,
+  className = "",
+  delay = 0,
+}: SplitTextProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const words = children.split(" ");
@@ -780,7 +856,7 @@ export function SplitText({ children, className = "", delay = 0 }: SplitTextProp
             transition={{
               duration: 0.8,
               delay: delay + wordIndex * 0.1,
-              ease: [0.215, 0.61, 0.355, 1]
+              ease: [0.215, 0.61, 0.355, 1],
             }}
           >
             {word}
@@ -802,15 +878,16 @@ interface ChartRevealProps {
   delay?: number;
 }
 
-export function ChartReveal({ children, className = "", delay = 0 }: ChartRevealProps) {
+export function ChartReveal({
+  children,
+  className = "",
+  delay = 0,
+}: ChartRevealProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <motion.div
-      ref={ref}
-      className={`relative overflow-hidden ${className}`}
-    >
+    <motion.div ref={ref} className={`relative overflow-hidden ${className}`}>
       {/* Reveal mask */}
       <motion.div
         className="absolute inset-0 bg-background z-10"
@@ -819,7 +896,7 @@ export function ChartReveal({ children, className = "", delay = 0 }: ChartReveal
         transition={{
           duration: 1,
           delay,
-          ease: [0.215, 0.61, 0.355, 1]
+          ease: [0.215, 0.61, 0.355, 1],
         }}
       />
       {children}
@@ -836,7 +913,10 @@ interface NotificationBadgeProps {
   className?: string;
 }
 
-export function NotificationBadge({ count, className = "" }: NotificationBadgeProps) {
+export function NotificationBadge({
+  count,
+  className = "",
+}: NotificationBadgeProps) {
   return (
     <AnimatePresence>
       {count > 0 && (
@@ -862,18 +942,35 @@ export function AnimatedGradient({ className = "" }: { className?: string }) {
     <motion.div
       className={`absolute inset-0 pointer-events-none ${className}`}
       style={{
-        background: "radial-gradient(circle at 50% 50%, oklch(0.72 0.14 70 / 0.05) 0%, transparent 50%)"
+        background:
+          "radial-gradient(circle at 50% 50%, oklch(0.72 0.14 70 / 0.05) 0%, transparent 50%)",
       }}
       animate={{
-        backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"]
+        backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
       }}
       transition={{
         duration: 20,
         repeat: Infinity,
-        ease: "linear"
+        ease: "linear",
       }}
     />
   );
+}
+
+// ============================================================================
+// ALIASES — for split components that use these names
+// ============================================================================
+export { RevealOnScroll as SmoothReveal };
+export { AnimatedCounter as SmoothCounter };
+export { StaggeredGrid as StaggeredList };
+export function Spotlight({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={className}>{children}</div>;
 }
 
 // ============================================================================
@@ -895,5 +992,5 @@ export {
   type GlowProps,
   type SplitTextProps,
   type ChartRevealProps,
-  type NotificationBadgeProps
+  type NotificationBadgeProps,
 };

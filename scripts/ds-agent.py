@@ -260,7 +260,7 @@ def chat(messages: list, api_key: str) -> dict:
         "messages": messages,
         "tools": TOOLS,
         "tool_choice": "auto",
-        "max_tokens": 4096,
+        "max_tokens": 8192,
     }).encode()
     req = urllib.request.Request(
         API_URL,
@@ -335,6 +335,7 @@ def run_agent(task: str, api_key: str, verbose: bool = True) -> str:
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def main():
+    global MODEL
     parser = argparse.ArgumentParser(description="DeepSeek coding agent")
     parser.add_argument("task", nargs="?", help="Task description")
     parser.add_argument("--file", "-f", help="Read task from file")
@@ -365,7 +366,6 @@ def main():
         print("ERROR: provide a task via argument, --file, or stdin", file=sys.stderr)
         sys.exit(1)
 
-    global MODEL
     MODEL = args.model
 
     result = run_agent(task, api_key, verbose=not args.quiet)

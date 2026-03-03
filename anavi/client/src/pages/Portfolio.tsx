@@ -1,5 +1,6 @@
 import { useActiveIndustry, useDemoFixtures } from "@/contexts/DemoContext";
 import { trpc } from "@/lib/trpc";
+import { mapRawPayouts, type RawPayout } from "@/lib/payoutUtils";
 import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { useMemo } from "react";
 import { useLocation } from "wouter";
@@ -16,39 +17,12 @@ export default function Portfolio() {
   const [location] = useLocation();
   const industry = useActiveIndustry() ?? "Infrastructure";
   const { data: livePayouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
-  const rawPositions = (demo?.payouts ?? livePayouts ?? []) as Array<{
-    id: number;
-    amount: number | string;
-  } & Record<string, unknown>>;
-
-  const positions: Array<{
-    id: number;
-    deal: string;
-    amount: number;
-    status: string;
-    irr: number | null;
-    vintage: string | null;
-  }> = rawPositions.map((payout) => {
-    const amount = typeof payout.amount === "number" ? payout.amount : parseFloat(String(payout.amount));
-    const deal = "deal" in payout && payout.deal ? payout.deal : `Deal #${"dealId" in payout ? payout.dealId : payout.id}`;
-    const status = "status" in payout && payout.status ? payout.status : "pending";
-    const irr =
-      "irr" in payout && typeof payout.irr === "number"
-        ? payout.irr
-        : null;
-    const vintage =
-      "vintage" in payout && typeof payout.vintage === "string"
-        ? payout.vintage
-        : null;
-    return {
-      id: payout.id,
-      deal: String(deal),
-      amount,
-      status: String(status),
-      irr,
-      vintage,
-    };
-  });
+  const rawPositions = (demo?.payouts ?? livePayouts ?? []) as RawPayout[];
+  const positions = mapRawPayouts(rawPositions).map(payout => ({
+    ...payout,
+    irr: payout.irr ?? null,
+    vintage: payout.vintage ?? null,
+  }));
   const params = useMemo(() => {
     if (typeof window === "undefined") return new URLSearchParams();
     return new URLSearchParams(window.location.search);

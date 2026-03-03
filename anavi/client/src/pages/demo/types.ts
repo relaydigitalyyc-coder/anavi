@@ -1,0 +1,1 @@
+export type DemoPage = 'dashboard' | 'relationships' | 'matches' | 'dealrooms' | 'verification' | 'payouts';
