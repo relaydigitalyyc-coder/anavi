@@ -131,3 +131,13 @@ R8 success is achieved when:
 3. CTAs are truth-aligned with system transitions.
 4. Persona and runtime mode behavior remains deterministic.
 5. Documentation and memory layers reflect implementation truth.
+
+
+## Block→Flow Mapping (Pass 1)
+
+- Investor → Compliance Passport → /verification, /compliance (live/hybrid); demo shows KYB/OFAC/AML chips.
+- Principal → Compliance Passport → /verification, /compliance (live/hybrid); demo shows KYB/OFAC/AML chips.
+- Top Bar → Trust Score chip → /verification for upgrade path (via Verification page actions).
+- Mode chip displays ; live mode hides demo-only content.
+
+Verification: tsc clean; vitest 67/67; production build OK (Node 20.18 warning).

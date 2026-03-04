@@ -247,3 +247,22 @@ MD}
 - Fixed TypeScript contradictions on Investor/Principal dashboards (relationships/matches/dealRooms shape drift).
 - InvestorDashboard/PrincipalDashboard: made relationship map tolerant, avoided unsafe casts, normalized read-only arrays for demo data.
 - Verification: cd anavi && npm run check passes on Node v20.18.
+
+### 2026-03-04 — R8 Dashboard Truthfulness + Runtime Gating (Pass 1)
+
+- Removed misleading Trust Score aria label in DashboardLayout; no implied "Enhanced" claim.
+- Trust Score fallback in live/hybrid now 0 when unknown (previously 84).
+- Investor/Principal dashboards: gated demo-only KYB/OFAC/AML "OK" chips; added live-mode CTAs to /verification and /compliance.
+- Preserved persona coherence and route legality; fixed JSX wrapper issues after gating.
+- Validation: tsc clean; vitest: 67/67; vite build: success (Node 20.18 warning acknowledged).
+- Spec 000 marked COMPLETE; docs/ops synced (plans registry, TODO_BOARD updated).
+
+
+### 2026-03-04 — R8 Dashboard Truthfulness + Runtime Gating (Pass 1)
+
+- Removed misleading Trust Score aria label in DashboardLayout; no implied "Enhanced" claim.
+- Trust Score fallback in live/hybrid now 0 when unknown (previously 84).
+- Investor/Principal dashboards: gated demo-only KYB/OFAC/AML "OK" chips; added live-mode CTAs to /verification and /compliance.
+- Preserved persona coherence and route legality; fixed JSX wrapper issues after gating.
+- Validation: tsc clean; vitest: 67/67; vite build: success (Node 20.18 warning acknowledged).
+- Spec 000 marked COMPLETE; docs/ops synced (plans registry, TODO_BOARD updated).

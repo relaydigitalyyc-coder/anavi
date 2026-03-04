@@ -122,7 +122,8 @@
       "Bash(grep -n \"SmoothReveal\\\\|SmoothCounter\\\\|Spotlight\\\\|StaggeredList\\\\|Magnetic\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/home/*.tsx | head -30)",
       "mcp__plugin_context-mode_context-mode__batch_execute",
       "Bash(wc -l /home/ariel/Documents/anavi-main/anavi/client/src/pages/Demo.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.ts 2>/dev/null && echo \"---\" && pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -5)",
-      "Bash(pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -10)"
+      "Bash(pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -10)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && node_modules/.bin/tsc --noEmit 2>&1 | tail -10)"
     ]
   }
 }
