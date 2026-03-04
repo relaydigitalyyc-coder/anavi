@@ -171,8 +171,8 @@ Do not prematurely claim all done. Continue sweeping for edge-case drift until n
 - Plans, engineering memory, and TODO board must stay current with implementation truth.
 
 **Acceptance Criteria**
-- [ ] `anavi/docs/plans/README.md` references active consistency work.
-- [ ] `anavi/docs/ops/ENGINEERING_MEMORY.md` and `TODO_BOARD.md` reflect true execution status.
+-[x][x] `anavi/docs/plans/README.md` references active consistency work.
+-[x][x] `anavi/docs/ops/ENGINEERING_MEMORY.md` and `TODO_BOARD.md` reflect true execution status.
 
 ### FR-6: Advanced Flow Integrity
 
