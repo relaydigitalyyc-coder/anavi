@@ -12,26 +12,69 @@ import { IncomingTab } from "./IncomingTab";
 import { HistoryTab } from "./HistoryTab";
 import { CreateIntentModal } from "./CreateIntentModal";
 import { MatchReviewPanel } from "./MatchReviewPanel";
+import { useDemoFixtures } from "@/contexts/DemoContext";
 
 type TabKey = "intents" | "incoming" | "history";
 
 export default function DealMatching() {
   const [, setLocation] = useLocation();
+  const demo = useDemoFixtures();
+  const isDemo = !!demo;
   const [activeTab, setActiveTab] = useState<TabKey>("intents");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [reviewMatchId, setReviewMatchId] = useState<number | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
 
   const {
-    data: intents,
-    isLoading: intentsLoading,
+    data: liveIntents,
+    isLoading: liveIntentsLoading,
     refetch: refetchIntents,
-  } = trpc.intent.list.useQuery();
+  } = trpc.intent.list.useQuery(undefined, { enabled: !isDemo });
   const {
-    data: matches,
-    isLoading: matchesLoading,
+    data: liveMatches,
+    isLoading: liveMatchesLoading,
     refetch: refetchMatches,
-  } = trpc.match.list.useQuery();
+  } = trpc.match.list.useQuery(undefined, { enabled: !isDemo });
+
+  const demoIntents = useMemo(() => {
+    if (!demo) return [];
+    return (demo.intents as unknown as Record<string, unknown>[]).map(
+      (r, i) => ({
+        id: Number(r.id),
+        intentType: String(r.type ?? "buy"),
+        title: `${r.type === "sell" ? "Offering" : "Seeking"}: ${r.assetClass ?? "Private Markets"} — ${r.size ?? "TBD"}`,
+        description: `Blind intent for ${r.assetClass} opportunities`,
+        assetType: r.assetClass
+          ? String(r.assetClass).toLowerCase().replace(/\s+/g, "_")
+          : null,
+        status: "active",
+        isAnonymous: true,
+        createdAt: new Date(Date.now() - (i + 1) * 86400000 * 7).toISOString(),
+      })
+    );
+  }, [demo]);
+
+  const demoMatches = useMemo(() => {
+    if (!demo) return [];
+    const statuses = ["pending", "user1_interested", "mutual_interest"];
+    return (demo.matches as unknown as Record<string, unknown>[]).map(
+      (r, i) => ({
+        id: Number(r.id),
+        status: statuses[i % statuses.length],
+        compatibilityScore: String(r.compatibilityScore ?? "0"),
+        matchReason: r.tag ? String(r.tag) : null,
+        intent1Id: i * 2 + 1,
+        intent2Id: i * 2 + 2,
+        createdAt: new Date(Date.now() - (i + 1) * 86400000 * 3).toISOString(),
+        dealRoomId: null,
+      })
+    );
+  }, [demo]);
+
+  const intents = isDemo ? demoIntents : (liveIntents ?? []);
+  const matches = isDemo ? demoMatches : (liveMatches ?? []);
+  const intentsLoading = isDemo ? false : liveIntentsLoading;
+  const matchesLoading = isDemo ? false : liveMatchesLoading;
 
   const updateIntentMutation = trpc.intent.update.useMutation({
     onSuccess: () => {
@@ -175,12 +218,18 @@ export default function DealMatching() {
           <IntentsTab
             intents={intents ?? []}
             loading={intentsLoading}
-            onToggleStatus={(id: number, status: string) =>
+            onToggleStatus={(id: number, status: string) => {
+              if (isDemo) {
+                toast.info(
+                  status === "active" ? "Intent paused" : "Intent activated"
+                );
+                return;
+              }
               updateIntentMutation.mutate({
                 id,
                 status: status === "active" ? "paused" : "active",
-              })
-            }
+              });
+            }}
             onCreateIntent={() => setShowCreateModal(true)}
             onViewMatches={() => setActiveTab("incoming")}
           />
@@ -191,6 +240,10 @@ export default function DealMatching() {
             loading={matchesLoading}
             onReview={(id: number) => setReviewMatchId(id)}
             onDecline={(id: number) => {
+              if (isDemo) {
+                toast.info("Match declined");
+                return;
+              }
               toast("Match declined", {
                 description: "This match has been removed",
                 action: {
@@ -234,11 +287,20 @@ export default function DealMatching() {
           match={reviewMatch}
           onClose={() => setReviewMatchId(null)}
           onAccept={() => {
-            createDealRoomMutation.mutate({ matchId: reviewMatch.id });
+            if (isDemo) {
+              toast.success("Deal room created!");
+              setLocation("/deal-rooms");
+            } else {
+              createDealRoomMutation.mutate({ matchId: reviewMatch.id });
+            }
             setReviewMatchId(null);
           }}
           onDecline={() => {
-            declineMatchMutation.mutate({ matchId: reviewMatch.id });
+            if (isDemo) {
+              toast.info("Match declined");
+            } else {
+              declineMatchMutation.mutate({ matchId: reviewMatch.id });
+            }
             setReviewMatchId(null);
           }}
         />

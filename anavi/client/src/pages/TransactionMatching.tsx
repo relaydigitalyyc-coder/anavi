@@ -1,24 +1,69 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Zap, Search, Filter, Plus, ArrowLeftRight, CheckCircle,
-  AlertTriangle, Shield, Globe, Users, TrendingUp, Eye,
-  MessageSquare, Star, Verified, FileText, Wallet, Building2,
-  Gem, Droplets, Home, Target, Sparkles, Clock, DollarSign,
-  ChevronRight, ArrowRight, ThumbsUp, ThumbsDown, Handshake
+import {
+  Zap,
+  Search,
+  Filter,
+  Plus,
+  ArrowLeftRight,
+  CheckCircle,
+  AlertTriangle,
+  Shield,
+  Globe,
+  Users,
+  TrendingUp,
+  Eye,
+  MessageSquare,
+  Star,
+  Verified,
+  FileText,
+  Wallet,
+  Building2,
+  Gem,
+  Droplets,
+  Home,
+  Target,
+  Sparkles,
+  Clock,
+  DollarSign,
+  ChevronRight,
+  ArrowRight,
+  ThumbsUp,
+  ThumbsDown,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib/trpc";
+import { useAppMode } from "@/contexts/AppModeContext";
 
 const fallbackTransactionMatches = [
   {
@@ -165,28 +210,57 @@ const buyerCriteria = [
 
 const getAssetIcon = (assetClass: string) => {
   switch (assetClass) {
-    case "gold": return <Gem className="h-5 w-5 text-yellow-500" />;
-    case "oil_gas": return <Droplets className="h-5 w-5 text-blue-500" />;
-    case "real_estate": return <Home className="h-5 w-5 text-green-500" />;
-    case "minerals": return <Building2 className="h-5 w-5 text-orange-500" />;
-    default: return <Globe className="h-5 w-5 text-gray-500" />;
+    case "gold":
+      return <Gem className="h-5 w-5 text-yellow-500" />;
+    case "oil_gas":
+      return <Droplets className="h-5 w-5 text-blue-500" />;
+    case "real_estate":
+      return <Home className="h-5 w-5 text-green-500" />;
+    case "minerals":
+      return <Building2 className="h-5 w-5 text-orange-500" />;
+    default:
+      return <Globe className="h-5 w-5 text-gray-500" />;
   }
 };
 
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "pending":
-      return <Badge variant="outline" className="bg-gray-500/10 text-gray-600">Pending Review</Badge>;
+      return (
+        <Badge variant="outline" className="bg-gray-500/10 text-gray-600">
+          Pending Review
+        </Badge>
+      );
     case "buyer_interested":
-      return <Badge variant="outline" className="bg-blue-500/10 text-blue-600">Buyer Interested</Badge>;
+      return (
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600">
+          Buyer Interested
+        </Badge>
+      );
     case "seller_interested":
-      return <Badge variant="outline" className="bg-purple-500/10 text-purple-600">Seller Interested</Badge>;
+      return (
+        <Badge variant="outline" className="bg-purple-500/10 text-purple-600">
+          Seller Interested
+        </Badge>
+      );
     case "mutual_interest":
-      return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Mutual Interest</Badge>;
+      return (
+        <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+          Mutual Interest
+        </Badge>
+      );
     case "negotiating":
-      return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Negotiating</Badge>;
+      return (
+        <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+          Negotiating
+        </Badge>
+      );
     case "due_diligence":
-      return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">Due Diligence</Badge>;
+      return (
+        <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+          Due Diligence
+        </Badge>
+      );
     case "completed":
       return <Badge className="bg-green-500 text-white">Completed</Badge>;
     default:
@@ -194,7 +268,11 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) => {
+const MatchCard = ({
+  match,
+}: {
+  match: (typeof fallbackTransactionMatches)[0];
+}) => {
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-500";
     if (score >= 75) return "text-yellow-500";
@@ -214,15 +292,23 @@ const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) =
             <div className="flex items-center gap-3">
               {getAssetIcon(match.assetClass)}
               <div>
-                <CardTitle className="text-base">Transaction Match #{match.id}</CardTitle>
-                <CardDescription className="capitalize">{match.assetClass.replace("_", " ")}</CardDescription>
+                <CardTitle className="text-base">
+                  Transaction Match #{match.id}
+                </CardTitle>
+                <CardDescription className="capitalize">
+                  {match.assetClass.replace("_", " ")}
+                </CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(match.status)}
               <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted">
                 <Sparkles className="h-4 w-4 text-purple-500" />
-                <span className={`font-bold ${getScoreColor(match.matchScore)}`}>{match.matchScore}%</span>
+                <span
+                  className={`font-bold ${getScoreColor(match.matchScore)}`}
+                >
+                  {match.matchScore}%
+                </span>
               </div>
             </div>
           </div>
@@ -238,12 +324,19 @@ const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) =
               </div>
               <p className="font-semibold flex items-center gap-1">
                 {match.buyer.name}
-                {match.buyer.verified && <Verified className="h-3 w-3 text-blue-500" />}
+                {match.buyer.verified && (
+                  <Verified className="h-3 w-3 text-blue-500" />
+                )}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{match.buyer.criteria}</p>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                {match.buyer.criteria}
+              </p>
               <div className="flex gap-2 mt-2">
                 {match.buyer.proofOfFunds && (
-                  <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600">
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-green-500/10 text-green-600"
+                  >
                     <CheckCircle className="h-3 w-3 mr-1" />
                     POF
                   </Badge>
@@ -255,16 +348,25 @@ const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) =
             <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <Building2 className="h-4 w-4 text-green-500" />
-                <span className="text-xs font-medium text-green-600">SELLER</span>
+                <span className="text-xs font-medium text-green-600">
+                  SELLER
+                </span>
               </div>
               <p className="font-semibold flex items-center gap-1">
                 {match.seller.name}
-                {match.seller.verified && <Verified className="h-3 w-3 text-blue-500" />}
+                {match.seller.verified && (
+                  <Verified className="h-3 w-3 text-blue-500" />
+                )}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{match.seller.listing}</p>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                {match.seller.listing}
+              </p>
               <div className="flex gap-2 mt-2">
                 {match.seller.proofOfProduct && (
-                  <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600">
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-green-500/10 text-green-600"
+                  >
                     <CheckCircle className="h-3 w-3 mr-1" />
                     POP
                   </Badge>
@@ -275,14 +377,23 @@ const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) =
 
           {/* Match Factors */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Match Factors</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Match Factors
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {match.matchFactors.map((factor, idx) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between text-sm"
+                >
                   <span className="text-muted-foreground">{factor.factor}</span>
                   <div className="flex items-center gap-2">
                     <Progress value={factor.score} className="w-16 h-1.5" />
-                    <span className={`font-medium ${getScoreColor(factor.score)}`}>{factor.score}%</span>
+                    <span
+                      className={`font-medium ${getScoreColor(factor.score)}`}
+                    >
+                      {factor.score}%
+                    </span>
                   </div>
                 </div>
               ))}
@@ -292,8 +403,12 @@ const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) =
           {/* Proposed Value */}
           <div className="p-3 rounded-lg bg-muted/50 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Proposed Transaction Value</p>
-              <p className="text-xl font-bold">${(match.proposedValue / 1000000).toFixed(1)}M</p>
+              <p className="text-xs text-muted-foreground">
+                Proposed Transaction Value
+              </p>
+              <p className="text-xl font-bold">
+                ${(match.proposedValue / 1000000).toFixed(1)}M
+              </p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm">
@@ -314,361 +429,419 @@ const MatchCard = ({ match }: { match: typeof fallbackTransactionMatches[0] }) =
 export default function TransactionMatching() {
   const [activeTab, setActiveTab] = useState("matches");
   const [showCriteriaDialog, setShowCriteriaDialog] = useState(false);
+  const { capabilities } = useAppMode();
 
-  const { data: dbMatches } = trpc.transactionMatch.list.useQuery(undefined, { retry: false });
+  const { data: dbMatches } = trpc.transactionMatch.list.useQuery(undefined, {
+    retry: false,
+  });
 
-  const displayMatches = (dbMatches && dbMatches.length > 0)
-    ? dbMatches.map((m) => ({
-        id: m.id,
-        buyer: {
-          name: `Buyer #${m.buyerId}`,
-          verified: m.buyerVerified ?? false,
-          proofOfFunds: m.proofOfFundsVerified ?? false,
-          criteria: `Criteria #${m.buyerCriteriaId}`,
-        },
-        seller: {
-          name: `Seller #${m.sellerId}`,
-          verified: m.sellerVerified ?? false,
-          proofOfProduct: m.proofOfProductVerified ?? false,
-          listing: `Listing #${m.sellerListingId}`,
-        },
-        assetClass: m.listingType === "commodity" ? "gold" : "real_estate",
-        matchScore: m.matchScore ? Number(m.matchScore) : 0,
-        proposedValue: m.proposedPrice ? Number(m.proposedPrice) : 0,
-        status: m.status || "pending",
-        matchFactors: (m.matchFactors as Array<{ factor: string; weight: number; score: number }> || []).map(f => ({ factor: f.factor, score: f.score })),
-        createdAt: m.createdAt?.toISOString().slice(0, 10) || "",
-      }))
-    : fallbackTransactionMatches;
+  const displayMatches =
+    dbMatches && dbMatches.length > 0
+      ? dbMatches.map(m => ({
+          id: m.id,
+          buyer: {
+            name: `Buyer #${m.buyerId}`,
+            verified: m.buyerVerified ?? false,
+            proofOfFunds: m.proofOfFundsVerified ?? false,
+            criteria: `Criteria #${m.buyerCriteriaId}`,
+          },
+          seller: {
+            name: `Seller #${m.sellerId}`,
+            verified: m.sellerVerified ?? false,
+            proofOfProduct: m.proofOfProductVerified ?? false,
+            listing: `Listing #${m.sellerListingId}`,
+          },
+          assetClass: m.listingType === "commodity" ? "gold" : "real_estate",
+          matchScore: m.matchScore ? Number(m.matchScore) : 0,
+          proposedValue: m.proposedPrice ? Number(m.proposedPrice) : 0,
+          status: m.status || "pending",
+          matchFactors: (
+            (m.matchFactors as Array<{
+              factor: string;
+              weight: number;
+              score: number;
+            }>) || []
+          ).map(f => ({ factor: f.factor, score: f.score })),
+          createdAt: m.createdAt?.toISOString().slice(0, 10) || "",
+        }))
+      : capabilities.allowDemoFixtures
+        ? fallbackTransactionMatches
+        : [];
 
   return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Transaction Matching</h1>
-            <p className="text-muted-foreground mt-1">
-              AI-powered buyer/seller matching with verified proof of funds and product
-            </p>
-          </div>
-          <Dialog open={showCriteriaDialog} onOpenChange={setShowCriteriaDialog}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Criteria
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create Matching Criteria</DialogTitle>
-                <DialogDescription>
-                  Define your buying or selling criteria to find matching counterparties
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-6 py-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Transaction Matching
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            AI-powered buyer/seller matching with verified proof of funds and
+            product
+          </p>
+        </div>
+        <Dialog open={showCriteriaDialog} onOpenChange={setShowCriteriaDialog}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Criteria
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create Matching Criteria</DialogTitle>
+              <DialogDescription>
+                Define your buying or selling criteria to find matching
+                counterparties
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>I want to</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select action" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="buy">Buy</SelectItem>
+                      <SelectItem value="sell">Sell</SelectItem>
+                      <SelectItem value="invest">Invest</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Asset Class</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select asset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gold">
+                        Gold & Precious Metals
+                      </SelectItem>
+                      <SelectItem value="oil_gas">Oil & Gas</SelectItem>
+                      <SelectItem value="minerals">
+                        Minerals & Metals
+                      </SelectItem>
+                      <SelectItem value="real_estate">Real Estate</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-4 p-4 rounded-lg border">
+                <h4 className="font-medium">Commodity Criteria</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>I want to</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select action" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="buy">Buy</SelectItem>
-                        <SelectItem value="sell">Sell</SelectItem>
-                        <SelectItem value="invest">Invest</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Minimum Purity %</Label>
+                    <Input type="number" placeholder="99.5" step="0.1" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Asset Class</Label>
+                    <Label>Preferred Origins</Label>
+                    <Input placeholder="Switzerland, UAE, UK" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Min Quantity</Label>
+                    <Input type="number" placeholder="100" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Max Quantity</Label>
+                    <Input type="number" placeholder="1000" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Unit</Label>
                     <Select>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select asset" />
+                        <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="gold">Gold & Precious Metals</SelectItem>
-                        <SelectItem value="oil_gas">Oil & Gas</SelectItem>
-                        <SelectItem value="minerals">Minerals & Metals</SelectItem>
-                        <SelectItem value="real_estate">Real Estate</SelectItem>
+                        <SelectItem value="kilograms">Kilograms</SelectItem>
+                        <SelectItem value="troy_ounces">Troy Ounces</SelectItem>
+                        <SelectItem value="barrels">Barrels</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-4 p-4 rounded-lg border">
-                  <h4 className="font-medium">Commodity Criteria</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Minimum Purity %</Label>
-                      <Input type="number" placeholder="99.5" step="0.1" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Preferred Origins</Label>
-                      <Input placeholder="Switzerland, UAE, UK" />
-                    </div>
+              <div className="space-y-4 p-4 rounded-lg border">
+                <h4 className="font-medium">Verification Requirements</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Require Verified Seller</Label>
+                    <Switch defaultChecked />
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Min Quantity</Label>
-                      <Input type="number" placeholder="100" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Max Quantity</Label>
-                      <Input type="number" placeholder="1000" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Unit</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="kilograms">Kilograms</SelectItem>
-                          <SelectItem value="troy_ounces">Troy Ounces</SelectItem>
-                          <SelectItem value="barrels">Barrels</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <Label>Require SKR Verification</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label>Require Sanctions Clearance</Label>
+                    <Switch defaultChecked />
                   </div>
                 </div>
-
-                <div className="space-y-4 p-4 rounded-lg border">
-                  <h4 className="font-medium">Verification Requirements</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label>Require Verified Seller</Label>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label>Require SKR Verification</Label>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label>Require Sanctions Clearance</Label>
-                      <Switch defaultChecked />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Additional Requirements</Label>
-                  <Textarea placeholder="Any specific requirements or preferences..." rows={3} />
-                </div>
-
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setShowCriteriaDialog(false)}>Cancel</Button>
-                  <Button>Save Criteria</Button>
-                </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-500/10">
-                  <Zap className="h-5 w-5 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">156</p>
-                  <p className="text-xs text-muted-foreground">Active Matches</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <Handshake className="h-5 w-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">$2.1B</p>
-                  <p className="text-xs text-muted-foreground">Matched Value</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/10">
-                  <Target className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">89%</p>
-                  <p className="text-xs text-muted-foreground">Avg Match Score</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-yellow-500/10">
-                  <Clock className="h-5 w-5 text-yellow-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">4.2d</p>
-                  <p className="text-xs text-muted-foreground">Avg Time to Match</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="matches" className="gap-2">
-              <ArrowLeftRight className="h-4 w-4" />
-              Active Matches
-              <Badge variant="secondary">156</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="criteria" className="gap-2">
-              <Target className="h-4 w-4" />
-              My Criteria
-              <Badge variant="secondary">8</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Completed
-              <Badge variant="secondary">42</Badge>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="matches" className="mt-6">
-            {/* Search & Filter */}
-            <div className="flex gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search matches by party name or asset..."
-                  className="pl-10"
+              <div className="space-y-2">
+                <Label>Additional Requirements</Label>
+                <Textarea
+                  placeholder="Any specific requirements or preferences..."
+                  rows={3}
                 />
               </div>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Asset Class" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Assets</SelectItem>
-                  <SelectItem value="gold">Gold</SelectItem>
-                  <SelectItem value="oil_gas">Oil & Gas</SelectItem>
-                  <SelectItem value="real_estate">Real Estate</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="mutual_interest">Mutual Interest</SelectItem>
-                  <SelectItem value="negotiating">Negotiating</SelectItem>
-                  <SelectItem value="due_diligence">Due Diligence</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
-            {/* Matches Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <AnimatePresence mode="popLayout">
-                {displayMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} />
-                ))}
-              </AnimatePresence>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCriteriaDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button>Save Criteria</Button>
+              </div>
             </div>
-          </TabsContent>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-          <TabsContent value="criteria" className="mt-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {buyerCriteria.map((criteria) => (
-                <Card key={criteria.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {getAssetIcon(criteria.assetClass)}
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <Zap className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">156</p>
+                <p className="text-xs text-muted-foreground">Active Matches</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <Handshake className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">$2.1B</p>
+                <p className="text-xs text-muted-foreground">Matched Value</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Target className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">89%</p>
+                <p className="text-xs text-muted-foreground">Avg Match Score</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-yellow-500/10">
+                <Clock className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">4.2d</p>
+                <p className="text-xs text-muted-foreground">
+                  Avg Time to Match
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="matches" className="gap-2">
+            <ArrowLeftRight className="h-4 w-4" />
+            Active Matches
+            <Badge variant="secondary">156</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="criteria" className="gap-2">
+            <Target className="h-4 w-4" />
+            My Criteria
+            <Badge variant="secondary">8</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Completed
+            <Badge variant="secondary">42</Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="matches" className="mt-6">
+          {/* Search & Filter */}
+          <div className="flex gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search matches by party name or asset..."
+                className="pl-10"
+              />
+            </div>
+            <Select defaultValue="all">
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Asset Class" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Assets</SelectItem>
+                <SelectItem value="gold">Gold</SelectItem>
+                <SelectItem value="oil_gas">Oil & Gas</SelectItem>
+                <SelectItem value="real_estate">Real Estate</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select defaultValue="all">
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="mutual_interest">Mutual Interest</SelectItem>
+                <SelectItem value="negotiating">Negotiating</SelectItem>
+                <SelectItem value="due_diligence">Due Diligence</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Matches Grid */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <AnimatePresence mode="popLayout">
+              {displayMatches.map(match => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+            </AnimatePresence>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="criteria" className="mt-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            {buyerCriteria.map(criteria => (
+              <Card key={criteria.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {getAssetIcon(criteria.assetClass)}
+                      <div>
+                        <CardTitle className="text-base capitalize">
+                          {criteria.assetClass.replace("_", " ")} Criteria
+                        </CardTitle>
+                        <CardDescription>{criteria.user.name}</CardDescription>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={criteria.isActive ? "default" : "secondary"}
+                    >
+                      {criteria.isActive ? "Active" : "Paused"}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {criteria.assetClass === "gold" && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <CardTitle className="text-base capitalize">
-                            {criteria.assetClass.replace("_", " ")} Criteria
-                          </CardTitle>
-                          <CardDescription>{criteria.user.name}</CardDescription>
+                          <p className="text-muted-foreground">Min Purity</p>
+                          <p className="font-medium">{criteria.minPurity}%</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Quantity</p>
+                          <p className="font-medium">
+                            {criteria.minQuantity}-{criteria.maxQuantity}{" "}
+                            {criteria.quantityUnit}
+                          </p>
                         </div>
                       </div>
-                      <Badge variant={criteria.isActive ? "default" : "secondary"}>
-                        {criteria.isActive ? "Active" : "Paused"}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {criteria.assetClass === "gold" && (
-                      <>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Min Purity</p>
-                            <p className="font-medium">{criteria.minPurity}%</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Quantity</p>
-                            <p className="font-medium">{criteria.minQuantity}-{criteria.maxQuantity} {criteria.quantityUnit}</p>
-                          </div>
+                      <div className="text-sm">
+                        <p className="text-muted-foreground">
+                          Preferred Origins
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {criteria.preferredOrigins?.map((origin, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {origin}
+                            </Badge>
+                          ))}
                         </div>
-                        <div className="text-sm">
-                          <p className="text-muted-foreground">Preferred Origins</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {criteria.preferredOrigins?.map((origin, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">{origin}</Badge>
-                            ))}
-                          </div>
+                      </div>
+                    </>
+                  )}
+                  {criteria.assetClass === "real_estate" && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Cap Rate</p>
+                          <p className="font-medium">
+                            {criteria.minCapRate}% - {criteria.maxCapRate}%
+                          </p>
                         </div>
-                      </>
-                    )}
-                    {criteria.assetClass === "real_estate" && (
-                      <>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Cap Rate</p>
-                            <p className="font-medium">{criteria.minCapRate}% - {criteria.maxCapRate}%</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Price Range</p>
-                            <p className="font-medium">${(criteria.minPrice! / 1000000).toFixed(0)}M - ${(criteria.maxPrice! / 1000000).toFixed(0)}M</p>
-                          </div>
+                        <div>
+                          <p className="text-muted-foreground">Price Range</p>
+                          <p className="font-medium">
+                            ${(criteria.minPrice! / 1000000).toFixed(0)}M - $
+                            {(criteria.maxPrice! / 1000000).toFixed(0)}M
+                          </p>
                         </div>
-                        <div className="text-sm">
-                          <p className="text-muted-foreground">Property Types</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {criteria.propertyTypes?.map((type, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs capitalize">{type}</Badge>
-                            ))}
-                          </div>
+                      </div>
+                      <div className="text-sm">
+                        <p className="text-muted-foreground">Property Types</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {criteria.propertyTypes?.map((type, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="text-xs capitalize"
+                            >
+                              {type}
+                            </Badge>
+                          ))}
                         </div>
-                      </>
-                    )}
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">Edit</Button>
-                      <Button size="sm" className="flex-1">View Matches</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      Edit
+                    </Button>
+                    <Button size="sm" className="flex-1">
+                      View Matches
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
-          <TabsContent value="completed" className="mt-6">
-            <div className="text-center py-12">
-              <CheckCircle className="h-12 w-12 mx-auto text-green-500/50 mb-4" />
-              <h3 className="text-lg font-semibold">42 Completed Transactions</h3>
-              <p className="text-muted-foreground">Total value: $890M</p>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="completed" className="mt-6">
+          <div className="text-center py-12">
+            <CheckCircle className="h-12 w-12 mx-auto text-green-500/50 mb-4" />
+            <h3 className="text-lg font-semibold">42 Completed Transactions</h3>
+            <p className="text-muted-foreground">Total value: $890M</p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

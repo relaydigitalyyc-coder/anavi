@@ -18,7 +18,7 @@ pnpm dev          # Dev server (Express + Vite HMR)
 pnpm build        # Client (Vite) + server (esbuild) production build
 pnpm start        # Run production build
 pnpm check        # TypeScript type-check (tsc --noEmit)
-pnpm test         # 60 tests: unit + integration (no DB required, uses mocks)
+pnpm test         # 67 tests: unit + integration (no DB required, uses mocks)
 pnpm db:push      # Generate + run Drizzle migrations
 pnpm db:seed      # Seed demo user
 ```
@@ -52,9 +52,9 @@ Types: drizzle/schema → shared/types → client + server
 | Relations | `anavi/drizzle/relations.ts` |
 | Shared types | `anavi/shared/types.ts` |
 | tRPC client | `client/src/lib/trpc.ts` |
-| Routes (~47) | `client/src/App.tsx` |
+| Routes (~51) | `client/src/App.tsx` |
 | Sidebar nav | `DashboardLayout.tsx` → `navSections` array |
-| UI primitives | `client/src/components/ui/*` (53 shadcn components) |
+| UI primitives | `client/src/components/ui/*` (56 components: 53 shadcn + 3 visual) |
 
 ### Route Wrappers (App.tsx)
 - **ShellRoute** = `ProtectedRoute` + `DashboardLayout` + `PageTransition` — all main app pages; pages **must NOT** render DashboardLayout themselves

@@ -26,10 +26,9 @@ import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { DASHBOARD } from "@/lib/copy";
 
-
 const fmtCurrency = (amount: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    amount,
+    amount
   );
 
 type PayoutStatus = "all" | "pending" | "processing" | "completed" | "failed";
@@ -60,8 +59,7 @@ const TYPE_OPTIONS: { value: PayoutTypeFilter; label: string }[] = [
 
 function getTypeLabel(type: string) {
   return (
-    TYPE_OPTIONS.find((t) => t.value === type)?.label ??
-    type.replace(/_/g, " ")
+    TYPE_OPTIONS.find(t => t.value === type)?.label ?? type.replace(/_/g, " ")
   );
 }
 
@@ -84,9 +82,14 @@ function getTypeBadgeClasses(type: string): string {
 
 function PayoutStatementSection() {
   const [periodStart, setPeriodStart] = useState(() =>
-    format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd")
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      "yyyy-MM-dd"
+    )
   );
-  const [periodEnd, setPeriodEnd] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [periodEnd, setPeriodEnd] = useState(() =>
+    format(new Date(), "yyyy-MM-dd")
+  );
   const [showModal, setShowModal] = useState(false);
 
   const { data: statement, isLoading } = trpc.payout.getStatement.useQuery(
@@ -100,10 +103,12 @@ function PayoutStatementSection() {
   const downloadCSV = () => {
     if (!statement) return;
     const header = "Deal ID,Amount,Currency,Type,Status,Date\n";
-    const rows = statement.items.map(
-      (p: any) =>
-        `${p.dealId ?? ""},${p.amount ?? 0},${p.currency ?? "USD"},${p.payoutType ?? ""},${p.status ?? ""},"${new Date(p.createdAt).toLocaleDateString()}"`
-    ).join("\n");
+    const rows = statement.items
+      .map(
+        (p: any) =>
+          `${p.dealId ?? ""},${p.amount ?? 0},${p.currency ?? "USD"},${p.payoutType ?? ""},${p.status ?? ""},"${new Date(p.createdAt).toLocaleDateString()}"`
+      )
+      .join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -116,49 +121,52 @@ function PayoutStatementSection() {
 
   return (
     <div className="card-elevated p-6">
-      <h3 className="data-label mb-2 text-slate-900">
-        Payout Statement
-      </h3>
+      <h3 className="data-label mb-2 text-slate-900">Payout Statement</h3>
       <p className="text-sm text-muted-foreground mb-4">
         Official ANAVI payout statement. Select a period and view or download.
       </p>
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1">
-          <label className="text-xs font-semibold uppercase text-muted-foreground">Start</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">
+            Start
+          </label>
           <Input
             type="date"
             value={periodStart}
-            onChange={(e) => setPeriodStart(e.target.value)}
+            onChange={e => setPeriodStart(e.target.value)}
             className="w-[160px]"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-semibold uppercase text-muted-foreground">End</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">
+            End
+          </label>
           <Input
             type="date"
             value={periodEnd}
-            onChange={(e) => setPeriodEnd(e.target.value)}
+            onChange={e => setPeriodEnd(e.target.value)}
             className="w-[160px]"
           />
         </div>
-        <Button
-          className="btn-gold gap-2"
-          onClick={() => setShowModal(true)}
-        >
+        <Button className="btn-gold gap-2" onClick={() => setShowModal(true)}>
           <FileText className="w-4 h-4" />
           View Statement
         </Button>
       </div>
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowModal(false)}
+          />
           <div className="relative z-10 bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden">
             <div className="p-6 border-b border-slate-200">
               <h4 className="text-lg font-semibold text-slate-900">
                 Official ANAVI Payout Statement
               </h4>
               <p className="text-sm text-muted-foreground mt-1">
-                {periodStart} — {periodEnd} · Generated {format(new Date(), "PP")}
+                {periodStart} — {periodEnd} · Generated{" "}
+                {format(new Date(), "PP")}
               </p>
             </div>
             <div className="p-6 overflow-y-auto max-h-[50vh]">
@@ -171,7 +179,10 @@ function PayoutStatementSection() {
               ) : (
                 <div className="space-y-3">
                   {statement.items.map((p: any, i: number) => (
-                    <div key={i} className="flex justify-between py-2 border-b border-slate-200">
+                    <div
+                      key={i}
+                      className="flex justify-between py-2 border-b border-slate-200"
+                    >
                       <span className="text-sm">Deal #{p.dealId}</span>
                       <span className="font-data-hud font-semibold">
                         {fmtCurrency(Number(p.amount ?? 0))}
@@ -189,7 +200,11 @@ function PayoutStatementSection() {
               <Button variant="outline" onClick={() => setShowModal(false)}>
                 Close
               </Button>
-              <Button className="btn-gold gap-2" onClick={downloadCSV} disabled={!statement || statement.items.length === 0}>
+              <Button
+                className="btn-gold gap-2"
+                onClick={downloadCSV}
+                disabled={!statement || statement.items.length === 0}
+              >
                 <Download className="w-4 h-4" />
                 Download CSV
               </Button>
@@ -232,8 +247,12 @@ function buildMonthOptions() {
 }
 
 export default function Payouts() {
-  const { data: payouts, isLoading } = trpc.payout.list.useQuery();
-  useEffect(() => { document.title = "Payouts | ANAVI"; }, []);
+  const { data: payouts, isLoading } = trpc.payout.list.useQuery(undefined, {
+    retry: false,
+  });
+  useEffect(() => {
+    document.title = "Payouts | ANAVI";
+  }, []);
 
   const [statusFilter, setStatusFilter] = useState<PayoutStatus>("all");
   const [typeFilter, setTypeFilter] = useState<PayoutTypeFilter>("all");
@@ -243,27 +262,27 @@ export default function Payouts() {
   const monthOptions = useMemo(buildMonthOptions, []);
 
   const completedPayouts = useMemo(
-    () => payouts?.filter((p) => p.status === "completed") ?? [],
-    [payouts],
+    () => payouts?.filter(p => p.status === "completed") ?? [],
+    [payouts]
   );
 
   const totalEarnings = useMemo(
     () => completedPayouts.reduce((s, p) => s + parseFloat(p.amount), 0),
-    [completedPayouts],
+    [completedPayouts]
   );
 
   const pendingAmount = useMemo(
     () =>
       (payouts ?? [])
-        .filter((p) => p.status === "pending" || p.status === "processing")
+        .filter(p => p.status === "pending" || p.status === "processing")
         .reduce((s, p) => s + parseFloat(p.amount), 0),
-    [payouts],
+    [payouts]
   );
 
   const thisMonthEarnings = useMemo(() => {
     const now = new Date();
     return (payouts ?? [])
-      .filter((p) => {
+      .filter(p => {
         if (p.status !== "completed") return false;
         const d = new Date(p.paidAt ?? p.createdAt);
         return (
@@ -275,13 +294,13 @@ export default function Payouts() {
   }, [payouts]);
 
   const completedDealCount = useMemo(
-    () => new Set(completedPayouts.map((p) => p.dealId)).size,
-    [completedPayouts],
+    () => new Set(completedPayouts.map(p => p.dealId)).size,
+    [completedPayouts]
   );
 
   const filteredPayouts = useMemo(() => {
     if (!payouts) return [];
-    return payouts.filter((p) => {
+    return payouts.filter(p => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (typeFilter !== "all" && p.payoutType !== typeFilter) return false;
       if (monthFilter !== "all") {
@@ -314,8 +333,11 @@ export default function Payouts() {
       <div className="p-8 space-y-6">
         <div className="h-8 w-56 rounded-lg animate-pulse bg-slate-50" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 rounded-xl animate-pulse bg-slate-50" />
+          {[1, 2, 3, 4].map(i => (
+            <div
+              key={i}
+              className="h-32 rounded-xl animate-pulse bg-slate-50"
+            />
           ))}
         </div>
         <div className="h-48 rounded-xl animate-pulse bg-slate-50" />
@@ -330,17 +352,17 @@ export default function Payouts() {
     <div className="p-8 space-y-8">
       {/* ── Page Header ────────────────────────────────────────────── */}
       <FadeInView>
-      <div>
-        <h1 className="text-display tracking-tight flex items-center gap-3 text-slate-900">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50">
-            <Wallet className="w-5 h-5 text-blue-600" />
-          </div>
-          Payouts &amp; Earnings
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Track your earnings from deal origination and introductions
-        </p>
-      </div>
+        <div>
+          <h1 className="text-display tracking-tight flex items-center gap-3 text-slate-900">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50">
+              <Wallet className="w-5 h-5 text-blue-600" />
+            </div>
+            Payouts &amp; Earnings
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Track your earnings from deal origination and introductions
+          </p>
+        </div>
       </FadeInView>
 
       {/* ── Attribution Summary Hero ────────────────────────────────── */}
@@ -348,7 +370,9 @@ export default function Payouts() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Earnings (Lifetime Attribution) */}
           <div>
-            <p className="data-label mb-1">{DASHBOARD.payouts.lifetimeAttribution}</p>
+            <p className="data-label mb-1">
+              {DASHBOARD.payouts.lifetimeAttribution}
+            </p>
             <p className="font-data-hud text-3xl font-bold text-emerald-600">
               $<SmoothCounter value={totalEarnings} duration={1.2} />
             </p>
@@ -364,7 +388,14 @@ export default function Payouts() {
           <div>
             <p className="data-label mb-1">Pending</p>
             <p className="font-data-hud text-3xl font-bold text-[#C4972A]">
-              <SmoothCounter value={(payouts ?? []).filter((p) => p.status === "pending" || p.status === "processing").length} duration={1} />
+              <SmoothCounter
+                value={
+                  (payouts ?? []).filter(
+                    p => p.status === "pending" || p.status === "processing"
+                  ).length
+                }
+                duration={1}
+              />
             </p>
           </div>
           {/* This Month */}
@@ -382,134 +413,141 @@ export default function Payouts() {
 
       {/* ── Economics Overview ──────────────────────────────────────── */}
       <div className="card-elevated p-6 space-y-5">
-          <h3 className="text-lg font-semibold text-slate-900">
-            ANAVI Economics Model
-          </h3>
-          <div className="flex gap-1 h-8 rounded-lg overflow-hidden">
-            <div
-              className="flex items-center justify-center text-xs font-semibold text-white bg-slate-900"
-              style={{ flex: "50 0 0%" }}
-            >
-              Originator 40–60%
-            </div>
-            <div
-              className="flex items-center justify-center text-xs font-semibold text-white bg-blue-600"
-              style={{ flex: "25 0 0%" }}
-            >
-              Contributors 20–30%
-            </div>
-            <div
-              className="flex items-center justify-center text-xs font-semibold text-white bg-[#C4972A]"
-              style={{ flex: "15 0 0%" }}
-            >
-              Platform 10–20%
-            </div>
+        <h3 className="text-lg font-semibold text-slate-900">
+          ANAVI Economics Model
+        </h3>
+        <div className="flex gap-1 h-8 rounded-lg overflow-hidden">
+          <div
+            className="flex items-center justify-center text-xs font-semibold text-white bg-slate-900"
+            style={{ flex: "50 0 0%" }}
+          >
+            Originator 40–60%
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            When deals close through ANAVI, payouts are automated. Originators receive the largest share — guaranteed at close.
-          </p>
+          <div
+            className="flex items-center justify-center text-xs font-semibold text-white bg-blue-600"
+            style={{ flex: "25 0 0%" }}
+          >
+            Contributors 20–30%
+          </div>
+          <div
+            className="flex items-center justify-center text-xs font-semibold text-white bg-[#C4972A]"
+            style={{ flex: "15 0 0%" }}
+          >
+            Platform 10–20%
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          When deals close through ANAVI, payouts are automated. Originators
+          receive the largest share — guaranteed at close.
+        </p>
       </div>
 
       {/* ── Attribution History ─────────────────────────────────────── */}
       <div className="card-elevated p-6 space-y-6">
-        <h3 className="data-label text-slate-900">
-          Attribution History
-        </h3>
-          {/* Filter Bar */}
-          <div className="flex flex-wrap gap-3">
-            <Select
-              value={statusFilter}
-              onValueChange={(v) => setStatusFilter(v as PayoutStatus)}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={typeFilter}
-              onValueChange={(v) => setTypeFilter(v as PayoutTypeFilter)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {TYPE_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Date Range" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Payout Table */}
-          {empty ? (
-            <div className="py-12">
-              <EmptyState {...EMPTY_STATES.payouts} />
-            </div>
-          ) : filteredPayouts.length === 0 ? (
-            <div className="text-center py-12">
-              <AlertCircle className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">No payouts match the selected filters.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filteredPayouts.map((p) => (
-                <div
-                  key={p.id}
-                  className="card-elevated px-4 py-3 flex items-center justify-between hover:translate-y-[-1px] transition-transform"
-                >
-                  <div>
-                    <p className="font-data-hud text-base font-semibold text-slate-900">
-                      {fmtCurrency(parseFloat(p.amount))}
-                    </p>
-                    <p className="data-label mt-0.5">{getTypeLabel(p.payoutType)}</p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="font-medium text-sm text-blue-600">
-                      Deal&nbsp;#{p.dealId}
-                    </span>
-                    <span className="data-label">{format(new Date(p.createdAt), "MMM d")}</span>
-                    <Badge className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}>
-                      {p.status ?? "pending"}
-                    </Badge>
-                    {p.relationshipId && (
-                      <span className="inline-flex items-center gap-1 text-xs text-blue-600">
-                        <Link2 className="w-3 h-3" />
-                        REL-{p.relationshipId}
-                      </span>
-                    )}
-                    {p.isFollowOn && (
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
-                        Follow-on
-                      </span>
-                    )}
-                  </div>
-                </div>
+        <h3 className="data-label text-slate-900">Attribution History</h3>
+        {/* Filter Bar */}
+        <div className="flex flex-wrap gap-3">
+          <Select
+            value={statusFilter}
+            onValueChange={v => setStatusFilter(v as PayoutStatus)}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
               ))}
-            </div>
-          )}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={typeFilter}
+            onValueChange={v => setTypeFilter(v as PayoutTypeFilter)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {TYPE_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Date Range" />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map(o => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Payout Table */}
+        {empty ? (
+          <div className="py-12">
+            <EmptyState {...EMPTY_STATES.payouts} />
+          </div>
+        ) : filteredPayouts.length === 0 ? (
+          <div className="text-center py-12">
+            <AlertCircle className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground">
+              No payouts match the selected filters.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {filteredPayouts.map(p => (
+              <div
+                key={p.id}
+                className="card-elevated px-4 py-3 flex items-center justify-between hover:translate-y-[-1px] transition-transform"
+              >
+                <div>
+                  <p className="font-data-hud text-base font-semibold text-slate-900">
+                    {fmtCurrency(parseFloat(p.amount))}
+                  </p>
+                  <p className="data-label mt-0.5">
+                    {getTypeLabel(p.payoutType)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="font-medium text-sm text-blue-600">
+                    Deal&nbsp;#{p.dealId}
+                  </span>
+                  <span className="data-label">
+                    {format(new Date(p.createdAt), "MMM d")}
+                  </span>
+                  <Badge
+                    className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}
+                  >
+                    {p.status ?? "pending"}
+                  </Badge>
+                  {p.relationshipId && (
+                    <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                      <Link2 className="w-3 h-3" />
+                      REL-{p.relationshipId}
+                    </span>
+                  )}
+                  {p.isFollowOn && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+                      Follow-on
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Deal Payout Timeline ───────────────────────────────────── */}
@@ -519,112 +557,122 @@ export default function Payouts() {
             Attribution Chain
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Every credit in this chain is cryptographically linked to your origination event.
+            Every credit in this chain is cryptographically linked to your
+            origination event.
           </p>
-          <h3 className="data-label text-slate-900">
-            Deal Payout Timeline
-          </h3>
-            {dealGroups.map((group) => {
-              const isExpanded = expandedDeal === group.dealId;
-              return (
-                <div key={group.dealId} className="card-elevated p-4">
-                  {/* Deal header */}
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between gap-4 text-left"
-                    onClick={() => setExpandedDeal(isExpanded ? null : group.dealId)}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      {isExpanded ? (
-                        <ChevronDown className="w-5 h-5 shrink-0 text-slate-900" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 shrink-0 text-slate-900" />
-                      )}
-                      <span className="font-semibold truncate text-slate-900">
-                        Deal #{group.dealId}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {group.payouts.length} payout{group.payouts.length !== 1 && "s"}
-                      </span>
-                    </div>
-                                <span className="font-data-hud font-bold shrink-0 text-emerald-600">
-                                    {fmtCurrency(group.total)}
-                                  </span>
-                  </button>
+          <h3 className="data-label text-slate-900">Deal Payout Timeline</h3>
+          {dealGroups.map(group => {
+            const isExpanded = expandedDeal === group.dealId;
+            return (
+              <div key={group.dealId} className="card-elevated p-4">
+                {/* Deal header */}
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between gap-4 text-left"
+                  onClick={() =>
+                    setExpandedDeal(isExpanded ? null : group.dealId)
+                  }
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {isExpanded ? (
+                      <ChevronDown className="w-5 h-5 shrink-0 text-slate-900" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 shrink-0 text-slate-900" />
+                    )}
+                    <span className="font-semibold truncate text-slate-900">
+                      Deal #{group.dealId}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {group.payouts.length} payout
+                      {group.payouts.length !== 1 && "s"}
+                    </span>
+                  </div>
+                  <span className="font-data-hud font-bold shrink-0 text-emerald-600">
+                    {fmtCurrency(group.total)}
+                  </span>
+                </button>
 
-                  {/* Milestone Timeline */}
-                  {isExpanded && (
-                    <div className="mt-5 ml-6 border-l-2 border-slate-200 pl-6 space-y-5">
-                      {group.payouts
-                        .sort(
-                          (a, b) =>
-                            new Date(a.createdAt).getTime() -
-                            new Date(b.createdAt).getTime(),
-                        )
-                        .map((p) => {
-                          const dotColorClass =
-                            p.status === "completed"
-                              ? "bg-slate-900"
-                              : p.status === "pending"
-                                ? "bg-[#C4972A]"
-                                : "bg-gray-300";
-                          return (
-                            <div key={p.id} className="relative">
-                              {/* Dot */}
-                              <div
-                                className={`absolute -left-[33px] top-1 w-4 h-4 rounded-full border-2 border-white ${dotColorClass}`}
-                              />
-                              <div className="flex flex-wrap items-start justify-between gap-2">
-                                <div className="space-y-1">
-                                  <p className="font-medium text-sm text-slate-900">
-                                    {p.milestoneName ?? getTypeLabel(p.payoutType)}
-                                  </p>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <Badge
-                                      className={`border-0 text-[11px] ${getTypeBadgeClasses(p.payoutType)}`}
-                                    >
-                                      {getTypeLabel(p.payoutType)}
-                                    </Badge>
-                                    <Badge
-                                      className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}
-                                    >
-                                      {p.status ?? "pending"}
-                                    </Badge>
-                                    {p.isFollowOn && (
-                                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
-                                        Follow-on
-                                      </span>
-                                    )}
-                                  </div>
-                                  {p.attributionPercentage && (
-                                    <p className="text-xs text-muted-foreground">
-                                      {DASHBOARD.payouts.originationShare} {parseFloat(p.attributionPercentage)}%
-                                      {p.relationshipId && (
-                                        <span className="ml-2 text-blue-600">
-                                          <Link2 className="inline w-3 h-3 mr-0.5" />
-                                          REL-{p.relationshipId}
-                                        </span>
-                                      )}
-                                    </p>
-                                  )}
-                                  {p.status === "completed" && p.paidAt && (
-                                    <p className="text-xs text-emerald-600">
-                                      Paid on {format(new Date(p.paidAt), "MMM d, yyyy")} ({formatDistanceToNow(new Date(p.paidAt), { addSuffix: true })})
-                                    </p>
+                {/* Milestone Timeline */}
+                {isExpanded && (
+                  <div className="mt-5 ml-6 border-l-2 border-slate-200 pl-6 space-y-5">
+                    {group.payouts
+                      .sort(
+                        (a, b) =>
+                          new Date(a.createdAt).getTime() -
+                          new Date(b.createdAt).getTime()
+                      )
+                      .map(p => {
+                        const dotColorClass =
+                          p.status === "completed"
+                            ? "bg-slate-900"
+                            : p.status === "pending"
+                              ? "bg-[#C4972A]"
+                              : "bg-gray-300";
+                        return (
+                          <div key={p.id} className="relative">
+                            {/* Dot */}
+                            <div
+                              className={`absolute -left-[33px] top-1 w-4 h-4 rounded-full border-2 border-white ${dotColorClass}`}
+                            />
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div className="space-y-1">
+                                <p className="font-medium text-sm text-slate-900">
+                                  {p.milestoneName ??
+                                    getTypeLabel(p.payoutType)}
+                                </p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge
+                                    className={`border-0 text-[11px] ${getTypeBadgeClasses(p.payoutType)}`}
+                                  >
+                                    {getTypeLabel(p.payoutType)}
+                                  </Badge>
+                                  <Badge
+                                    className={`${getStatusPillClasses(p.status ?? "pending")} border-0 text-[11px]`}
+                                  >
+                                    {p.status ?? "pending"}
+                                  </Badge>
+                                  {p.isFollowOn && (
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+                                      Follow-on
+                                    </span>
                                   )}
                                 </div>
-                                <span className="font-data-hud font-bold text-sm text-slate-900">
-                                  {fmtCurrency(parseFloat(p.amount))}
-                                </span>
+                                {p.attributionPercentage && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {DASHBOARD.payouts.originationShare}{" "}
+                                    {parseFloat(p.attributionPercentage)}%
+                                    {p.relationshipId && (
+                                      <span className="ml-2 text-blue-600">
+                                        <Link2 className="inline w-3 h-3 mr-0.5" />
+                                        REL-{p.relationshipId}
+                                      </span>
+                                    )}
+                                  </p>
+                                )}
+                                {p.status === "completed" && p.paidAt && (
+                                  <p className="text-xs text-emerald-600">
+                                    Paid on{" "}
+                                    {format(new Date(p.paidAt), "MMM d, yyyy")}{" "}
+                                    (
+                                    {formatDistanceToNow(new Date(p.paidAt), {
+                                      addSuffix: true,
+                                    })}
+                                    )
+                                  </p>
+                                )}
                               </div>
+                              <span className="font-data-hud font-bold text-sm text-slate-900">
+                                {fmtCurrency(parseFloat(p.amount))}
+                              </span>
                             </div>
-                          );
-                        })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

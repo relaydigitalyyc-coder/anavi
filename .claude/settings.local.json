@@ -123,7 +123,13 @@
       "mcp__plugin_context-mode_context-mode__batch_execute",
       "Bash(wc -l /home/ariel/Documents/anavi-main/anavi/client/src/pages/Demo.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.ts 2>/dev/null && echo \"---\" && pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -5)",
       "Bash(pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -10)",
-      "Bash(cd /home/ariel/Documents/anavi-main/anavi && node_modules/.bin/tsc --noEmit 2>&1 | tail -10)"
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && node_modules/.bin/tsc --noEmit 2>&1 | tail -10)",
+      "Bash(find /home/ariel/Documents/anavi-main/anavi -name \"*.md\" -path \"*/specs/*\" 2>/dev/null | head -10 && find /home/ariel/Documents/anavi-main -name \"specs\" -type d 2>/dev/null)",
+      "Bash(ls /home/ariel/Documents/anavi-main/scripts/ | grep -i ralph && ls /home/ariel/Documents/anavi-main/logs/*.meta 2>/dev/null | head -5\\\\)",
+      "Skill(ralph-wiggum:ralph-loop)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && node_modules/.bin/tsc --noEmit 2>&1 | head -30)",
+      "Bash(node_modules/.bin/vitest run 2>&1 | tail -10)",
+      "Bash(grep -rn \"TODO\\\\|FIXME\" /home/ariel/Documents/anavi-main/anavi/client/src/ /home/ariel/Documents/anavi-main/anavi/server/ --include=\"*.ts\" --include=\"*.tsx\" 2>/dev/null | grep -v \"node_modules\" | head -30)"
     ]
   }
 }

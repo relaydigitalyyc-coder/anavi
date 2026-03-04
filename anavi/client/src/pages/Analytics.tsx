@@ -1,16 +1,35 @@
 // DashboardLayout is now handled by App.tsx ProtectedRoute
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
-import { 
-  TrendingUp, TrendingDown, DollarSign, Clock, Target, 
-  BarChart3, PieChart, Activity, ArrowUpRight, ArrowDownRight,
-  Calendar, Users, Briefcase, Zap, Filter, ArrowRight
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Clock,
+  Target,
+  BarChart3,
+  PieChart,
+  Activity,
+  ArrowUpRight,
+  ArrowDownRight,
+  Calendar,
+  Users,
+  Briefcase,
+  Zap,
+  Filter,
+  ArrowRight,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Animation variants
 const containerVariants = {
@@ -58,14 +77,24 @@ const numberVariants = {
 };
 
 // Animated number component
-function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
+function AnimatedNumber({
+  value,
+  prefix = "",
+  suffix = "",
+}: {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+}) {
   return (
     <motion.span
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {prefix}{value.toLocaleString()}{suffix}
+      {prefix}
+      {value.toLocaleString()}
+      {suffix}
     </motion.span>
   );
 }
@@ -73,7 +102,7 @@ function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; pr
 // Mini bar chart component
 function MiniBarChart({ data, color }: { data: number[]; color: string }) {
   const max = Math.max(...data, 1);
-  
+
   return (
     <div className="flex items-end gap-1 h-12">
       {data.map((value, index) => (
@@ -83,10 +112,9 @@ function MiniBarChart({ data, color }: { data: number[]; color: string }) {
           style={{ backgroundColor: color }}
           initial={{ height: 0 }}
           animate={{ height: `${(value / max) * 100}%` }}
-          transition={{ 
-            duration: 0.6, 
+          transition={{
+            duration: 0.6,
             delay: index * 0.05,
-             
           }}
         />
       ))}
@@ -95,21 +123,33 @@ function MiniBarChart({ data, color }: { data: number[]; color: string }) {
 }
 
 // Donut chart component
-function DonutChart({ segments, size = 120 }: { segments: { value: number; color: string; label: string }[]; size?: number }) {
+function DonutChart({
+  segments,
+  size = 120,
+}: {
+  segments: { value: number; color: string; label: string }[];
+  size?: number;
+}) {
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   let currentAngle = -90;
-  
+
   const radius = size / 2 - 10;
   const circumference = 2 * Math.PI * radius;
-  
+
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="transform -rotate-90">
         {segments.map((segment, index) => {
           const percentage = total > 0 ? segment.value / total : 0;
           const strokeDasharray = `${circumference * percentage} ${circumference}`;
-          const strokeDashoffset = -segments.slice(0, index).reduce((sum, s) => sum + (total > 0 ? (s.value / total) * circumference : 0), 0);
-          
+          const strokeDashoffset = -segments
+            .slice(0, index)
+            .reduce(
+              (sum, s) =>
+                sum + (total > 0 ? (s.value / total) * circumference : 0),
+              0
+            );
+
           return (
             <motion.circle
               key={index}
@@ -123,13 +163,13 @@ function DonutChart({ segments, size = 120 }: { segments: { value: number; color
               strokeDashoffset={strokeDashoffset}
               initial={{ strokeDasharray: `0 ${circumference}` }}
               animate={{ strokeDasharray }}
-              transition={{ duration: 1, delay: index * 0.2,  }}
+              transition={{ duration: 1, delay: index * 0.2 }}
             />
           );
         })}
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <motion.span 
+        <motion.span
           className="text-2xl font-light"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -143,9 +183,13 @@ function DonutChart({ segments, size = 120 }: { segments: { value: number; color
 }
 
 // Funnel chart component
-function FunnelChart({ stages }: { stages: { name: string; value: number; color: string }[] }) {
+function FunnelChart({
+  stages,
+}: {
+  stages: { name: string; value: number; color: string }[];
+}) {
   const max = Math.max(...stages.map(s => s.value), 1);
-  
+
   return (
     <div className="space-y-3">
       {stages.map((stage, index) => (
@@ -157,7 +201,9 @@ function FunnelChart({ stages }: { stages: { name: string; value: number; color:
           className="relative"
         >
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs uppercase tracking-wider text-neutral-500">{stage.name}</span>
+            <span className="text-xs uppercase tracking-wider text-neutral-500">
+              {stage.name}
+            </span>
             <span className="text-sm font-medium">{stage.value}</span>
           </div>
           <div className="h-2 bg-neutral-100 overflow-hidden">
@@ -166,7 +212,7 @@ function FunnelChart({ stages }: { stages: { name: string; value: number; color:
               style={{ backgroundColor: stage.color }}
               initial={{ width: 0 }}
               animate={{ width: `${(stage.value / max) * 100}%` }}
-              transition={{ duration: 0.8, delay: index * 0.1,  }}
+              transition={{ duration: 0.8, delay: index * 0.1 }}
             />
           </div>
         </motion.div>
@@ -176,12 +222,20 @@ function FunnelChart({ stages }: { stages: { name: string; value: number; color:
 }
 
 export default function Analytics() {
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
+  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">(
+    "30d"
+  );
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPeriod, setSelectedPeriod] = useState("30d");
-  
-  const { data: analytics, isLoading } = trpc.analytics.calculate.useQuery();
-  const { data: summary } = trpc.analytics.dashboardSummary.useQuery();
+
+  const { data: analytics, isLoading } = trpc.analytics.calculate.useQuery(
+    undefined,
+    { retry: false }
+  );
+  const { data: summary } = trpc.analytics.dashboardSummary.useQuery(
+    undefined,
+    { retry: false }
+  );
 
   const dealAnalyticsPeriod = useMemo(() => {
     const end = new Date();
@@ -191,13 +245,21 @@ export default function Analytics() {
     else if (selectedPeriod === "90d") start.setDate(end.getDate() - 90);
     else start.setFullYear(end.getFullYear() - 1);
     return {
-      periodType: selectedPeriod === "7d" ? "daily" as const : selectedPeriod === "1y" ? "monthly" as const : "weekly" as const,
+      periodType:
+        selectedPeriod === "7d"
+          ? ("daily" as const)
+          : selectedPeriod === "1y"
+            ? ("monthly" as const)
+            : ("weekly" as const),
       startDate: start.toISOString(),
       endDate: end.toISOString(),
     };
   }, [selectedPeriod]);
 
-  const { data: dealAnalytics } = trpc.analytics.dealAnalytics.useQuery(dealAnalyticsPeriod, { enabled: activeTab === "deal-analytics" });
+  const { data: dealAnalytics } = trpc.analytics.dealAnalytics.useQuery(
+    dealAnalyticsPeriod,
+    { enabled: activeTab === "deal-analytics" }
+  );
 
   const funnelDates = useMemo(() => {
     const end = new Date();
@@ -205,17 +267,39 @@ export default function Analytics() {
     start.setDate(end.getDate() - 90);
     return { startDate: start.toISOString(), endDate: end.toISOString() };
   }, []);
-  const { data: funnels } = trpc.analytics.funnels.useQuery(funnelDates, { enabled: activeTab === "funnels" });
+  const { data: funnels } = trpc.analytics.funnels.useQuery(funnelDates, {
+    enabled: activeTab === "funnels",
+  });
 
   const weeklyDeals = [3, 5, 2, 8, 4, 6, 7];
   const monthlyRevenue = [45000, 62000, 38000, 71000, 55000, 89000];
-  
+
   const dealStages = [
-    { name: "Lead", value: analytics?.dealsByStage?.lead || 12, color: "#C9A962" },
-    { name: "Qualification", value: analytics?.dealsByStage?.qualification || 8, color: "#A68B4B" },
-    { name: "Due Diligence", value: analytics?.dealsByStage?.due_diligence || 5, color: "#8B7355" },
-    { name: "Negotiation", value: analytics?.dealsByStage?.negotiation || 4, color: "#6B5B47" },
-    { name: "Closing", value: analytics?.dealsByStage?.closing || 2, color: "#4A4035" },
+    {
+      name: "Lead",
+      value: analytics?.dealsByStage?.lead || 12,
+      color: "#C9A962",
+    },
+    {
+      name: "Qualification",
+      value: analytics?.dealsByStage?.qualification || 8,
+      color: "#A68B4B",
+    },
+    {
+      name: "Due Diligence",
+      value: analytics?.dealsByStage?.due_diligence || 5,
+      color: "#8B7355",
+    },
+    {
+      name: "Negotiation",
+      value: analytics?.dealsByStage?.negotiation || 4,
+      color: "#6B5B47",
+    },
+    {
+      name: "Closing",
+      value: analytics?.dealsByStage?.closing || 2,
+      color: "#4A4035",
+    },
   ];
 
   const sourceBreakdown = [
@@ -233,15 +317,24 @@ export default function Analytics() {
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants} className="flex items-end justify-between">
+        <motion.div
+          variants={itemVariants}
+          className="flex items-end justify-between"
+        >
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-2">Performance</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-2">
+              Performance
+            </p>
             <h1 className="text-4xl font-light tracking-tight">Analytics</h1>
           </div>
         </motion.div>
       </motion.div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="deal-analytics">Deal Analytics</TabsTrigger>
@@ -259,7 +352,7 @@ export default function Analytics() {
             {/* Time Range Selector */}
             <motion.div variants={itemVariants} className="flex justify-end">
               <div className="flex gap-1 p-1 bg-neutral-100">
-                {(["7d", "30d", "90d", "1y"] as const).map((range) => (
+                {(["7d", "30d", "90d", "1y"] as const).map(range => (
                   <motion.button
                     key={range}
                     onClick={() => setTimeRange(range)}
@@ -278,15 +371,18 @@ export default function Analytics() {
             </motion.div>
 
             {/* Key Metrics Row */}
-            <motion.div variants={itemVariants} className="grid grid-cols-4 gap-6">
-              <motion.div 
+            <motion.div
+              variants={itemVariants}
+              className="grid grid-cols-4 gap-6"
+            >
+              <motion.div
                 className="bg-black text-white p-6 group"
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex items-start justify-between mb-6">
                   <DollarSign className="w-5 h-5 text-[#C9A962]" />
-                  <motion.div 
+                  <motion.div
                     className="flex items-center gap-1 text-sky-400 text-xs"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -296,20 +392,28 @@ export default function Analytics() {
                     <span>+12.5%</span>
                   </motion.div>
                 </div>
-                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
-                  $<AnimatedNumber value={analytics?.totalPipelineValue || 2450000} />
+                <motion.p
+                  className="text-3xl font-light mb-1"
+                  variants={numberVariants}
+                >
+                  $
+                  <AnimatedNumber
+                    value={analytics?.totalPipelineValue || 2450000}
+                  />
                 </motion.p>
-                <p className="text-xs uppercase tracking-wider text-neutral-400">Total Pipeline</p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">
+                  Total Pipeline
+                </p>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex items-start justify-between mb-6">
                   <Target className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
-                  <motion.div 
+                  <motion.div
                     className="flex items-center gap-1 text-sky-500 text-xs"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -319,20 +423,28 @@ export default function Analytics() {
                     <span>+3.2%</span>
                   </motion.div>
                 </div>
-                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
-                  <AnimatedNumber value={Number(analytics?.conversionRate) || 24} suffix="%" />
+                <motion.p
+                  className="text-3xl font-light mb-1"
+                  variants={numberVariants}
+                >
+                  <AnimatedNumber
+                    value={Number(analytics?.conversionRate) || 24}
+                    suffix="%"
+                  />
                 </motion.p>
-                <p className="text-xs uppercase tracking-wider text-neutral-400">Conversion Rate</p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">
+                  Conversion Rate
+                </p>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
                 <div className="flex items-start justify-between mb-6">
                   <Clock className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
-                  <motion.div 
+                  <motion.div
                     className="flex items-center gap-1 text-sky-500 text-xs"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -342,13 +454,19 @@ export default function Analytics() {
                     <span>-5 days</span>
                   </motion.div>
                 </div>
-                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
-                  <AnimatedNumber value={analytics?.avgDealCycleTime || 42} /> <span className="text-lg text-neutral-400">days</span>
+                <motion.p
+                  className="text-3xl font-light mb-1"
+                  variants={numberVariants}
+                >
+                  <AnimatedNumber value={analytics?.avgDealCycleTime || 42} />{" "}
+                  <span className="text-lg text-neutral-400">days</span>
                 </motion.p>
-                <p className="text-xs uppercase tracking-wider text-neutral-400">Avg Deal Cycle</p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">
+                  Avg Deal Cycle
+                </p>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 className="border border-neutral-200 p-6 group hover:border-[#C9A962] transition-colors"
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
@@ -357,19 +475,29 @@ export default function Analytics() {
                   <Briefcase className="w-5 h-5 text-neutral-400 group-hover:text-[#C9A962] transition-colors" />
                   <MiniBarChart data={weeklyDeals} color="#C9A962" />
                 </div>
-                <motion.p className="text-3xl font-light mb-1" variants={numberVariants}>
+                <motion.p
+                  className="text-3xl font-light mb-1"
+                  variants={numberVariants}
+                >
                   <AnimatedNumber value={analytics?.activeDeals || 18} />
                 </motion.p>
-                <p className="text-xs uppercase tracking-wider text-neutral-400">Active Deals</p>
+                <p className="text-xs uppercase tracking-wider text-neutral-400">
+                  Active Deals
+                </p>
               </motion.div>
             </motion.div>
 
             {/* Charts Row */}
             <div className="grid grid-cols-3 gap-6">
-              <motion.div variants={chartVariants} className="col-span-2 border border-neutral-200 p-6">
+              <motion.div
+                variants={chartVariants}
+                className="col-span-2 border border-neutral-200 p-6"
+              >
                 <div className="flex items-center justify-between mb-8">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Pipeline</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">
+                      Pipeline
+                    </p>
                     <h3 className="text-lg font-light">Conversion Funnel</h3>
                   </div>
                   <BarChart3 className="w-5 h-5 text-neutral-300" />
@@ -377,10 +505,15 @@ export default function Analytics() {
                 <FunnelChart stages={dealStages} />
               </motion.div>
 
-              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+              <motion.div
+                variants={chartVariants}
+                className="border border-neutral-200 p-6"
+              >
                 <div className="flex items-center justify-between mb-8">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Sources</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">
+                      Sources
+                    </p>
                     <h3 className="text-lg font-light">Deal Origins</h3>
                   </div>
                   <PieChart className="w-5 h-5 text-neutral-300" />
@@ -389,11 +522,18 @@ export default function Analytics() {
                   <DonutChart segments={sourceBreakdown} size={140} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {sourceBreakdown.map((source) => (
+                  {sourceBreakdown.map(source => (
                     <div key={source.label} className="flex items-center gap-2">
-                      <div className="w-2 h-2" style={{ backgroundColor: source.color }} />
-                      <span className="text-xs text-neutral-500">{source.label}</span>
-                      <span className="text-xs font-medium ml-auto">{source.value}%</span>
+                      <div
+                        className="w-2 h-2"
+                        style={{ backgroundColor: source.color }}
+                      />
+                      <span className="text-xs text-neutral-500">
+                        {source.label}
+                      </span>
+                      <span className="text-xs font-medium ml-auto">
+                        {source.value}%
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -402,10 +542,15 @@ export default function Analytics() {
 
             {/* Bottom Row */}
             <div className="grid grid-cols-3 gap-6">
-              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+              <motion.div
+                variants={chartVariants}
+                className="border border-neutral-200 p-6"
+              >
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Network</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">
+                      Network
+                    </p>
                     <h3 className="text-lg font-light">Top Sources</h3>
                   </div>
                   <Users className="w-5 h-5 text-neutral-300" />
@@ -426,116 +571,166 @@ export default function Analytics() {
                     >
                       <div>
                         <p className="text-sm font-medium">{source.name}</p>
-                        <p className="text-xs text-neutral-400">{source.deals} deals</p>
+                        <p className="text-xs text-neutral-400">
+                          {source.deals} deals
+                        </p>
                       </div>
-                      <p className="text-sm text-[#C9A962]">${(source.value / 1000000).toFixed(1)}M</p>
+                      <p className="text-sm text-[#C9A962]">
+                        ${(source.value / 1000000).toFixed(1)}M
+                      </p>
                     </motion.div>
                   ))}
                 </div>
               </motion.div>
 
-              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+              <motion.div
+                variants={chartVariants}
+                className="border border-neutral-200 p-6"
+              >
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Schedule</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">
+                      Schedule
+                    </p>
                     <h3 className="text-lg font-light">Upcoming</h3>
                   </div>
                   <Calendar className="w-5 h-5 text-neutral-300" />
                 </div>
                 <div className="space-y-3">
-                  {(summary?.upcomingEvents || []).slice(0, 4).map((event: any, index: number) => (
-                    <motion.div
-                      key={event.id || index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="p-3 bg-neutral-50 hover:bg-neutral-100 transition-colors"
-                    >
-                      <p className="text-sm font-medium truncate">{event.title}</p>
-                      <p className="text-xs text-neutral-400 mt-1">
-                        {new Date(event.startTime).toLocaleDateString()}
-                      </p>
-                    </motion.div>
-                  ))}
-                  {(!summary?.upcomingEvents || summary.upcomingEvents.length === 0) && (
-                    <p className="text-sm text-neutral-400 text-center py-8">No upcoming events</p>
+                  {(summary?.upcomingEvents || [])
+                    .slice(0, 4)
+                    .map((event: any, index: number) => (
+                      <motion.div
+                        key={event.id || index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        className="p-3 bg-neutral-50 hover:bg-neutral-100 transition-colors"
+                      >
+                        <p className="text-sm font-medium truncate">
+                          {event.title}
+                        </p>
+                        <p className="text-xs text-neutral-400 mt-1">
+                          {new Date(event.startTime).toLocaleDateString()}
+                        </p>
+                      </motion.div>
+                    ))}
+                  {(!summary?.upcomingEvents ||
+                    summary.upcomingEvents.length === 0) && (
+                    <p className="text-sm text-neutral-400 text-center py-8">
+                      No upcoming events
+                    </p>
                   )}
                 </div>
               </motion.div>
 
-              <motion.div variants={chartVariants} className="border border-neutral-200 p-6">
+              <motion.div
+                variants={chartVariants}
+                className="border border-neutral-200 p-6"
+              >
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Tasks</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">
+                      Tasks
+                    </p>
                     <h3 className="text-lg font-light">Follow-ups</h3>
                   </div>
                   <Zap className="w-5 h-5 text-neutral-300" />
                 </div>
                 <div className="space-y-3">
-                  {(summary?.pendingReminders || []).slice(0, 4).map((reminder: any, index: number) => (
-                    <motion.div
-                      key={reminder.id || index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="p-3 border-l-2 border-[#C9A962] bg-neutral-50"
-                    >
-                      <p className="text-sm font-medium truncate">{reminder.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-xs px-2 py-0.5 ${
-                          reminder.priority === 'urgent' ? 'bg-red-100 text-red-600' :
-                          reminder.priority === 'high' ? 'bg-sky-100 text-sky-600' :
-                          'bg-neutral-100 text-neutral-500'
-                        }`}>
-                          {reminder.priority}
-                        </span>
-                        <span className="text-xs text-neutral-400">
-                          Due {new Date(reminder.dueDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                  {(!summary?.pendingReminders || summary.pendingReminders.length === 0) && (
-                    <p className="text-sm text-neutral-400 text-center py-8">No pending reminders</p>
+                  {(summary?.pendingReminders || [])
+                    .slice(0, 4)
+                    .map((reminder: any, index: number) => (
+                      <motion.div
+                        key={reminder.id || index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        className="p-3 border-l-2 border-[#C9A962] bg-neutral-50"
+                      >
+                        <p className="text-sm font-medium truncate">
+                          {reminder.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span
+                            className={`text-xs px-2 py-0.5 ${
+                              reminder.priority === "urgent"
+                                ? "bg-red-100 text-red-600"
+                                : reminder.priority === "high"
+                                  ? "bg-sky-100 text-sky-600"
+                                  : "bg-neutral-100 text-neutral-500"
+                            }`}
+                          >
+                            {reminder.priority}
+                          </span>
+                          <span className="text-xs text-neutral-400">
+                            Due{" "}
+                            {new Date(reminder.dueDate).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  {(!summary?.pendingReminders ||
+                    summary.pendingReminders.length === 0) && (
+                    <p className="text-sm text-neutral-400 text-center py-8">
+                      No pending reminders
+                    </p>
                   )}
                 </div>
               </motion.div>
             </div>
 
             {/* Performance Summary */}
-            <motion.div 
+            <motion.div
               variants={chartVariants}
               className="bg-gradient-to-r from-black to-neutral-900 text-white p-8"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-2">This Period</p>
-                  <h3 className="text-2xl font-light mb-4">Performance Summary</h3>
+                  <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-2">
+                    This Period
+                  </p>
+                  <h3 className="text-2xl font-light mb-4">
+                    Performance Summary
+                  </h3>
                   <div className="flex gap-12">
                     <div>
                       <p className="text-4xl font-light text-[#C9A962]">
                         <AnimatedNumber value={analytics?.closedDeals || 7} />
                       </p>
-                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">Deals Closed</p>
+                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">
+                        Deals Closed
+                      </p>
                     </div>
                     <div>
                       <p className="text-4xl font-light">
-                        $<AnimatedNumber value={analytics?.closedValue || 1250000} />
+                        $
+                        <AnimatedNumber
+                          value={analytics?.closedValue || 1250000}
+                        />
                       </p>
-                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">Revenue Generated</p>
+                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">
+                        Revenue Generated
+                      </p>
                     </div>
                     <div>
                       <p className="text-4xl font-light">
                         <AnimatedNumber value={analytics?.recentDeals || 12} />
                       </p>
-                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">New Opportunities</p>
+                      <p className="text-xs uppercase tracking-wider text-neutral-400 mt-1">
+                        New Opportunities
+                      </p>
                     </div>
                   </div>
                 </div>
-                <motion.div 
+                <motion.div
                   className="w-32 h-32 border border-[#C9A962]/30 flex items-center justify-center"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
                 >
                   <Activity className="w-12 h-12 text-[#C9A962]" />
                 </motion.div>
@@ -549,7 +744,9 @@ export default function Analytics() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Trends</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">
+                  Trends
+                </p>
                 <h2 className="text-2xl font-light">Deal Analytics</h2>
               </div>
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -565,7 +762,9 @@ export default function Analytics() {
               </Select>
             </div>
 
-            {dealAnalytics && Array.isArray(dealAnalytics) && dealAnalytics.length > 0 ? (
+            {dealAnalytics &&
+            Array.isArray(dealAnalytics) &&
+            dealAnalytics.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {dealAnalytics.map((period: any, idx: number) => (
                   <Card key={idx} className="border-neutral-200">
@@ -578,22 +777,34 @@ export default function Analytics() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-neutral-500">New Deals</span>
-                        <span className="text-lg font-light">{period.newDeals ?? 0}</span>
+                        <span className="text-xs text-neutral-500">
+                          New Deals
+                        </span>
+                        <span className="text-lg font-light">
+                          {period.newDeals ?? 0}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-neutral-500">Closed Deals</span>
-                        <span className="text-lg font-light">{period.closedDeals ?? 0}</span>
+                        <span className="text-xs text-neutral-500">
+                          Closed Deals
+                        </span>
+                        <span className="text-lg font-light">
+                          {period.closedDeals ?? 0}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-neutral-500">Pipeline Value</span>
+                        <span className="text-xs text-neutral-500">
+                          Pipeline Value
+                        </span>
                         <span className="text-lg font-light text-[#C9A962]">
                           ${Number(period.totalValue ?? 0).toLocaleString()}
                         </span>
                       </div>
                       {period.avgDealSize != null && (
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-neutral-500">Avg Deal Size</span>
+                          <span className="text-xs text-neutral-500">
+                            Avg Deal Size
+                          </span>
                           <span className="text-sm font-light">
                             ${Number(period.avgDealSize).toLocaleString()}
                           </span>
@@ -606,8 +817,12 @@ export default function Analytics() {
             ) : (
               <div className="text-center py-16 border border-neutral-200">
                 <BarChart3 className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-                <p className="text-neutral-500">No deal analytics data for this period</p>
-                <p className="text-sm text-neutral-400 mt-1">Try selecting a different time range</p>
+                <p className="text-neutral-500">
+                  No deal analytics data for this period
+                </p>
+                <p className="text-sm text-neutral-400 mt-1">
+                  Try selecting a different time range
+                </p>
               </div>
             )}
           </div>
@@ -617,7 +832,9 @@ export default function Analytics() {
         <TabsContent value="funnels">
           <div className="space-y-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">Pipeline</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-1">
+                Pipeline
+              </p>
               <h2 className="text-2xl font-light">Conversion Funnels</h2>
               <p className="text-sm text-neutral-500 mt-1">Last 90 days</p>
             </div>
@@ -625,10 +842,17 @@ export default function Analytics() {
             {funnels && Array.isArray(funnels) && funnels.length > 0 ? (
               <div className="space-y-4 max-w-2xl">
                 {funnels.map((stage: any, idx: number) => {
-                  const maxVal = Math.max(...funnels.map((s: any) => Number(s.totalEntered ?? 0)), 1);
+                  const maxVal = Math.max(
+                    ...funnels.map((s: any) => Number(s.totalEntered ?? 0)),
+                    1
+                  );
                   const val = Number(stage.totalEntered ?? 0);
-                  const prevVal = idx > 0 ? Number(funnels[idx - 1].totalEntered ?? 0) : 0;
-                  const conversionRate = idx > 0 && prevVal > 0 ? ((val / prevVal) * 100).toFixed(1) : null;
+                  const prevVal =
+                    idx > 0 ? Number(funnels[idx - 1].totalEntered ?? 0) : 0;
+                  const conversionRate =
+                    idx > 0 && prevVal > 0
+                      ? ((val / prevVal) * 100).toFixed(1)
+                      : null;
 
                   return (
                     <motion.div
@@ -671,7 +895,9 @@ export default function Analytics() {
               <div className="text-center py-16 border border-neutral-200">
                 <Filter className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
                 <p className="text-neutral-500">No funnel data available</p>
-                <p className="text-sm text-neutral-400 mt-1">Funnel data will populate as deals progress through stages</p>
+                <p className="text-sm text-neutral-400 mt-1">
+                  Funnel data will populate as deals progress through stages
+                </p>
               </div>
             )}
           </div>

@@ -1,13 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useParams, Link } from "wouter";
 import {
-  FileText, Shield, Scale, Wallet, Clock,
-  Eye, Check, AlertTriangle,
-  ChevronRight, ChevronLeft,
+  FileText,
+  Shield,
+  Scale,
+  Wallet,
+  Clock,
+  Eye,
+  Check,
+  AlertTriangle,
+  ChevronRight,
+  ChevronLeft,
   Lock,
 } from "lucide-react";
 import { SlideIn, FadeInView } from "@/components/PageTransition";
+import { useDemoFixtures } from "@/contexts/DemoContext";
 
 import { OverviewTab } from "./deal-room/OverviewTab";
 import { DocumentsTab } from "./deal-room/DocumentsTab";
@@ -17,7 +25,14 @@ import { EscrowTab } from "./deal-room/EscrowTab";
 import { PayoutsTab } from "./deal-room/PayoutsTab";
 import { AuditTab } from "./deal-room/AuditTab";
 
-type TabKey = "overview" | "documents" | "diligence" | "compliance" | "escrow" | "payouts" | "audit";
+type TabKey =
+  | "overview"
+  | "documents"
+  | "diligence"
+  | "compliance"
+  | "escrow"
+  | "payouts"
+  | "audit";
 
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: "overview", label: "Overview", icon: Eye },
@@ -31,19 +46,27 @@ const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
 
 function getStatusClass(status: string | null): string {
   switch (status) {
-    case "active": return "status-active";
-    case "closed": return "status-completed";
-    case "archived": return "status-declined";
-    default: return "status-nda-pending";
+    case "active":
+      return "status-active";
+    case "closed":
+      return "status-completed";
+    case "archived":
+      return "status-declined";
+    default:
+      return "status-nda-pending";
   }
 }
 
 function getStatusLabel(status: string | null): string {
   switch (status) {
-    case "active": return "Active";
-    case "closed": return "Completed";
-    case "archived": return "Declined";
-    default: return "NDA Pending";
+    case "active":
+      return "Active";
+    case "closed":
+      return "Completed";
+    case "archived":
+      return "Declined";
+    default:
+      return "NDA Pending";
   }
 }
 
@@ -55,31 +78,74 @@ function daysSince(date: Date | string): number {
 export default function DealRoom() {
   const params = useParams<{ id: string }>();
   const roomId = Number(params.id);
+  const demo = useDemoFixtures();
+  const isDemo = !!demo;
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
-  const { data: room, isLoading } = trpc.dealRoom.get.useQuery(
+  const demoRoom = useMemo(() => {
+    if (!demo) return null;
+    const dr = (demo.dealRooms as unknown as Record<string, unknown>[])?.find(
+      r => Number(r.id) === roomId
+    );
+    if (!dr) {
+      const first = (
+        demo.dealRooms as unknown as Record<string, unknown>[]
+      )?.[0];
+      if (!first) return null;
+      dr === undefined; // fallback to first room for demo navigation
+      return {
+        id: roomId,
+        name: String(first.name ?? `Deal Room #${roomId}`),
+        status: "active" as string | null,
+        ndaRequired: true,
+        createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
+        updatedAt: new Date(Date.now() - 86400000).toISOString(),
+        settings: { watermarkDocuments: true, allowDownloads: false },
+        dealId: null,
+      };
+    }
+    return {
+      id: roomId,
+      name: String(dr.name ?? `Deal Room #${roomId}`),
+      status: (dr.stage === "closing" || dr.stage === "diligence"
+        ? "active"
+        : null) as string | null,
+      ndaRequired: dr.ndaStatus === "executed" || dr.ndaStatus === "pending",
+      createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000).toISOString(),
+      settings: { watermarkDocuments: true, allowDownloads: false },
+      dealId: null,
+    };
+  }, [demo, roomId]);
+
+  const { data: liveRoom, isLoading: liveLoading } = trpc.dealRoom.get.useQuery(
     { id: roomId },
-    { enabled: !!roomId && !isNaN(roomId) }
+    { enabled: !isDemo && !!roomId && !isNaN(roomId) }
   );
 
-  const { data: myAccess, refetch: refetchMyAccess } = trpc.dealRoom.getMyAccess.useQuery(
-    { dealRoomId: roomId },
-    { enabled: !!roomId && !isNaN(roomId) }
-  );
+  const room = isDemo ? demoRoom : liveRoom;
+  const isLoading = isDemo ? false : liveLoading;
 
-  const { data: documents, refetch: refetchDocuments } = trpc.dealRoom.getDocuments.useQuery(
-    { dealRoomId: roomId },
-    { enabled: !!roomId && !isNaN(roomId) }
-  );
+  const { data: myAccess, refetch: refetchMyAccess } =
+    trpc.dealRoom.getMyAccess.useQuery(
+      { dealRoomId: roomId },
+      { enabled: !isDemo && !!roomId && !isNaN(roomId) }
+    );
+
+  const { data: documents, refetch: refetchDocuments } =
+    trpc.dealRoom.getDocuments.useQuery(
+      { dealRoomId: roomId },
+      { enabled: !isDemo && !!roomId && !isNaN(roomId) }
+    );
 
   const { data: auditEntries } = trpc.audit.list.useQuery(
     { entityType: "deal_room", entityId: roomId },
-    { enabled: !!roomId && !isNaN(roomId) }
+    { enabled: !isDemo && !!roomId && !isNaN(roomId) }
   );
 
   const { data: payouts } = trpc.payout.getByDeal.useQuery(
-    { dealId: room?.dealId ?? 0 },
-    { enabled: !!room?.dealId }
+    { dealId: (room as any)?.dealId ?? 0 },
+    { enabled: !isDemo && !!(room as any)?.dealId }
   );
 
   if (isLoading) {
@@ -99,8 +165,14 @@ export default function DealRoom() {
           <AlertTriangle className="w-8 h-8" style={{ color: "#DC2626" }} />
         </div>
         <h2 className="text-lg font-semibold mb-2">Deal Room Not Found</h2>
-        <p className="text-muted-foreground mb-4 text-sm">This deal room may have been removed or you don't have access.</p>
-        <Link href="/deal-rooms" className="inline-flex items-center gap-1 text-sm font-medium" style={{ color: "#2563EB" }}>
+        <p className="text-muted-foreground mb-4 text-sm">
+          This deal room may have been removed or you don't have access.
+        </p>
+        <Link
+          href="/deal-rooms"
+          className="inline-flex items-center gap-1 text-sm font-medium"
+          style={{ color: "#2563EB" }}
+        >
           <ChevronLeft className="w-4 h-4" /> Back to Deal Rooms
         </Link>
       </div>
@@ -110,28 +182,42 @@ export default function DealRoom() {
   const days = daysSince(room.createdAt);
   const dealValue = "$2.5M";
   const stages = ["NDA", "Diligence", "Negotiation", "Closing"];
-  const currentStageIdx = room.status === "active" ? 1 : room.status === "closed" ? 3 : 0;
+  const currentStageIdx =
+    room.status === "active" ? 1 : room.status === "closed" ? 3 : 0;
 
-  useEffect(() => { document.title = `Deal Room: ${room.name} | ANAVI`; }, [room.name]);
+  useEffect(() => {
+    document.title = `Deal Room: ${room.name} | ANAVI`;
+  }, [room.name]);
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/deal-rooms" className="hover:underline" style={{ color: "#2563EB" }}>
+        <Link
+          href="/deal-rooms"
+          className="hover:underline"
+          style={{ color: "#2563EB" }}
+        >
           Deal Rooms
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <span className="font-medium" style={{ color: "#0A1628" }}>{room.name}</span>
+        <span className="font-medium" style={{ color: "#0A1628" }}>
+          {room.name}
+        </span>
       </div>
 
       {/* Room Header */}
       <FadeInView>
-        <div className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
+        <div
+          className="bg-white rounded-lg border p-6"
+          style={{ borderColor: "#D1DCF0" }}
+        >
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="space-y-2 flex-1">
               <div className="flex items-center gap-3">
-                <h1 className="text-display" style={{ color: "#0A1628" }}>{room.name}</h1>
+                <h1 className="text-display" style={{ color: "#0A1628" }}>
+                  {room.name}
+                </h1>
                 <span className={`status-pill ${getStatusClass(room.status)}`}>
                   {getStatusLabel(room.status)}
                 </span>
@@ -147,7 +233,15 @@ export default function DealRoom() {
                       <div
                         key={letter}
                         className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold text-white"
-                        style={{ backgroundColor: i === 0 ? "#2563EB" : i === 1 ? "#C4972A" : "#059669", zIndex: 3 - i }}
+                        style={{
+                          backgroundColor:
+                            i === 0
+                              ? "#2563EB"
+                              : i === 1
+                                ? "#C4972A"
+                                : "#059669",
+                          zIndex: 3 - i,
+                        }}
                       >
                         {letter}
                       </div>
@@ -158,30 +252,56 @@ export default function DealRoom() {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Deal Value</div>
-              <div className="text-2xl font-bold number-display" style={{ color: "#0A1628" }}>{dealValue}</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                Deal Value
+              </div>
+              <div
+                className="text-2xl font-bold number-display"
+                style={{ color: "#0A1628" }}
+              >
+                {dealValue}
+              </div>
             </div>
           </div>
 
           {/* Stage progress bar */}
-          <div className="mt-5 pt-4 border-t" style={{ borderColor: "#D1DCF0" }}>
+          <div
+            className="mt-5 pt-4 border-t"
+            style={{ borderColor: "#D1DCF0" }}
+          >
             <div className="flex items-center gap-2">
               {stages.map((stage, i) => (
                 <div key={stage} className="flex items-center gap-2 flex-1">
-                  <div className={`flex items-center gap-1.5 text-xs font-medium ${
-                    i <= currentStageIdx ? "text-[#2563EB]" : "text-gray-400"
-                  }`}>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                      i < currentStageIdx ? "bg-[#059669] text-white" :
-                      i === currentStageIdx ? "bg-[#2563EB] text-white" :
-                      "bg-gray-200 text-gray-400"
-                    }`}>
-                      {i < currentStageIdx ? <Check className="w-3 h-3" /> : i + 1}
+                  <div
+                    className={`flex items-center gap-1.5 text-xs font-medium ${
+                      i <= currentStageIdx ? "text-[#2563EB]" : "text-gray-400"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        i < currentStageIdx
+                          ? "bg-[#059669] text-white"
+                          : i === currentStageIdx
+                            ? "bg-[#2563EB] text-white"
+                            : "bg-gray-200 text-gray-400"
+                      }`}
+                    >
+                      {i < currentStageIdx ? (
+                        <Check className="w-3 h-3" />
+                      ) : (
+                        i + 1
+                      )}
                     </div>
                     {stage}
                   </div>
                   {i < stages.length - 1 && (
-                    <div className="flex-1 h-0.5 rounded" style={{ backgroundColor: i < currentStageIdx ? "#059669" : "#D1DCF0" }} />
+                    <div
+                      className="flex-1 h-0.5 rounded"
+                      style={{
+                        backgroundColor:
+                          i < currentStageIdx ? "#059669" : "#D1DCF0",
+                      }}
+                    />
                   )}
                 </div>
               ))}
@@ -191,9 +311,12 @@ export default function DealRoom() {
       </FadeInView>
 
       {/* Tab Bar */}
-      <div className="border-b overflow-x-auto scrollbar-premium" style={{ borderColor: "#D1DCF0" }}>
+      <div
+        className="border-b overflow-x-auto scrollbar-premium"
+        style={{ borderColor: "#D1DCF0" }}
+      >
         <div className="flex gap-0 min-w-max">
-          {TABS.map((tab) => {
+          {TABS.map(tab => {
             const isActive = activeTab === tab.key;
             const Icon = tab.icon;
             return (
@@ -217,7 +340,11 @@ export default function DealRoom() {
       {/* Tab Content */}
       <SlideIn key={activeTab} direction="up">
         {activeTab === "overview" && (
-          <OverviewTab room={room} payouts={payouts ?? []} auditEntries={auditEntries ?? []} />
+          <OverviewTab
+            room={room}
+            payouts={payouts ?? []}
+            auditEntries={auditEntries ?? []}
+          />
         )}
         {activeTab === "documents" && (
           <DocumentsTab
@@ -226,12 +353,19 @@ export default function DealRoom() {
             ndaRequired={room?.ndaRequired ?? false}
             ndaSigned={myAccess?.access?.ndaSigned ?? false}
             bothSigned={myAccess?.bothSigned ?? false}
-            onNdaSigned={() => { refetchDocuments(); refetchMyAccess(); }}
+            onNdaSigned={() => {
+              refetchDocuments();
+              refetchMyAccess();
+            }}
           />
         )}
-        {activeTab === "diligence" && <DiligenceTab roomId={roomId} room={room} />}
+        {activeTab === "diligence" && (
+          <DiligenceTab roomId={roomId} room={room} />
+        )}
         {activeTab === "compliance" && <ComplianceTab />}
-        {activeTab === "escrow" && <EscrowTab dealId={room?.dealId ?? undefined} />}
+        {activeTab === "escrow" && (
+          <EscrowTab dealId={room?.dealId ?? undefined} />
+        )}
         {activeTab === "payouts" && <PayoutsTab payouts={payouts ?? []} />}
         {activeTab === "audit" && <AuditTab entries={auditEntries ?? []} />}
       </SlideIn>

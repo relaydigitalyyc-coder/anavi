@@ -5,7 +5,9 @@ import { motion } from "framer-motion";
 
 /** Safe redirect: only allow relative paths, no protocol/domain to prevent open redirect. */
 function getRedirectTarget(): string | null {
-  const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const params = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
   const r = params.get("redirect");
   if (!r || !r.startsWith("/") || r.startsWith("//")) return null;
   return r;
@@ -17,30 +19,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  async function handleBypass() {
-    setError("");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/bypass", {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setError(data?.error ?? "Bypass failed");
-        return;
-      }
-      const data = await res.json().catch(() => ({}));
-      const defaultNext = data?.user?.onboardingCompleted ? "/dashboard" : "/onboarding";
-      const next = getRedirectTarget() ?? defaultNext;
-      window.location.href = next;
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +40,9 @@ export default function Login() {
       }
 
       const data = await res.json().catch(() => ({}));
-      const defaultNext = data?.user?.onboardingCompleted ? "/dashboard" : "/onboarding";
+      const defaultNext = data?.user?.onboardingCompleted
+        ? "/dashboard"
+        : "/onboarding";
       const next = getRedirectTarget() ?? defaultNext;
       window.location.href = next;
     } catch {
@@ -75,15 +55,33 @@ export default function Login() {
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans">
       {/* Mesh background (separate layer so only the gradient drifts, not the form) */}
-      <div className="absolute inset-0 bg-mesh pointer-events-none" aria-hidden />
+      <div
+        className="absolute inset-0 bg-mesh pointer-events-none"
+        aria-hidden
+      />
 
       {/* Background orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: "oklch(0.65 0.19 230 / 0.06)", filter: "blur(80px)" }} />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: "oklch(0.65 0.22 280 / 0.05)", filter: "blur(80px)" }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full pointer-events-none"
-        style={{ background: "oklch(0.72 0.14 70 / 0.04)", filter: "blur(60px)" }} />
+      <div
+        className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
+        style={{
+          background: "oklch(0.65 0.19 230 / 0.06)",
+          filter: "blur(80px)",
+        }}
+      />
+      <div
+        className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none"
+        style={{
+          background: "oklch(0.65 0.22 280 / 0.05)",
+          filter: "blur(80px)",
+        }}
+      />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full pointer-events-none"
+        style={{
+          background: "oklch(0.72 0.14 70 / 0.04)",
+          filter: "blur(60px)",
+        }}
+      />
 
       {/* Glass panel */}
       <motion.div
@@ -93,20 +91,27 @@ export default function Login() {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="glass-dark rounded-2xl p-8 md:p-10 space-y-6">
-
           {/* Wordmark */}
           <div className="text-center space-y-1">
             <div className="flex items-center justify-center gap-1.5 mb-2">
-              <span className="text-2xl font-bold text-white tracking-tight">@navi</span>
+              <span className="text-2xl font-bold text-white tracking-tight">
+                @navi
+              </span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#22D4F5] animate-glow-pulse" />
             </div>
-            <p className="text-sm text-white/40">The Private Market Operating System</p>
+            <p className="text-sm text-white/40">
+              The Private Market Operating System
+            </p>
           </div>
 
           {/* Prelaunch demo credentials */}
           <div className="rounded-lg border border-[#22D4F5]/20 bg-[#22D4F5]/5 px-4 py-3 text-center">
-            <p className="text-xs font-semibold text-[#22D4F5]/80 uppercase tracking-wider mb-1">Prelaunch demo</p>
-            <p className="text-sm text-white/90 font-mono">demo@prelaunch.local / demo123</p>
+            <p className="text-xs font-semibold text-[#22D4F5]/80 uppercase tracking-wider mb-1">
+              Prelaunch demo
+            </p>
+            <p className="text-sm text-white/90 font-mono">
+              demo@prelaunch.local / demo123
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -123,7 +128,10 @@ export default function Login() {
           {/* Form — keep existing handleSubmit */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">
+              <label
+                htmlFor="email"
+                className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2"
+              >
                 Email
               </label>
               <input
@@ -139,7 +147,10 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">
+              <label
+                htmlFor="password"
+                className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -158,7 +169,11 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -182,7 +197,9 @@ export default function Login() {
 
             <button
               type="button"
-              onClick={() => { window.location.href = "/onboarding"; }}
+              onClick={() => {
+                window.location.href = "/onboarding";
+              }}
               className="w-full py-2 text-xs text-white/40 hover:text-white/70 transition-colors"
             >
               Login Demo
@@ -191,17 +208,21 @@ export default function Login() {
 
           {/* Footer links */}
           <div className="flex items-center justify-between text-xs">
-            <Link href="/forgot-password" className="text-white/30 hover:text-white/60 transition-colors">
+            <Link
+              href="/forgot-password"
+              className="text-white/30 hover:text-white/60 transition-colors"
+            >
               Forgot password?
             </Link>
-            <Link href="/register" className="text-white/30 hover:text-white/60 transition-colors">
+            <Link
+              href="/register"
+              className="text-white/30 hover:text-white/60 transition-colors"
+            >
               Create account
             </Link>
           </div>
-
         </div>
       </motion.div>
-
     </div>
   );
 }

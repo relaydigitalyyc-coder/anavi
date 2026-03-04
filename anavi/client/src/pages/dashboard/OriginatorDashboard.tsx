@@ -26,7 +26,12 @@ import {
 import { SmoothCounter } from "@/components/PremiumAnimations";
 import { toast } from "sonner";
 import { DASHBOARD, NOTIFICATIONS, TOASTS } from "@/lib/copy";
-import { NOTIFICATION_STYLES, DEFAULT_STYLE, MARKET_DEPTH, PENDING_ACTIONS } from "./constants";
+import {
+  NOTIFICATION_STYLES,
+  DEFAULT_STYLE,
+  MARKET_DEPTH,
+  PENDING_ACTIONS,
+} from "./constants";
 import {
   getScoreColor,
   TrustRing,
@@ -36,7 +41,10 @@ import {
   MaybeLink,
   getGreeting,
   MarketDepthBar,
-} from "./atoms";export function OriginatorDashboardContent() {
+} from "./atoms";
+import { InteractiveGlobe } from "@/components/ui/interactive-globe";
+import { EvervaultCard } from "@/components/ui/evervault-card";
+export function OriginatorDashboardContent() {
   const demo = useDemoFixtures();
   const industry = useActiveIndustry() ?? "Infrastructure";
   const { user: liveUser } = useAuth();
@@ -54,7 +62,10 @@ import {
   });
   const [moduleHintDismissed, setModuleHintDismissed] = useState(() => {
     try {
-      return localStorage.getItem("anavi_originator_module_hint_dismissed") === "true";
+      return (
+        localStorage.getItem("anavi_originator_module_hint_dismissed") ===
+        "true"
+      );
     } catch {
       return false;
     }
@@ -136,18 +147,27 @@ import {
     { id: 2, type: "sell", assetClass: "Real Estate", size: "$5M - $20M" },
   ];
   const matchBands = {
-    top: (demo?.matches ?? []).filter((match) => match.compatibilityScore >= 90).length,
-    mid: (demo?.matches ?? []).filter((match) => match.compatibilityScore >= 80 && match.compatibilityScore < 90).length,
-    low: (demo?.matches ?? []).filter((match) => match.compatibilityScore < 80).length,
+    top: (demo?.matches ?? []).filter(match => match.compatibilityScore >= 90)
+      .length,
+    mid: (demo?.matches ?? []).filter(
+      match => match.compatibilityScore >= 80 && match.compatibilityScore < 90
+    ).length,
+    low: (demo?.matches ?? []).filter(match => match.compatibilityScore < 80)
+      .length,
   };
-  const relationshipPaths = (demo?.relationships ?? []).slice(0, 3).map((relationship, index) => ({
-    id: relationship.id,
-    label: `${relationship.name} -> ${(demo?.matches[index]?.assetClass ?? "Private Markets")} mandate`,
-    confidence: Math.max(72, Math.min(96, Number(relationship.trustScore) + 2)),
-    status: relationship.attributionStatus,
-  }));
+  const relationshipPaths = (demo?.relationships ?? [])
+    .slice(0, 3)
+    .map((relationship, index) => ({
+      id: relationship.id,
+      label: `${relationship.name} -> ${demo?.matches[index]?.assetClass ?? "Private Markets"} mandate`,
+      confidence: Math.max(
+        72,
+        Math.min(96, Number(relationship.trustScore) + 2)
+      ),
+      status: relationship.attributionStatus,
+    }));
   const stalledPipeline = (demo?.matches ?? [])
-    .map((match) => ({
+    .map(match => ({
       id: match.id,
       label: match.tag,
       hours: Math.max(18, 56 - match.compatibilityScore / 2),
@@ -155,7 +175,11 @@ import {
     }))
     .sort((a, b) => b.hours - a.hours)
     .slice(0, 3);
-  const telemetry = (demo as unknown as { opsTelemetry?: { activity24h?: number; activity7d?: number } } | null)?.opsTelemetry;
+  const telemetry = (
+    demo as unknown as {
+      opsTelemetry?: { activity24h?: number; activity7d?: number };
+    } | null
+  )?.opsTelemetry;
   const activityVelocity = {
     now24h: Number(telemetry?.activity24h ?? 12),
     now7d: Number(telemetry?.activity7d ?? 44),
@@ -174,11 +198,11 @@ import {
           onDismiss={handleDismissWelcome}
         />
       )}
-      {/* E13: Personalized greeting */}
+      {/* E13: Personalized greeting + Network Globe */}
       <FadeInView>
         <div
           data-tour="dashboard"
-          className="mb-6 flex items-baseline justify-between"
+          className="mb-6 flex items-start justify-between gap-4"
         >
           <div>
             <h1 className="dash-heading text-3xl">
@@ -198,6 +222,15 @@ import {
             <p className="mt-2 text-[10px] uppercase tracking-widest text-[#C4972A]">
               Industry Lens: {industry}
             </p>
+          </div>
+          <div className="hidden lg:block shrink-0">
+            <InteractiveGlobe
+              size={200}
+              dotColor="rgba(30, 58, 95, ALPHA)"
+              arcColor="rgba(196, 151, 42, 0.4)"
+              markerColor="rgba(37, 99, 235, 0.9)"
+              autoRotateSpeed={0.001}
+            />
           </div>
         </div>
       </FadeInView>
@@ -225,13 +258,26 @@ import {
               </div>
               <div className="mt-4 grid grid-cols-3 gap-2 text-left">
                 {[
-                  { label: "Verification Depth", value: demo ? "Tier 2+" : "Tiered" },
-                  { label: "Counterparty Acceptance", value: `${Math.min(99, Math.max(68, Math.round(trustScore + 12)))}%` },
+                  {
+                    label: "Verification Depth",
+                    value: demo ? "Tier 2+" : "Tiered",
+                  },
+                  {
+                    label: "Counterparty Acceptance",
+                    value: `${Math.min(99, Math.max(68, Math.round(trustScore + 12)))}%`,
+                  },
                   { label: "Audit Integrity", value: "Immutable" },
-                ].map((metric) => (
-                  <div key={metric.label} className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2">
-                    <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">{metric.label}</p>
-                    <p className="text-xs font-semibold text-[#0A1628] mt-1">{metric.value}</p>
+                ].map(metric => (
+                  <div
+                    key={metric.label}
+                    className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2"
+                  >
+                    <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">
+                      {metric.label}
+                    </p>
+                    <p className="text-xs font-semibold text-[#0A1628] mt-1">
+                      {metric.value}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -241,7 +287,10 @@ import {
                     Review Verification
                   </button>
                 </MaybeLink>
-                <MaybeLink href="/custody?minTrust=80&status=active" demo={!!demo}>
+                <MaybeLink
+                  href="/custody?minTrust=80&status=active"
+                  demo={!!demo}
+                >
                   <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#1E3A5F]/70 hover:bg-[#1E3A5F]/15">
                     Warm Relationships
                   </button>
@@ -292,9 +341,12 @@ import {
           <div className="lg:col-span-3 mb-2 rounded-lg border border-[#2563EB]/20 bg-[#2563EB]/8 px-4 py-3">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]">Module Hint</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]">
+                  Module Hint
+                </p>
                 <p className="mt-1 text-sm text-[#1E3A5F]/75">
-                  Start on `Pipeline Stall Alerts`, then action `Escalate Blockers` to clear near-term throughput risk.
+                  Start on `Pipeline Stall Alerts`, then action `Escalate
+                  Blockers` to clear near-term throughput risk.
                 </p>
               </div>
               <button
@@ -302,7 +354,10 @@ import {
                 onClick={() => {
                   setModuleHintDismissed(true);
                   try {
-                    localStorage.setItem("anavi_originator_module_hint_dismissed", "true");
+                    localStorage.setItem(
+                      "anavi_originator_module_hint_dismissed",
+                      "true"
+                    );
                   } catch {
                     /* ignore */
                   }
@@ -449,9 +504,17 @@ import {
         <FadeInView delay={0.1}>
           {/* Blind Matches — always present so onboardingTour can target it. */}
           <div data-tour="deal-matching" className="mb-6">
-            <h2 className="mb-3 dash-heading text-xl">
-              {DASHBOARD.blindMatches.title}
-            </h2>
+            <div className="mb-3 flex items-center gap-3">
+              <h2 className="dash-heading text-xl">
+                {DASHBOARD.blindMatches.title}
+              </h2>
+              <div className="hidden md:block h-12 w-12 shrink-0">
+                <EvervaultCard
+                  text=""
+                  className="!aspect-auto !h-12 !w-12 !p-0"
+                />
+              </div>
+            </div>
             {demo && demo.matches.length > 0 ? (
               <StaggerContainer className="space-y-3">
                 {demo.matches.map((m, idx) => (
@@ -504,7 +567,9 @@ import {
                       </div>
                       <div className="mt-2 flex items-center justify-between text-[10px] text-[#1E3A5F]/55 z-10 relative">
                         <span>Mutual consent required for disclosure</span>
-                        <span className="font-semibold text-[#1E3A5F]/70">Blind Matching</span>
+                        <span className="font-semibold text-[#1E3A5F]/70">
+                          Blind Matching
+                        </span>
                       </div>
                     </div>
                   </StaggerItem>
@@ -519,7 +584,10 @@ import {
               </div>
             )}
             <div className="mt-2 flex flex-wrap gap-2">
-              <MaybeLink href="/pipeline?minScore=85&status=pending_consent" demo={!!demo}>
+              <MaybeLink
+                href="/pipeline?minScore=85&status=pending_consent"
+                demo={!!demo}
+              >
                 <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#1E3A5F]/70 hover:bg-[#1E3A5F]/15">
                   Open High-Score Pipeline
                 </button>
@@ -667,27 +735,48 @@ import {
             <DashCard title="Match Quality Distribution">
               <div className="space-y-2">
                 {[
-                  { label: "90-100", value: matchBands.top, tone: "bg-[#059669]" },
-                  { label: "80-89", value: matchBands.mid, tone: "bg-[#2563EB]" },
+                  {
+                    label: "90-100",
+                    value: matchBands.top,
+                    tone: "bg-[#059669]",
+                  },
+                  {
+                    label: "80-89",
+                    value: matchBands.mid,
+                    tone: "bg-[#2563EB]",
+                  },
                   { label: "<80", value: matchBands.low, tone: "bg-[#F59E0B]" },
-                ].map((band) => {
-                  const total = Math.max(1, matchBands.top + matchBands.mid + matchBands.low);
-                  const width = Math.max(8, Math.round((band.value / total) * 100));
+                ].map(band => {
+                  const total = Math.max(
+                    1,
+                    matchBands.top + matchBands.mid + matchBands.low
+                  );
+                  const width = Math.max(
+                    8,
+                    Math.round((band.value / total) * 100)
+                  );
                   return (
                     <div key={band.label}>
                       <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-[#1E3A5F]/60">
                         <span>{band.label}</span>
-                        <span className="font-bold text-[#0A1628]">{band.value}</span>
+                        <span className="font-bold text-[#0A1628]">
+                          {band.value}
+                        </span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-[#1E3A5F]/10">
-                        <div className={`h-full rounded-full ${band.tone}`} style={{ width: `${width}%` }} />
+                        <div
+                          className={`h-full rounded-full ${band.tone}`}
+                          style={{ width: `${width}%` }}
+                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-[#1E3A5F]/55">State: quality mix is weighted to top-decile opportunities.</p>
+                <p className="text-xs text-[#1E3A5F]/55">
+                  State: quality mix is weighted to top-decile opportunities.
+                </p>
                 <MaybeLink href="/pipeline?minScore=90" demo={!!demo}>
                   <button className="rounded bg-[#2563EB]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
                     Triage Top Decile
@@ -700,20 +789,30 @@ import {
           <StaggerItem>
             <DashCard title="Relationship Path Confidence">
               <div className="space-y-2">
-                {relationshipPaths.map((path) => (
-                  <div key={path.id} className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2">
+                {relationshipPaths.map(path => (
+                  <div
+                    key={path.id}
+                    className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2"
+                  >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-[#0A1628]">{path.label}</p>
-                      <span className="text-xs font-bold text-[#059669]">{path.confidence}%</span>
+                      <p className="text-xs font-semibold text-[#0A1628]">
+                        {path.label}
+                      </p>
+                      <span className="text-xs font-bold text-[#059669]">
+                        {path.confidence}%
+                      </span>
                     </div>
                     <p className="mt-1 text-[10px] uppercase tracking-wider text-[#1E3A5F]/55">
-                      Risk: {path.confidence >= 88 ? "Low" : "Moderate"} · {String(path.status).replace(/_/g, " ")}
+                      Risk: {path.confidence >= 88 ? "Low" : "Moderate"} ·{" "}
+                      {String(path.status).replace(/_/g, " ")}
                     </p>
                   </div>
                 ))}
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-[#1E3A5F]/55">State: warm paths available and attribution-safe.</p>
+                <p className="text-xs text-[#1E3A5F]/55">
+                  State: warm paths available and attribution-safe.
+                </p>
                 <MaybeLink href="/custody?minTrust=85" demo={!!demo}>
                   <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1E3A5F]/70">
                     Open Warm Paths
@@ -726,10 +825,15 @@ import {
           <StaggerItem>
             <DashCard title="Pipeline Stall Alerts">
               <div className="space-y-2">
-                {stalledPipeline.map((stall) => (
-                  <div key={stall.id} className="rounded-lg border border-[#F59E0B]/20 bg-[#F59E0B]/8 px-3 py-2">
+                {stalledPipeline.map(stall => (
+                  <div
+                    key={stall.id}
+                    className="rounded-lg border border-[#F59E0B]/20 bg-[#F59E0B]/8 px-3 py-2"
+                  >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-[#0A1628]">{stall.label}</p>
+                      <p className="text-xs font-semibold text-[#0A1628]">
+                        {stall.label}
+                      </p>
                       <span className="rounded-full bg-[#F59E0B]/20 px-2 py-0.5 text-[10px] font-bold uppercase text-[#F59E0B]">
                         {stall.hours.toFixed(0)}h stalled
                       </span>
@@ -741,8 +845,13 @@ import {
                 ))}
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-[#1E3A5F]/55">State: escalation needed on delayed deals.</p>
-                <MaybeLink href="/pipeline?status=pending_consent" demo={!!demo}>
+                <p className="text-xs text-[#1E3A5F]/55">
+                  State: escalation needed on delayed deals.
+                </p>
+                <MaybeLink
+                  href="/pipeline?status=pending_consent"
+                  demo={!!demo}
+                >
                   <button className="rounded bg-[#F59E0B]/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#F59E0B]">
                     Escalate Blockers
                   </button>
@@ -755,18 +864,32 @@ import {
             <DashCard title="Activity Velocity">
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/55">24h</p>
-                  <p className="mt-1 text-xl font-bold text-[#0A1628]">{activityVelocity.now24h}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-[#059669]">+18%</p>
+                  <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/55">
+                    24h
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-[#0A1628]">
+                    {activityVelocity.now24h}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-[#059669]">
+                    +18%
+                  </p>
                 </div>
                 <div className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/55">7d</p>
-                  <p className="mt-1 text-xl font-bold text-[#0A1628]">{activityVelocity.now7d}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-[#2563EB]">Sustained</p>
+                  <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/55">
+                    7d
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-[#0A1628]">
+                    {activityVelocity.now7d}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-[#2563EB]">
+                    Sustained
+                  </p>
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-[#1E3A5F]/55">State: operator throughput is accelerating.</p>
+                <p className="text-xs text-[#1E3A5F]/55">
+                  State: operator throughput is accelerating.
+                </p>
                 <MaybeLink href="/pipeline" demo={!!demo}>
                   <button className="rounded bg-[#2563EB]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
                     Rebalance Queue
@@ -900,10 +1023,17 @@ import {
                     { label: "Escrow Certainty", value: "High" },
                     { label: "Attribution Link", value: "On-chain" },
                     { label: "Fee Clarity", value: "Pre-agreed" },
-                  ].map((metric) => (
-                    <div key={metric.label} className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2">
-                      <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">{metric.label}</p>
-                      <p className="text-xs font-semibold text-[#0A1628] mt-1">{metric.value}</p>
+                  ].map(metric => (
+                    <div
+                      key={metric.label}
+                      className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2"
+                    >
+                      <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">
+                        {metric.label}
+                      </p>
+                      <p className="text-xs font-semibold text-[#0A1628] mt-1">
+                        {metric.value}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1038,4 +1168,3 @@ import {
     </>
   );
 }
-

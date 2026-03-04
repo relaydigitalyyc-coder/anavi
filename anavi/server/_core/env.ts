@@ -1,6 +1,15 @@
-import { getAppRuntimeCapabilities, parseAppRuntimeMode } from "@shared/appMode";
+import {
+  getAppRuntimeCapabilities,
+  parseAppRuntimeMode,
+} from "@shared/appMode";
 
 const appRuntimeMode = parseAppRuntimeMode(process.env.APP_RUNTIME_MODE);
+
+if (appRuntimeMode === "live" && !process.env.JWT_SECRET) {
+  console.warn(
+    "[ANAVI] WARNING: JWT_SECRET is not set in live mode — using insecure default. Set JWT_SECRET in your environment."
+  );
+}
 
 export const ENV = {
   appId: process.env.VITE_APP_ID ?? "",

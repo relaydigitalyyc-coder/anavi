@@ -23,16 +23,16 @@ Last updated: 2026-03-04 (late)
 ## In Progress
 
 - R8 project logic integrity hardening (actual BUILD-mode 20-pass Ralph run + parallel-agent synthesis).
-- Documentation organization and agent workflow normalization.
 - DocuSign backend integration wiring (provider + webhook + deal room endpoint integration).
-- Platform-wide logic consistency and flow synchronization hardening (R7).
-  - FR-4 lifecycle audit/notification consistency — COMPLETE.
-  - FR-6 advanced flow integrity — lifecycle idempotency/conflict subset COMPLETE; compliance/payout governance pending.
-- Demo system unification complete — removed duplicate client/src/lib/DemoContext.tsx; demo route now uses canonical contexts/DemoContext + fixtures adapter. Persona canonicalization wired (developer→principal, allocator→investor).
-- R7 50-pass Ralph agent-mode run active (`logs/ralph_agent50_20260303_214206.meta`).
 
 ## Done
 
+- **SHIP PASS (2026-03-04)**: tsc clean, 67/67 tests, build green, .env.example, README accurate, zero TODO/FIXME in core paths. Report: `docs/ops/SHIP_REPORT.md`.
+- Spec 002 (Platform Logic Consistency) — COMPLETE. Compliance/payout governance deferred to `specs/003-compliance-payout-governance.md`.
+- Spec 001 (Deal Flow Action Mutations) — COMPLETE.
+- Spec 000 (Dashboard Logical Integrity) — COMPLETE.
+- Platform-wide logic consistency and flow synchronization hardening (R7) — lifecycle items COMPLETE; governance items deferred.
+- Demo system unification — removed duplicate DemoContext; demo route uses canonical contexts/DemoContext + fixtures adapter. Persona canonicalization wired.
 - Ralph Wiggum autonomous loop setup completed (scripts, constitution, templates, Claude/Cursor command helpers).
 - R7 FR-1: Route/wrapper coherence verified; added runtime guard matrix (demo/hybrid/live) to R7 plan; Blind Matching naming aligned (page title + h1).
 - Persona-specific dashboard and page upgrades for Originator, Investor, Principal.

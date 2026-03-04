@@ -7,7 +7,7 @@ AI agents: Read `AGENTS.md` (repo root) and `.cursor/rules/` for architecture, c
 ## Running Tests
 
 ```bash
-pnpm test       # 60 tests: unit + integration
+pnpm test       # 67 tests: unit + integration
 ```
 
 Includes unit tests (db, claude, auth) and integration tests (intent → match → deal room funnel). Tests use mocks; no database required.

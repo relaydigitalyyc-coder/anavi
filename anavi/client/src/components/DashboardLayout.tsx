@@ -528,7 +528,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </button>
               {!isCollapsed &&
                 section.items.map(item => {
-                  const isActive = location === item.path;
+                  const isActive =
+                    location === item.path ||
+                    location.startsWith(item.path + "/");
                   return (
                     <Link key={item.path} href={item.path}>
                       <a
@@ -845,7 +847,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           ? mobileNavItems
           : defaultMobileNavItems
         ).map(item => {
-          const isActive = location === item.path;
+          const isActive =
+            location === item.path || location.startsWith(item.path + "/");
           return (
             <Link key={item.path} href={item.path}>
               <a

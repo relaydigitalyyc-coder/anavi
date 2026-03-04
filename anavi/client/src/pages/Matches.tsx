@@ -25,11 +25,85 @@ import {
   StaggerItem,
 } from "@/components/PageTransition";
 import { DASHBOARD } from "@/lib/copy";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+
+type MatchRow = {
+  id: number;
+  status: string;
+  user1Id: string;
+  user2Id: string;
+  user1Consent: boolean;
+  user2Consent: boolean;
+  compatibilityScore: string;
+  matchReason: string | null;
+  intent1Id: number;
+  intent2Id: number;
+  createdAt: string;
+  dealRoomId: number | null;
+};
+
+const DEMO_STATUS_MAP: Record<string, string[]> = {
+  originator: ["pending", "user1_interested"],
+  investor: [
+    "mutual_interest",
+    "pending",
+    "user2_interested",
+    "deal_room_created",
+  ],
+  developer: ["mutual_interest", "pending", "user1_interested"],
+  principal: ["mutual_interest", "pending", "user1_interested"],
+};
+
+function fixtureToMatchRow(
+  raw: Record<string, unknown>,
+  persona: string,
+  index: number
+): MatchRow {
+  const statusPool = DEMO_STATUS_MAP[persona] ?? DEMO_STATUS_MAP.originator;
+  const status = statusPool[index % statusPool.length];
+  const demoUserId = `demo-${persona}`;
+  return {
+    id: Number(raw.id),
+    status,
+    user1Id: demoUserId,
+    user2Id: "demo-counterparty",
+    user1Consent:
+      status === "user1_interested" ||
+      status === "mutual_interest" ||
+      status === "deal_room_created",
+    user2Consent:
+      status === "user2_interested" ||
+      status === "mutual_interest" ||
+      status === "deal_room_created",
+    compatibilityScore: String(raw.compatibilityScore ?? "0"),
+    matchReason: raw.tag ? String(raw.tag) : null,
+    intent1Id: index * 2 + 1,
+    intent2Id: index * 2 + 2,
+    createdAt: new Date(Date.now() - (index + 1) * 86400000 * 3).toISOString(),
+    dealRoomId: status === "deal_room_created" ? 1 : null,
+  };
+}
 
 export default function Matches() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth(); // Get current user
-  const { data: matches, isLoading, refetch } = trpc.match.list.useQuery();
+  const demo = useDemoFixtures();
+  const isDemo = !!demo;
+  const { user } = useAuth();
+  const {
+    data: liveMatches,
+    isLoading: liveLoading,
+    refetch,
+  } = trpc.match.list.useQuery(undefined, { enabled: !isDemo });
+
+  const demoPersona = demo
+    ? ((demo.user as { id?: string }).id?.replace("demo-", "") ?? "originator")
+    : "originator";
+  const matches: MatchRow[] = isDemo
+    ? ((demo.matches ?? []) as unknown as Record<string, unknown>[]).map(
+        (m, i) => fixtureToMatchRow(m, demoPersona, i)
+      )
+    : ((liveMatches ?? []) as unknown as MatchRow[]);
+  const isLoading = isDemo ? false : liveLoading;
 
   const expressInterestMutation = trpc.match.expressInterest.useMutation({
     onSuccess: data => {
@@ -38,6 +112,16 @@ export default function Matches() {
       } else {
         toast.success("Interest expressed. Waiting for counterparty response.");
       }
+      refetch();
+    },
+    onError: error => {
+      toast.error(error.message);
+    },
+  });
+
+  const declineMutation = trpc.match.decline.useMutation({
+    onSuccess: () => {
+      toast.success("Match declined.");
       refetch();
     },
     onError: error => {
@@ -56,6 +140,31 @@ export default function Matches() {
       toast.error(error.message);
     },
   });
+
+  const handleExpressInterest = (matchId: number) => {
+    if (isDemo) {
+      toast.success("Interest expressed. Waiting for counterparty response.");
+      return;
+    }
+    expressInterestMutation.mutate({ matchId });
+  };
+
+  const handleDecline = (matchId: number) => {
+    if (isDemo) {
+      toast.info("Match declined.");
+      return;
+    }
+    declineMutation.mutate({ matchId });
+  };
+
+  const handleCreateDealRoom = (matchId: number) => {
+    if (isDemo) {
+      toast.success("Deal room created!");
+      setLocation("/deal-rooms");
+      return;
+    }
+    createDealRoomMutation.mutate({ matchId });
+  };
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -219,9 +328,11 @@ export default function Matches() {
       ) : (
         <StaggerContainer className="grid gap-4">
           {matches.map((match, index) => {
-            // TODO: derive from match.user1Id and user.id. Assuming match has user1Id and user2Id.
+            // @backlog derive from match.user1Id and user.id
             // If match.user1Id or match.user2Id are not directly available, this will need adjustment.
-            const isUser1 = user?.id === match.user1Id; // Derived isUser1
+            const isUser1 = isDemo
+              ? true
+              : String(user?.id) === String(match.user1Id);
             const hasExpressedInterest = isUser1
               ? match.user1Consent
               : match.user2Consent;
@@ -348,11 +459,7 @@ export default function Matches() {
                         {match.status === "pending" && (
                           <>
                             <Button
-                              onClick={() =>
-                                expressInterestMutation.mutate({
-                                  matchId: match.id,
-                                })
-                              }
+                              onClick={() => handleExpressInterest(match.id)}
                               disabled={expressInterestMutation.isPending}
                               className="btn-gold"
                             >
@@ -362,6 +469,8 @@ export default function Matches() {
                             <Button
                               variant="outline"
                               className="hover:border-red-300 hover:text-red-600"
+                              onClick={() => handleDecline(match.id)}
+                              disabled={declineMutation.isPending}
                             >
                               <X className="w-4 h-4 mr-2" />
                               Decline
@@ -374,11 +483,7 @@ export default function Matches() {
                           !hasExpressedInterest && (
                             <>
                               <Button
-                                onClick={() =>
-                                  expressInterestMutation.mutate({
-                                    matchId: match.id,
-                                  })
-                                }
+                                onClick={() => handleExpressInterest(match.id)}
                                 disabled={expressInterestMutation.isPending}
                                 className="btn-gold"
                               >
@@ -388,6 +493,8 @@ export default function Matches() {
                               <Button
                                 variant="outline"
                                 className="hover:border-red-300 hover:text-red-600"
+                                onClick={() => handleDecline(match.id)}
+                                disabled={declineMutation.isPending}
                               >
                                 <X className="w-4 h-4 mr-2" />
                                 Decline
@@ -409,11 +516,7 @@ export default function Matches() {
                         {match.status === "mutual_interest" && (
                           <>
                             <Button
-                              onClick={() =>
-                                createDealRoomMutation.mutate({
-                                  matchId: match.id,
-                                })
-                              }
+                              onClick={() => handleCreateDealRoom(match.id)}
                               disabled={createDealRoomMutation.isPending}
                               className="btn-gold"
                             >
@@ -423,6 +526,7 @@ export default function Matches() {
                             <Button
                               variant="outline"
                               className="hover:border-primary hover:text-primary"
+                              onClick={() => toast.info("Coming soon")}
                             >
                               <MessageSquare className="w-4 h-4 mr-2" />
                               Message

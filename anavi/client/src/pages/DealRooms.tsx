@@ -2,15 +2,29 @@ import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { EmptyState, EMPTY_STATES } from "@/components/EmptyState";
 import {
-  FolderOpen, Clock, ChevronRight,
-  Lock, Download, Eye
+  FolderOpen,
+  Clock,
+  ChevronRight,
+  Lock,
+  Download,
+  Eye,
 } from "lucide-react";
 import { useLocation } from "wouter";
-import { FadeInView, ScaleHover, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import {
+  FadeInView,
+  ScaleHover,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/PageTransition";
+import { useDemoFixtures } from "@/contexts/DemoContext";
 
 type StatusFilter = "all" | "nda_pending" | "active" | "completed" | "declined";
 
-const STATUS_FILTERS: { key: StatusFilter; label: string; className: string }[] = [
+const STATUS_FILTERS: {
+  key: StatusFilter;
+  label: string;
+  className: string;
+}[] = [
   { key: "all", label: "All", className: "" },
   { key: "nda_pending", label: "NDA Pending", className: "status-nda-pending" },
   { key: "active", label: "Active", className: "status-active" },
@@ -18,7 +32,8 @@ const STATUS_FILTERS: { key: StatusFilter; label: string; className: string }[] 
   { key: "declined", label: "Declined", className: "status-declined" },
 ];
 
-const BADGE = "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider";
+const BADGE =
+  "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider";
 
 function getStatusClass(status: string | null): string {
   switch (status) {
@@ -35,10 +50,14 @@ function getStatusClass(status: string | null): string {
 
 function getStatusLabel(status: string | null): string {
   switch (status) {
-    case "active": return "Active";
-    case "closed": return "Completed";
-    case "archived": return "Declined";
-    default: return "NDA Pending";
+    case "active":
+      return "Active";
+    case "closed":
+      return "Completed";
+    case "archived":
+      return "Declined";
+    default:
+      return "NDA Pending";
   }
 }
 
@@ -59,10 +78,54 @@ function formatRelativeTime(date: Date | string): string {
   return d.toLocaleDateString();
 }
 
+type DealRoomRow = {
+  id: number;
+  name: string;
+  status: string | null;
+  ndaRequired: boolean;
+  createdAt: string;
+  updatedAt: string;
+  settings: Record<string, unknown>;
+};
+
+const STAGE_TO_STATUS: Record<string, string | null> = {
+  fundraising: null,
+  diligence: "active",
+  closing: "active",
+  closed: "closed",
+  archived: "archived",
+};
+
+function fixtureToDealRoomRow(
+  raw: Record<string, unknown>,
+  index: number
+): DealRoomRow {
+  const stage = String(raw.stage ?? "");
+  return {
+    id: Number(raw.id),
+    name: String(raw.name ?? `Deal Room #${raw.id}`),
+    status: STAGE_TO_STATUS[stage] ?? null,
+    ndaRequired: raw.ndaStatus === "executed" || raw.ndaStatus === "pending",
+    createdAt: new Date(Date.now() - (index + 1) * 86400000 * 14).toISOString(),
+    updatedAt: new Date(Date.now() - (index + 1) * 86400000).toISOString(),
+    settings: { watermarkDocuments: true, allowDownloads: false },
+  };
+}
+
 export default function DealRooms() {
   const [, setLocation] = useLocation();
+  const demo = useDemoFixtures();
+  const isDemo = !!demo;
   const [filter, setFilter] = useState<StatusFilter>("all");
-  const { data: dealRooms, isLoading } = trpc.dealRoom.list.useQuery();
+  const { data: liveDealRooms, isLoading: liveLoading } =
+    trpc.dealRoom.list.useQuery(undefined, { enabled: !isDemo });
+
+  const dealRooms: DealRoomRow[] = isDemo
+    ? ((demo.dealRooms ?? []) as unknown as Record<string, unknown>[]).map(
+        (r, i) => fixtureToDealRoomRow(r, i)
+      )
+    : ((liveDealRooms ?? []) as unknown as DealRoomRow[]);
+  const isLoading = isDemo ? false : liveLoading;
 
   const stats = useMemo(() => {
     if (!dealRooms) return { active: 0, pendingNda: 0, completed: 0, total: 0 };
@@ -87,7 +150,9 @@ export default function DealRooms() {
     return dealRooms.filter(mapping[filter]);
   }, [dealRooms, filter]);
 
-  useEffect(() => { document.title = "Deal Rooms | ANAVI"; }, []);
+  useEffect(() => {
+    document.title = "Deal Rooms | ANAVI";
+  }, []);
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -95,7 +160,9 @@ export default function DealRooms() {
       <FadeInView>
         <h1 className="dash-heading text-3xl">Deal Rooms</h1>
         {/* Subtitle added */}
-        <p className="text-sm text-muted-foreground mt-1">NDA-gated workspaces. Immutable audit trail active on every room.</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          NDA-gated workspaces. Immutable audit trail active on every room.
+        </p>
       </FadeInView>
 
       {/* Stats Row */}
@@ -105,13 +172,15 @@ export default function DealRooms() {
           { label: "Pending NDA", value: stats.pendingNda, color: "#C4972A" },
           { label: "Completed", value: stats.completed, color: "#059669" },
           { label: "Total Rooms", value: stats.total, color: "#0A1628" },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="card-elevated p-5"
-          >
-            <div className="text-label text-muted-foreground mb-1">{s.label}</div>
-            <div className="text-2xl font-bold number-display" style={{ color: s.color }}>
+        ].map(s => (
+          <div key={s.label} className="card-elevated p-5">
+            <div className="text-label text-muted-foreground mb-1">
+              {s.label}
+            </div>
+            <div
+              className="text-2xl font-bold number-display"
+              style={{ color: s.color }}
+            >
               {s.value}
             </div>
           </div>
@@ -120,7 +189,7 @@ export default function DealRooms() {
 
       {/* Filter Bar */}
       <div className="card-elevated p-1.5 flex flex-wrap gap-1">
-        {STATUS_FILTERS.map((sf) => {
+        {STATUS_FILTERS.map(sf => {
           const isActive = filter === sf.key;
           return (
             <button
@@ -141,7 +210,7 @@ export default function DealRooms() {
       {/* Deal Room Cards */}
       {isLoading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="card-elevated p-6">
               <div className="h-40 animate-shimmer rounded-lg" />
             </div>
@@ -153,83 +222,98 @@ export default function DealRooms() {
         </div>
       ) : (
         <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((room) => {
+          {filtered.map(room => {
             const settings = (room.settings as any) || {};
             const days = daysSince(room.createdAt);
-            const lastActivity = formatRelativeTime(room.updatedAt || room.createdAt);
+            const lastActivity = formatRelativeTime(
+              room.updatedAt || room.createdAt
+            );
 
             return (
               <StaggerItem key={room.id}>
-              <ScaleHover>
-              <div className="card-elevated flex flex-col hover:translate-y-[-2px]">
-                <div className="p-5 flex-1 space-y-3">
-                  {/* Status pill */}
-                  <div className="flex justify-end">
-                    <span className={`inline-flex ${getStatusClass(room.status)}`}>
-                      {getStatusLabel(room.status)}
-                    </span>
+                <ScaleHover>
+                  <div className="card-elevated flex flex-col hover:translate-y-[-2px]">
+                    <div className="p-5 flex-1 space-y-3">
+                      {/* Status pill */}
+                      <div className="flex justify-end">
+                        <span
+                          className={`inline-flex ${getStatusClass(room.status)}`}
+                        >
+                          {getStatusLabel(room.status)}
+                        </span>
+                      </div>
+
+                      {/* Room name */}
+                      <h3
+                        className="font-semibold text-base"
+                        style={{ color: "#0A1628" }}
+                      >
+                        {room.name}
+                      </h3>
+
+                      {/* New text line added */}
+                      <p className="text-[10px] text-[#1E3A5F]/50 mt-0.5">
+                        Every document access and signature is cryptographically
+                        logged.
+                      </p>
+
+                      {/* Parties (anonymized) */}
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium">Party A</span>
+                        {" ↔ "}
+                        <span className="font-medium">Party B</span>
+                      </div>
+
+                      {/* Meta row */}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {days}d in room
+                        </span>
+                        <span>
+                          Last:{" "}
+                          <span className="font-data-hud text-[10px] text-[#1E3A5F]/50">
+                            {lastActivity}
+                          </span>
+                        </span>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {room.ndaRequired && (
+                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-orange-50 text-orange-700">
+                            <Lock className="w-3 h-3" />
+                            NDA Required
+                          </span>
+                        )}
+                        {settings.watermarkDocuments && (
+                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">
+                            <Eye className="w-3 h-3" />
+                            Watermarking
+                          </span>
+                        )}
+                        {settings.allowDownloads === false && (
+                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-50 text-red-700">
+                            <Download className="w-3 h-3" />
+                            Download Controls
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+                    <div className="px-5 pb-5 pt-2">
+                      <button
+                        onClick={() => setLocation(`/deal-rooms/${room.id}`)}
+                        className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
+                        style={{ background: "#2563EB" }}
+                      >
+                        Enter Room
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Room name */}
-                  <h3 className="font-semibold text-base" style={{ color: "#0A1628" }}>
-                    {room.name}
-                  </h3>
-
-                  {/* New text line added */}
-                  <p className="text-[10px] text-[#1E3A5F]/50 mt-0.5">Every document access and signature is cryptographically logged.</p>
-
-                  {/* Parties (anonymized) */}
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">Party A</span>
-                    {" ↔ "}
-                    <span className="font-medium">Party B</span>
-                  </div>
-
-                  {/* Meta row */}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      {days}d in room
-                    </span>
-                    <span>Last: <span className="font-data-hud text-[10px] text-[#1E3A5F]/50">{lastActivity}</span></span>
-                  </div>
-
-                  {/* Badges */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {room.ndaRequired && (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-orange-50 text-orange-700">
-                        <Lock className="w-3 h-3" />
-                        NDA Required
-                      </span>
-                    )}
-                    {settings.watermarkDocuments && (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">
-                        <Eye className="w-3 h-3" />
-                        Watermarking
-                      </span>
-                    )}
-                    {settings.allowDownloads === false && (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-50 text-red-700">
-                        <Download className="w-3 h-3" />
-                        Download Controls
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* CTA */}
-                <div className="px-5 pb-5 pt-2">
-                  <button
-                    onClick={() => setLocation(`/deal-rooms/${room.id}`)}
-                    className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
-                    style={{ background: "#2563EB" }}
-                  >
-                    Enter Room
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              </ScaleHover>
+                </ScaleHover>
               </StaggerItem>
             );
           })}

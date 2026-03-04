@@ -1,10 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { Link } from "wouter";
 import {
   ArrowRight,
@@ -30,15 +25,11 @@ import {
   LiquidGradient,
   Card3D,
   GradientText,
-  FloatingElement,
   MorphingBlob,
-  SmoothCounter,
-  StaggeredList,
 } from "@/components/PremiumAnimations";
-import { Magnetic, AnimatedCounter } from "@/components/AwwwardsAnimations";
+import { Magnetic } from "@/components/AwwwardsAnimations";
 
 export default function Onboarding() {
-  const [currentStep, setCurrentStep] = useState(0);
   const [showWelcome, setShowWelcome] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -46,8 +37,6 @@ export default function Onboarding() {
     target: containerRef,
     offset: ["start start", "end end"],
   });
-
-  const backgroundY = useTransform(scrollYProgress, [0, 1], [0, 300]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -155,7 +144,7 @@ export default function Onboarding() {
                 transition={{ delay: 0.5, duration: 0.8 }}
               >
                 <p className="text-2xl md:text-4xl font-serif text-white/90 mb-4">
-                  Welcome, <span className="text-sky-400">Avraham</span>
+                  Welcome to <span className="text-sky-400">ANAVI</span>
                 </p>
                 <motion.p
                   className="text-lg text-white/60"
@@ -238,8 +227,7 @@ export default function Onboarding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.8 }}
             >
-              <span className="text-foreground font-medium">Avraham</span>,
-              you've been granted exclusive access to the private market
+              You've been granted exclusive access to the private market
               operating system trusted by elite family offices and institutional
               investors.
             </motion.p>

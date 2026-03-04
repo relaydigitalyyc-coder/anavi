@@ -40,15 +40,64 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { TOUR } from "@/lib/copy"; // Import TOUR
+import { TOUR } from "@/lib/copy";
 import {
   FadeInView,
   StaggerContainer,
   StaggerItem,
-} from "@/components/PageTransition"; // Import PageTransition components
+} from "@/components/PageTransition";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+
+type IntentRow = {
+  id: number;
+  intentType: string;
+  title: string;
+  description: string | null;
+  assetType: string | null;
+  minValue: string | null;
+  maxValue: string | null;
+  status: string;
+  isAnonymous: boolean;
+  createdAt: string;
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  buy: "buy",
+  sell: "sell",
+  invest: "invest",
+};
+
+function fixtureToIntentRow(
+  raw: Record<string, unknown>,
+  index: number
+): IntentRow {
+  const intentType = TYPE_LABEL[String(raw.type ?? "buy")] ?? "buy";
+  const sizeStr = String(raw.size ?? "");
+  const nums = sizeStr.match(/[\d.]+/g)?.map(Number) ?? [];
+  return {
+    id: Number(raw.id),
+    intentType,
+    title: `${intentType === "sell" ? "Offering" : "Seeking"}: ${raw.assetClass ?? "Private Markets"} — ${sizeStr || "TBD"}`,
+    description: `Blind intent for ${raw.assetClass ?? "private market"} opportunities in the ${sizeStr || "negotiable"} range.`,
+    assetType: raw.assetClass
+      ? String(raw.assetClass).toLowerCase().replace(/\s+/g, "_")
+      : null,
+    minValue: nums[0] ? String(nums[0] * 1_000_000) : null,
+    maxValue: nums[1]
+      ? String(nums[1] * 1_000_000)
+      : nums[0]
+        ? String(nums[0] * 1_500_000)
+        : null,
+    status: index === 0 ? "active" : "active",
+    isAnonymous: true,
+    createdAt: new Date(Date.now() - (index + 1) * 86400000 * 7).toISOString(),
+  };
+}
 
 export default function Intents() {
   const [, setLocation] = useLocation();
+  const demo = useDemoFixtures();
+  const isDemo = !!demo;
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newIntent, setNewIntent] = useState({
@@ -67,7 +116,19 @@ export default function Intents() {
     isAnonymous: true,
   });
 
-  const { data: intents, isLoading, refetch } = trpc.intent.list.useQuery();
+  const {
+    data: liveIntents,
+    isLoading: liveLoading,
+    refetch,
+  } = trpc.intent.list.useQuery(undefined, { enabled: !isDemo });
+
+  const intents: IntentRow[] = isDemo
+    ? ((demo.intents ?? []) as unknown as Record<string, unknown>[]).map(
+        (r, i) => fixtureToIntentRow(r, i)
+      )
+    : ((liveIntents ?? []) as unknown as IntentRow[]);
+  const isLoading = isDemo ? false : liveLoading;
+
   const createMutation = trpc.intent.create.useMutation({
     onSuccess: () => {
       toast.success("Intent created! AI matching is now active.", {
@@ -379,6 +440,13 @@ export default function Intents() {
                           toast.error("Please enter a title");
                           return;
                         }
+                        if (isDemo) {
+                          toast.success(
+                            "Intent created! AI matching is now active."
+                          );
+                          setIsAddDialogOpen(false);
+                          return;
+                        }
                         createMutation.mutate({
                           ...newIntent,
                           minValue: newIntent.minValue || undefined,
@@ -583,6 +651,14 @@ export default function Intents() {
                           size="icon"
                           className="text-xs p-2"
                           onClick={() => {
+                            if (isDemo) {
+                              toast.info(
+                                intent.status === "active"
+                                  ? "Intent paused."
+                                  : "Intent activated."
+                              );
+                              return;
+                            }
                             updateMutation.mutate({
                               id: intent.id,
                               status:
@@ -602,9 +678,13 @@ export default function Intents() {
                           variant="ghost"
                           size="icon"
                           className="text-xs p-2"
-                          onClick={() =>
-                            findMatchesMutation.mutate({ intentId: intent.id })
-                          }
+                          onClick={() => {
+                            if (isDemo) {
+                              toast.success("Found 2 potential matches!");
+                              return;
+                            }
+                            findMatchesMutation.mutate({ intentId: intent.id });
+                          }}
                         >
                           <Sparkles className="w-4 h-4" />
                         </Button>

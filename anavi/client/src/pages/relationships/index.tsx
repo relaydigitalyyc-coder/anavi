@@ -8,8 +8,35 @@ import { RelationshipFilterBar } from "./RelationshipFilterBar";
 import { RelationshipContent } from "./RelationshipContent";
 import { RelationshipDetailPanel } from "./RelationshipDetailPanel";
 import { ProofModal, AddRelationshipFlow } from "./AddRelationshipModal";
+import { useDemoFixtures } from "@/contexts/DemoContext";
+
+function fixtureToRelRow(raw: Record<string, unknown>, index: number) {
+  return {
+    id: Number(raw.id),
+    relationshipType: raw.assetClass
+      ? String(raw.assetClass).toLowerCase().replace(/\s+/g, "_")
+      : "direct",
+    tags: raw.assetClass ? [String(raw.assetClass)] : [],
+    isBlind: index % 2 === 0,
+    dealCount: raw.attributionStatus === "active" ? 1 + index : 0,
+    totalDealValue:
+      raw.attributionStatus === "active" ? String((index + 1) * 1200000) : "0",
+    totalEarnings:
+      raw.attributionStatus === "active" ? String((index + 1) * 24000) : "0",
+    timestampHash: raw.hash
+      ? String(raw.hash)
+      : `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
+    createdAt: new Date(Date.now() - (index + 1) * 86400000 * 30).toISOString(),
+    establishedAt: new Date(
+      Date.now() - (index + 1) * 86400000 * 30
+    ).toISOString(),
+  };
+}
 
 export default function Relationships() {
+  const demo = useDemoFixtures();
+  const isDemo = !!demo;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sectorFilter, setSectorFilter] = useState("");
   const [verificationFilter, setVerificationFilter] = useState("");
@@ -19,13 +46,23 @@ export default function Relationships() {
   const [selectedRelId, setSelectedRelId] = useState<number | null>(null);
 
   const {
-    data: relationships,
+    data: liveRelationships,
     isLoading,
     refetch,
-  } = trpc.relationship.list.useQuery();
+  } = trpc.relationship.list.useQuery(undefined, { enabled: !isDemo });
   const [proofModal, setProofModal] = useState<number | null>(null);
-  const { data: stats } = trpc.user.getStats.useQuery();
-  const activeMatches = (stats as any)?.activeMatches ?? 12;
+  const { data: stats } = trpc.user.getStats.useQuery(undefined, {
+    enabled: !isDemo,
+  });
+  const activeMatches =
+    (stats as any)?.activeMatches ??
+    (isDemo ? (demo.matches?.length ?? 2) : 12);
+
+  const relationships = isDemo
+    ? ((demo.relationships ?? []) as unknown as Record<string, unknown>[]).map(
+        (r, i) => fixtureToRelRow(r, i)
+      )
+    : liveRelationships;
 
   const filteredRelationships = (relationships || []).filter(rel => {
     const q = searchQuery.toLowerCase();
@@ -130,7 +167,11 @@ export default function Relationships() {
       </Sheet>
 
       {/* Upload Modal */}
-      <AddRelationshipFlow open={modalOpen} onClose={closeModal} refetch={refetch} />
+      <AddRelationshipFlow
+        open={modalOpen}
+        onClose={closeModal}
+        refetch={refetch}
+      />
     </div>
   );
 }

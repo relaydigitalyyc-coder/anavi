@@ -26,7 +26,12 @@ import {
 import { SmoothCounter } from "@/components/PremiumAnimations";
 import { toast } from "sonner";
 import { DASHBOARD, NOTIFICATIONS, TOASTS } from "@/lib/copy";
-import { NOTIFICATION_STYLES, DEFAULT_STYLE, MARKET_DEPTH, PENDING_ACTIONS } from "./constants";
+import {
+  NOTIFICATION_STYLES,
+  DEFAULT_STYLE,
+  MARKET_DEPTH,
+  PENDING_ACTIONS,
+} from "./constants";
 import {
   getScoreColor,
   TrustRing,
@@ -36,37 +41,65 @@ import {
   MaybeLink,
   getGreeting,
 } from "./atoms";
+import { InteractiveGlobe } from "@/components/ui/interactive-globe";
+import { EvervaultCard } from "@/components/ui/evervault-card";
 export function InvestorDashboardContent() {
   const demo = useDemoFixtures();
   const industry = useActiveIndustry() ?? "Infrastructure";
   const isDemo = !!demo;
-  const { data: stats } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const { data: stats } = trpc.user.getStats.useQuery(undefined, {
+    enabled: !demo,
+  });
   const trustScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
   const scoreColor = getScoreColor(trustScore);
-  const telemetry = (demo as unknown as { opsTelemetry?: { updatedAt?: string; snapshotPeriod?: string } } | null)?.opsTelemetry;
+  const telemetry = (
+    demo as unknown as {
+      opsTelemetry?: { updatedAt?: string; snapshotPeriod?: string };
+    } | null
+  )?.opsTelemetry;
   const reportPeriod = telemetry?.snapshotPeriod ?? "QTD";
-  const { data: liveRelationships } = trpc.relationship.list.useQuery(undefined, { enabled: !demo });
-  const { data: livePayouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
-  const { data: liveMatches } = trpc.match.list.useQuery(undefined, { enabled: !demo });
-  const { data: liveDealRooms } = trpc.dealRoom.list.useQuery(undefined, { enabled: !demo });
+  const { data: liveRelationships } = trpc.relationship.list.useQuery(
+    undefined,
+    { enabled: !demo }
+  );
+  const { data: livePayouts } = trpc.payout.list.useQuery(undefined, {
+    enabled: !demo,
+  });
+  const { data: liveMatches } = trpc.match.list.useQuery(undefined, {
+    enabled: !demo,
+  });
+  const { data: liveDealRooms } = trpc.dealRoom.list.useQuery(undefined, {
+    enabled: !demo,
+  });
 
   const relationships = demo?.relationships ?? liveRelationships ?? [];
   const portfolioPositions = demo?.payouts ?? livePayouts ?? [];
-  const matches = [...(demo?.matches ?? (liveMatches as any[]) ?? [])].map((m: any) => ({
-    id: typeof m.id === "number" ? m.id : Number(m.id),
-    tag: m.tag ?? (m.counterpartyCompany ? `Counterparty - ${m.counterpartyCompany}` : `Match #${m.id}`),
-    assetClass: m.assetClass ?? "Private Markets",
-    dealSize: m.dealSize ?? "TBD",
-    compatibilityScore: Number(m.compatibilityScore ?? 0),
-  }));
+  const matches = [...(demo?.matches ?? (liveMatches as any[]) ?? [])].map(
+    (m: any) => ({
+      id: typeof m.id === "number" ? m.id : Number(m.id),
+      tag:
+        m.tag ??
+        (m.counterpartyCompany
+          ? `Counterparty - ${m.counterpartyCompany}`
+          : `Match #${m.id}`),
+      assetClass: m.assetClass ?? "Private Markets",
+      dealSize: m.dealSize ?? "TBD",
+      compatibilityScore: Number(m.compatibilityScore ?? 0),
+    })
+  );
 
   const deploymentCapacity = demo
-    ? { available: 196000000, committed: 2850000, deployed: 141150000, total: 340000000 }
+    ? {
+        available: 196000000,
+        committed: 2850000,
+        deployed: 141150000,
+        total: 340000000,
+      }
     : null;
 
   return (
     <FadeInView>
-      <div className="mb-6 flex items-baseline justify-between">
+      <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="dash-heading text-3xl">Deal Flow Intelligence</h1>
           <p className="mt-1 text-sm text-[#1E3A5F]/60">
@@ -80,19 +113,48 @@ export function InvestorDashboardContent() {
               : `Last updated now · ${reportPeriod}`}
           </p>
         </div>
+        <div className="hidden lg:block shrink-0 -mt-4 -mr-2">
+          <InteractiveGlobe
+            size={200}
+            dotColor="rgba(30, 58, 95, ALPHA)"
+            arcColor="rgba(196, 151, 42, 0.4)"
+            markerColor="rgba(37, 99, 235, 0.9)"
+            autoRotateSpeed={0.001}
+          />
+        </div>
       </div>
       <div className="mb-4 rounded-xl border border-[#1E3A5F]/15 bg-[#0A1628] px-4 py-3 text-white">
-        <p className="text-[10px] uppercase tracking-[0.22em] text-white/55 mb-2">Live Proof</p>
+        <p className="text-[10px] uppercase tracking-[0.22em] text-white/55 mb-2">
+          Live Proof
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
-            { label: "New Verified Matches", value: `${Math.min(4, demo?.matches.length ?? 0)} in 24h`, delta: "+31%" },
-            { label: "Diligence Compression", value: "2.4d median", delta: "-0.8d" },
-            { label: "Capital Allocation Ready", value: "$196M available", delta: "Realtime" },
-          ].map((item) => (
+            {
+              label: "New Verified Matches",
+              value: `${Math.min(4, demo?.matches.length ?? 0)} in 24h`,
+              delta: "+31%",
+            },
+            {
+              label: "Diligence Compression",
+              value: "2.4d median",
+              delta: "-0.8d",
+            },
+            {
+              label: "Capital Allocation Ready",
+              value: "$196M available",
+              delta: "Realtime",
+            },
+          ].map(item => (
             <div key={item.label} className="rounded-lg bg-white/5 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-widest text-white/45">{item.label}</p>
-              <p className="text-sm font-semibold text-white mt-1">{item.value}</p>
-              <p className="text-[10px] uppercase tracking-wider text-[#22D4F5] mt-1">{item.delta}</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/45">
+                {item.label}
+              </p>
+              <p className="text-sm font-semibold text-white mt-1">
+                {item.value}
+              </p>
+              <p className="text-[10px] uppercase tracking-wider text-[#22D4F5] mt-1">
+                {item.delta}
+              </p>
             </div>
           ))}
         </div>
@@ -112,46 +174,81 @@ export function InvestorDashboardContent() {
                 </span>
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/50">Industry Lens</p>
-                <p className="text-sm font-semibold text-[#0A1628]">{industry}</p>
-                <p className="text-xs text-[#1E3A5F]/50 mt-1">{isDemo ? "Institutional verification active" : "Basic verification tier"}</p>
+                <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/50">
+                  Industry Lens
+                </p>
+                <p className="text-sm font-semibold text-[#0A1628]">
+                  {industry}
+                </p>
+                <p className="text-xs text-[#1E3A5F]/50 mt-1">
+                  {isDemo
+                    ? "Institutional verification active"
+                    : "Basic verification tier"}
+                </p>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {[
                 { label: "Verification Depth", value: "Institutional" },
-                { label: "Counterparty Acceptance", value: `${Math.min(99, Math.round(trustScore + 8))}%` },
+                {
+                  label: "Counterparty Acceptance",
+                  value: `${Math.min(99, Math.round(trustScore + 8))}%`,
+                },
                 { label: "Audit Integrity", value: "Immutable" },
-              ].map((metric) => (
-                <div key={metric.label} className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2">
-                  <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">{metric.label}</p>
-                  <p className="text-xs font-semibold text-[#0A1628] mt-1">{metric.value}</p>
+              ].map(metric => (
+                <div
+                  key={metric.label}
+                  className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2"
+                >
+                  <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">
+                    {metric.label}
+                  </p>
+                  <p className="text-xs font-semibold text-[#0A1628] mt-1">
+                    {metric.value}
+                  </p>
                 </div>
               ))}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <MaybeLink href="/counterparty-intelligence?minTrust=85&permission=view" demo={!!demo}>
+              <MaybeLink
+                href="/counterparty-intelligence?minTrust=85&permission=view"
+                demo={!!demo}
+              >
                 <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#1E3A5F]/70 hover:bg-[#1E3A5F]/15">
                   Open Trusted Counterparties
                 </button>
               </MaybeLink>
             </div>
             <p className="mt-2 text-xs text-[#1E3A5F]/55">
-              Institutional confidence signal for first-pass underwriting decisions.
+              Institutional confidence signal for first-pass underwriting
+              decisions.
             </p>
           </DashCard>
         </StaggerItem>
 
         <StaggerItem>
-          <DashCard title="Counterparty Network" dataTour="relationships" className="mb-4">
+          <DashCard
+            title="Counterparty Network"
+            dataTour="relationships"
+            className="mb-4"
+          >
             <div className="space-y-2">
               {relationships.slice(0, 3).map((rel: any) => (
-                <div key={rel.id} className="card-elevated px-3 py-2.5 flex items-center justify-between text-sm">
+                <div
+                  key={rel.id}
+                  className="card-elevated px-3 py-2.5 flex items-center justify-between text-sm"
+                >
                   <div>
-                    <p className="font-semibold text-[#0A1628]">{rel.name ?? `Relationship #${rel.id}`}</p>
-                    <p className="text-xs text-[#1E3A5F]/50">{rel.company ?? rel.relationshipType ?? "Counterparty"}</p>
+                    <p className="font-semibold text-[#0A1628]">
+                      {rel.name ?? `Relationship #${rel.id}`}
+                    </p>
+                    <p className="text-xs text-[#1E3A5F]/50">
+                      {rel.company ?? rel.relationshipType ?? "Counterparty"}
+                    </p>
                   </div>
-                  <span className="text-xs font-bold text-[#059669]">Trust {rel.trustScore ?? "–"}</span>
+                  <span className="text-xs font-bold text-[#059669]">
+                    Trust {rel.trustScore ?? "–"}
+                  </span>
                 </div>
               ))}
             </div>
@@ -159,12 +256,19 @@ export function InvestorDashboardContent() {
         </StaggerItem>
 
         <StaggerItem>
-          <DashCard title="Compliance Passport" dataTour="verification" className="mb-4">
+          <DashCard
+            title="Compliance Passport"
+            dataTour="verification"
+            className="mb-4"
+          >
             {isDemo ? (
               <>
                 <div className="grid grid-cols-3 gap-2 text-xs">
-                  {["KYB", "OFAC", "AML"].map((check) => (
-                    <div key={check} className="flex items-center justify-center rounded bg-[#059669]/10 text-[#059669] font-semibold py-2">
+                  {["KYB", "OFAC", "AML"].map(check => (
+                    <div
+                      key={check}
+                      className="flex items-center justify-center rounded bg-[#059669]/10 text-[#059669] font-semibold py-2"
+                    >
                       {check} OK
                     </div>
                   ))}
@@ -176,13 +280,20 @@ export function InvestorDashboardContent() {
             ) : (
               <>
                 <p className="text-xs text-[#1E3A5F]/70">
-                  Complete verification to enable compliance-backed matching and investor workflows.
+                  Complete verification to enable compliance-backed matching and
+                  investor workflows.
                 </p>
                 <div className="mt-3 flex gap-2">
-                  <Link href="/verification" className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15">
+                  <Link
+                    href="/verification"
+                    className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15"
+                  >
                     Verify Identity
                   </Link>
-                  <Link href="/compliance" className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15">
+                  <Link
+                    href="/compliance"
+                    className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15"
+                  >
                     Run Checks
                   </Link>
                 </div>
@@ -196,9 +307,21 @@ export function InvestorDashboardContent() {
             {deploymentCapacity ? (
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: "Available", value: `$${(deploymentCapacity.available / 1e6).toFixed(0)}M`, color: "#059669" },
-                  { label: "Committed", value: `$${(deploymentCapacity.committed / 1e6).toFixed(1)}M`, color: "#F59E0B" },
-                  { label: "Deployed", value: `$${(deploymentCapacity.deployed / 1e6).toFixed(0)}M`, color: "#2563EB" },
+                  {
+                    label: "Available",
+                    value: `$${(deploymentCapacity.available / 1e6).toFixed(0)}M`,
+                    color: "#059669",
+                  },
+                  {
+                    label: "Committed",
+                    value: `$${(deploymentCapacity.committed / 1e6).toFixed(1)}M`,
+                    color: "#F59E0B",
+                  },
+                  {
+                    label: "Deployed",
+                    value: `$${(deploymentCapacity.deployed / 1e6).toFixed(0)}M`,
+                    color: "#2563EB",
+                  },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="text-center">
                     <span style={{ color }}>
@@ -209,7 +332,9 @@ export function InvestorDashboardContent() {
                         className="text-2xl font-bold"
                       />
                     </span>
-                    <p className="text-xs text-[#1E3A5F]/50 mt-1 uppercase tracking-wider">{label}</p>
+                    <p className="text-xs text-[#1E3A5F]/50 mt-1 uppercase tracking-wider">
+                      {label}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -221,6 +346,17 @@ export function InvestorDashboardContent() {
 
         <StaggerItem>
           <DashCard title="Active Deal Flow" className="mb-4">
+            <div className="mb-3 flex items-center gap-2">
+              <div className="hidden md:block h-12 w-12 shrink-0">
+                <EvervaultCard
+                  text=""
+                  className="!aspect-auto !h-12 !w-12 !p-0"
+                />
+              </div>
+              <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/50">
+                Sealed until counterparty consent
+              </p>
+            </div>
             <div className="space-y-2">
               {matches.map((match, idx) => (
                 <div
@@ -229,8 +365,12 @@ export function InvestorDashboardContent() {
                   className="card-elevated px-3 py-2.5 flex items-center justify-between"
                 >
                   <div>
-                    <p className="text-sm font-medium text-[#0A1628]">{match.tag}</p>
-                    <p className="text-xs text-[#1E3A5F]/50 mt-0.5">{match.assetClass} · {match.dealSize}</p>
+                    <p className="text-sm font-medium text-[#0A1628]">
+                      {match.tag}
+                    </p>
+                    <p className="text-xs text-[#1E3A5F]/50 mt-0.5">
+                      {match.assetClass} · {match.dealSize}
+                    </p>
                     <div className="mt-1 flex gap-1.5">
                       <span className="rounded-full bg-[#059669]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#059669]">
                         Verified
@@ -241,8 +381,13 @@ export function InvestorDashboardContent() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#C4972A]">{match.compatibilityScore}%</span>
-                    <MaybeLink href={`/deal-flow?assetClass=${encodeURIComponent(match.assetClass)}&minScore=80`} demo={!!demo}>
+                    <span className="text-xs font-bold text-[#C4972A]">
+                      {match.compatibilityScore}%
+                    </span>
+                    <MaybeLink
+                      href={`/deal-flow?assetClass=${encodeURIComponent(match.assetClass)}&minScore=80`}
+                      demo={!!demo}
+                    >
                       <motion.button
                         className="text-xs px-2 py-1 bg-[#2563EB]/10 text-[#2563EB] rounded font-medium"
                         whileHover={{ scale: 1.04 }}
@@ -256,7 +401,10 @@ export function InvestorDashboardContent() {
               ))}
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
-              <MaybeLink href="/deal-flow?minScore=90&status=pending_consent" demo={!!demo}>
+              <MaybeLink
+                href="/deal-flow?minScore=90&status=pending_consent"
+                demo={!!demo}
+              >
                 <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#1E3A5F]/70 hover:bg-[#1E3A5F]/15">
                   Focus Top Decile
                 </button>
@@ -269,29 +417,58 @@ export function InvestorDashboardContent() {
         </StaggerItem>
 
         <StaggerItem>
-          <DashCard title="Portfolio Performance" dataTour="payout" className="mb-4">
+          <DashCard
+            title="Portfolio Performance"
+            dataTour="payout"
+            className="mb-4"
+          >
             <div className="mb-2 grid grid-cols-3 gap-2">
               {[
                 { label: "Escrow Certainty", value: "High" },
                 { label: "Fee Clarity", value: "Pre-agreed" },
                 { label: "Attribution", value: "Linked" },
-              ].map((metric) => (
-                <div key={metric.label} className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2">
-                  <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">{metric.label}</p>
-                  <p className="text-xs font-semibold text-[#0A1628] mt-1">{metric.value}</p>
+              ].map(metric => (
+                <div
+                  key={metric.label}
+                  className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-2 py-2"
+                >
+                  <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">
+                    {metric.label}
+                  </p>
+                  <p className="text-xs font-semibold text-[#0A1628] mt-1">
+                    {metric.value}
+                  </p>
                 </div>
               ))}
             </div>
             <div className="space-y-2">
-              {portfolioPositions.map((payout) => (
-                <div key={payout.id} className="card-elevated px-3 py-2.5 flex items-center justify-between text-sm">
+              {portfolioPositions.map(payout => (
+                <div
+                  key={payout.id}
+                  className="card-elevated px-3 py-2.5 flex items-center justify-between text-sm"
+                >
                   <div>
-                    <span className="font-semibold">{("deal" in payout && payout.deal) ? payout.deal : (payout as any).payoutType ? String((payout as any).payoutType).replace(/_/g, " ") : `Payout #${payout.id}`}</span>
+                    <span className="font-semibold">
+                      {"deal" in payout && payout.deal
+                        ? payout.deal
+                        : (payout as any).payoutType
+                          ? String((payout as any).payoutType).replace(
+                              /_/g,
+                              " "
+                            )
+                          : `Payout #${payout.id}`}
+                    </span>
                     {"irr" in payout && (
-                      <span className="ml-2 text-xs text-[#059669] font-medium">{(payout as { irr: number }).irr}% IRR</span>
+                      <span className="ml-2 text-xs text-[#059669] font-medium">
+                        {(payout as { irr: number }).irr}% IRR
+                      </span>
                     )}
                   </div>
-                  <span className="font-bold text-[#0A1628]">{typeof payout.amount === "number" ? `$${(payout.amount / 1e6).toFixed(2)}M` : `$${parseFloat(String(payout.amount ?? 0))}`}</span>
+                  <span className="font-bold text-[#0A1628]">
+                    {typeof payout.amount === "number"
+                      ? `$${(payout.amount / 1e6).toFixed(2)}M`
+                      : `$${parseFloat(String(payout.amount ?? 0))}`}
+                  </span>
                 </div>
               ))}
             </div>
@@ -311,7 +488,10 @@ export function InvestorDashboardContent() {
         <StaggerItem>
           <DashCard title="Active Deal Rooms">
             <div className="space-y-2">
-              {Array.from([...(demo?.dealRooms ?? []), ...((liveDealRooms as any[]) ?? [])] as any[]).map((dr, idx) => (
+              {Array.from([
+                ...(demo?.dealRooms ?? []),
+                ...((liveDealRooms as any[]) ?? []),
+              ] as any[]).map((dr, idx) => (
                 <div
                   key={dr.id}
                   data-tour={idx === 0 ? "deal-room" : undefined}
@@ -319,7 +499,9 @@ export function InvestorDashboardContent() {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-semibold">{dr.name}</span>
-                    <span className="text-xs uppercase tracking-wider text-[#2563EB] font-bold">{dr.stage ?? dr.status ?? "Active"}</span>
+                    <span className="text-xs uppercase tracking-wider text-[#2563EB] font-bold">
+                      {dr.stage ?? dr.status ?? "Active"}
+                    </span>
                   </div>
                   <div className="mb-1 flex gap-1.5">
                     <span className="rounded-full bg-[#059669]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#059669]">
@@ -337,7 +519,10 @@ export function InvestorDashboardContent() {
                       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     />
                   </div>
-                  <p className="text-xs text-[#1E3A5F]/50 mt-1">{(dr.escrowProgress ?? 0)}% escrow · {(dr.auditEvents ?? 0)} audit events</p>
+                  <p className="text-xs text-[#1E3A5F]/50 mt-1">
+                    {dr.escrowProgress ?? 0}% escrow · {dr.auditEvents ?? 0}{" "}
+                    audit events
+                  </p>
                 </div>
               ))}
             </div>

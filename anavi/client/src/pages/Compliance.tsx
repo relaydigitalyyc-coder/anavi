@@ -1,35 +1,86 @@
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Shield, CheckCircle2, Clock, 
-  FileText, Globe, RefreshCw, AlertCircle
+import {
+  Shield,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Globe,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const COMPLIANCE_CHECKS = [
-  { id: "sanctions", label: "Sanctions Screening", description: "OFAC, EU, UN sanctions lists" },
-  { id: "pep", label: "PEP Check", description: "Politically Exposed Persons database" },
-  { id: "adverse_media", label: "Adverse Media", description: "Negative news and media monitoring" },
-  { id: "aml", label: "AML Screening", description: "Anti-Money Laundering checks" },
-  { id: "kyc", label: "KYC Verification", description: "Know Your Customer identity verification" },
-  { id: "kyb", label: "KYB Verification", description: "Know Your Business entity verification" },
-  { id: "jurisdiction", label: "Jurisdiction Check", description: "Regulatory compliance by region" },
+  {
+    id: "sanctions",
+    label: "Sanctions Screening",
+    description: "OFAC, EU, UN sanctions lists",
+  },
+  {
+    id: "pep",
+    label: "PEP Check",
+    description: "Politically Exposed Persons database",
+  },
+  {
+    id: "adverse_media",
+    label: "Adverse Media",
+    description: "Negative news and media monitoring",
+  },
+  {
+    id: "aml",
+    label: "AML Screening",
+    description: "Anti-Money Laundering checks",
+  },
+  {
+    id: "kyc",
+    label: "KYC Verification",
+    description: "Know Your Customer identity verification",
+  },
+  {
+    id: "kyb",
+    label: "KYB Verification",
+    description: "Know Your Business entity verification",
+  },
+  {
+    id: "jurisdiction",
+    label: "Jurisdiction Check",
+    description: "Regulatory compliance by region",
+  },
 ] as const;
 
 function checkStatusBadge(status: string | undefined) {
   switch (status) {
     case "passed":
-      return { label: "Passed", className: "bg-sky-100 text-sky-700 hover:bg-sky-100 border-0" };
+      return {
+        label: "Passed",
+        className: "bg-sky-100 text-sky-700 hover:bg-sky-100 border-0",
+      };
     case "failed":
     case "flagged":
-      return { label: status === "failed" ? "Failed" : "Flagged", className: "bg-red-100 text-red-700 hover:bg-red-100 border-0" };
+      return {
+        label: status === "failed" ? "Failed" : "Flagged",
+        className: "bg-red-100 text-red-700 hover:bg-red-100 border-0",
+      };
     case "pending":
-      return { label: "Pending", className: "bg-amber-100 text-amber-700 hover:bg-amber-100 border-0" };
+      return {
+        label: "Pending",
+        className: "bg-amber-100 text-amber-700 hover:bg-amber-100 border-0",
+      };
     default:
-      return { label: "Not Checked", className: "bg-muted text-muted-foreground hover:bg-muted border-0" };
+      return {
+        label: "Not Checked",
+        className: "bg-muted text-muted-foreground hover:bg-muted border-0",
+      };
   }
 }
 
@@ -48,10 +99,12 @@ function checkStatusIcon(status: string | undefined) {
 }
 
 export default function Compliance() {
-  const { data: user } = trpc.user.getProfile.useQuery();
+  const { data: user } = trpc.user.getProfile.useQuery(undefined, {
+    retry: false,
+  });
   const { data: checkResults } = trpc.compliance.getChecks.useQuery(
     { entityType: "user", entityId: user?.id ?? 0 },
-    { enabled: !!user?.id },
+    { enabled: !!user?.id }
   );
 
   const utils = trpc.useUtils();
@@ -60,29 +113,53 @@ export default function Compliance() {
       toast.success("Compliance check initiated");
       utils.compliance.getChecks.invalidate();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
 
   const resultsByType = new Map(
-    (checkResults ?? []).map((r) => [r.checkType, r]),
+    (checkResults ?? []).map(r => [r.checkType, r])
   );
   const passedCount = COMPLIANCE_CHECKS.filter(
-    (c) => resultsByType.get(c.id)?.status === "passed",
+    c => resultsByType.get(c.id)?.status === "passed"
   ).length;
-  const hasFailed = COMPLIANCE_CHECKS.some((c) => {
+  const hasFailed = COMPLIANCE_CHECKS.some(c => {
     const s = resultsByType.get(c.id)?.status;
     return s === "failed" || s === "flagged";
   });
   const hasPending = COMPLIANCE_CHECKS.some(
-    (c) => resultsByType.get(c.id)?.status === "pending",
+    c => resultsByType.get(c.id)?.status === "pending"
   );
 
-  const overallLabel = hasFailed ? "Alert" : passedCount === COMPLIANCE_CHECKS.length ? "Clear" : hasPending ? "Pending" : "Not Checked";
-  const overallColor = hasFailed ? "text-red-600" : passedCount === COMPLIANCE_CHECKS.length ? "text-sky-600" : hasPending ? "text-amber-600" : "text-muted-foreground";
-  const overallBg = hasFailed ? "bg-red-100" : passedCount === COMPLIANCE_CHECKS.length ? "bg-sky-100" : hasPending ? "bg-amber-100" : "bg-muted";
-  const overallGradient = hasFailed ? "border-red-200 bg-gradient-to-br from-red-50 to-white" : passedCount === COMPLIANCE_CHECKS.length ? "border-sky-200 bg-gradient-to-br from-emerald-50 to-white" : hasPending ? "border-amber-200 bg-gradient-to-br from-amber-50 to-white" : "border-border";
+  const overallLabel = hasFailed
+    ? "Alert"
+    : passedCount === COMPLIANCE_CHECKS.length
+      ? "Clear"
+      : hasPending
+        ? "Pending"
+        : "Not Checked";
+  const overallColor = hasFailed
+    ? "text-red-600"
+    : passedCount === COMPLIANCE_CHECKS.length
+      ? "text-sky-600"
+      : hasPending
+        ? "text-amber-600"
+        : "text-muted-foreground";
+  const overallBg = hasFailed
+    ? "bg-red-100"
+    : passedCount === COMPLIANCE_CHECKS.length
+      ? "bg-sky-100"
+      : hasPending
+        ? "bg-amber-100"
+        : "bg-muted";
+  const overallGradient = hasFailed
+    ? "border-red-200 bg-gradient-to-br from-red-50 to-white"
+    : passedCount === COMPLIANCE_CHECKS.length
+      ? "border-sky-200 bg-gradient-to-br from-emerald-50 to-white"
+      : hasPending
+        ? "border-amber-200 bg-gradient-to-br from-amber-50 to-white"
+        : "border-border";
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
@@ -103,15 +180,17 @@ export default function Compliance() {
           onClick={() => {
             if (user?.id) {
               runCheckMutation.mutate({
-                entityType: 'user',
+                entityType: "user",
                 entityId: user.id,
-                checkType: 'sanctions',
+                checkType: "sanctions",
               });
             }
           }}
           disabled={runCheckMutation.isPending}
         >
-          <RefreshCw className={`w-4 h-4 mr-2 ${runCheckMutation.isPending ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`w-4 h-4 mr-2 ${runCheckMutation.isPending ? "animate-spin" : ""}`}
+          />
           Run All Checks
         </Button>
       </div>
@@ -121,12 +200,22 @@ export default function Compliance() {
         <Card className={`border-border/60 shadow-sm ${overallGradient}`}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-xl ${overallBg} flex items-center justify-center`}>
-                {hasFailed ? <AlertCircle className={`w-7 h-7 ${overallColor}`} /> : <CheckCircle2 className={`w-7 h-7 ${overallColor}`} />}
+              <div
+                className={`w-14 h-14 rounded-xl ${overallBg} flex items-center justify-center`}
+              >
+                {hasFailed ? (
+                  <AlertCircle className={`w-7 h-7 ${overallColor}`} />
+                ) : (
+                  <CheckCircle2 className={`w-7 h-7 ${overallColor}`} />
+                )}
               </div>
               <div>
-                <div className={`text-2xl font-bold ${overallColor}`}>{overallLabel}</div>
-                <div className="text-sm text-muted-foreground">Overall Status</div>
+                <div className={`text-2xl font-bold ${overallColor}`}>
+                  {overallLabel}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Overall Status
+                </div>
               </div>
             </div>
           </CardContent>
@@ -154,7 +243,9 @@ export default function Compliance() {
               </div>
               <div>
                 <div className="text-2xl font-bold">Today</div>
-                <div className="text-sm text-muted-foreground">Last Checked</div>
+                <div className="text-sm text-muted-foreground">
+                  Last Checked
+                </div>
               </div>
             </div>
           </CardContent>
@@ -164,7 +255,9 @@ export default function Compliance() {
       {/* Compliance Checks */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Compliance Checks</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            Compliance Checks
+          </CardTitle>
           <CardDescription>
             Automated screening against global watchlists and databases
           </CardDescription>
@@ -186,7 +279,9 @@ export default function Compliance() {
                     </div>
                     <div>
                       <div className="font-semibold">{check.label}</div>
-                      <div className="text-sm text-muted-foreground">{check.description}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {check.description}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -218,7 +313,9 @@ export default function Compliance() {
       {/* Verification Progress */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Verification Progress</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            Verification Progress
+          </CardTitle>
           <CardDescription>
             Complete all verification steps to unlock full platform access
           </CardDescription>
@@ -228,9 +325,16 @@ export default function Compliance() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Overall Progress</span>
-                <span className="text-sm font-semibold text-primary">{passedCount} of {COMPLIANCE_CHECKS.length} completed</span>
+                <span className="text-sm font-semibold text-primary">
+                  {passedCount} of {COMPLIANCE_CHECKS.length} completed
+                </span>
               </div>
-              <Progress value={Math.round((passedCount / COMPLIANCE_CHECKS.length) * 100)} className="h-2" />
+              <Progress
+                value={Math.round(
+                  (passedCount / COMPLIANCE_CHECKS.length) * 100
+                )}
+                className="h-2"
+              />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -239,7 +343,9 @@ export default function Compliance() {
                   <CheckCircle2 className="w-5 h-5 text-sky-600" />
                   <span className="font-semibold">Email Verified</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Your email has been verified</p>
+                <p className="text-sm text-muted-foreground">
+                  Your email has been verified
+                </p>
               </div>
 
               <div className="p-5 rounded-xl border border-sky-200 bg-sky-50/50">
@@ -247,7 +353,9 @@ export default function Compliance() {
                   <CheckCircle2 className="w-5 h-5 text-sky-600" />
                   <span className="font-semibold">Phone Verified</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Your phone number has been verified</p>
+                <p className="text-sm text-muted-foreground">
+                  Your phone number has been verified
+                </p>
               </div>
 
               <div className="p-5 rounded-xl border border-sky-200 bg-sky-50/50">
@@ -255,7 +363,9 @@ export default function Compliance() {
                   <CheckCircle2 className="w-5 h-5 text-sky-600" />
                   <span className="font-semibold">Identity Verified</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Government ID verified</p>
+                <p className="text-sm text-muted-foreground">
+                  Government ID verified
+                </p>
               </div>
 
               <div className="p-5 rounded-xl border border-sky-200 bg-sky-50/50">
@@ -263,8 +373,10 @@ export default function Compliance() {
                   <AlertCircle className="w-5 h-5 text-sky-600" />
                   <span className="font-semibold">Business Verification</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">Upload business documents</p>
-                <Button size="sm">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Upload business documents
+                </p>
+                <Button size="sm" onClick={() => toast.info("Coming soon")}>
                   <FileText className="w-4 h-4 mr-2" />
                   Upload Documents
                 </Button>
@@ -275,7 +387,9 @@ export default function Compliance() {
                   <Clock className="w-5 h-5 text-muted-foreground" />
                   <span className="font-semibold">Accreditation</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Verify accredited investor status</p>
+                <p className="text-sm text-muted-foreground">
+                  Verify accredited investor status
+                </p>
               </div>
             </div>
           </div>
@@ -304,22 +418,28 @@ export default function Compliance() {
               { region: "UAE", status: "compliant" },
               { region: "Hong Kong", status: "pending" },
               { region: "Cayman Islands", status: "compliant" },
-            ].map((jurisdiction) => (
+            ].map(jurisdiction => (
               <div
                 key={jurisdiction.region}
                 className={`p-4 rounded-xl border text-center transition-all hover:shadow-sm ${
-                  jurisdiction.status === 'compliant' 
-                    ? 'border-sky-200 bg-sky-50/50' 
-                    : 'border-sky-200 bg-sky-50/50'
+                  jurisdiction.status === "compliant"
+                    ? "border-sky-200 bg-sky-50/50"
+                    : "border-sky-200 bg-sky-50/50"
                 }`}
               >
-                <div className="text-sm font-semibold mb-2">{jurisdiction.region}</div>
-                <Badge className={`${
-                  jurisdiction.status === 'compliant' 
-                    ? 'bg-sky-100 text-sky-700' 
-                    : 'bg-sky-100 text-sky-700'
-                } border-0`}>
-                  {jurisdiction.status === 'compliant' ? 'Compliant' : 'Pending'}
+                <div className="text-sm font-semibold mb-2">
+                  {jurisdiction.region}
+                </div>
+                <Badge
+                  className={`${
+                    jurisdiction.status === "compliant"
+                      ? "bg-sky-100 text-sky-700"
+                      : "bg-sky-100 text-sky-700"
+                  } border-0`}
+                >
+                  {jurisdiction.status === "compliant"
+                    ? "Compliant"
+                    : "Pending"}
                 </Badge>
               </div>
             ))}
@@ -335,11 +455,14 @@ export default function Compliance() {
               <Shield className="w-6 h-6 text-teal-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">Continuous Monitoring</h3>
+              <h3 className="font-semibold text-lg mb-2">
+                Continuous Monitoring
+              </h3>
               <p className="text-muted-foreground leading-relaxed">
-                @navi continuously monitors all participants against global sanctions lists, PEP databases, 
-                and adverse media sources. Any status changes trigger immediate alerts and may affect 
-                deal room access and matching eligibility.
+                @navi continuously monitors all participants against global
+                sanctions lists, PEP databases, and adverse media sources. Any
+                status changes trigger immediate alerts and may affect deal room
+                access and matching eligibility.
               </p>
             </div>
           </div>

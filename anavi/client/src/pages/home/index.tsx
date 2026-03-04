@@ -9,6 +9,7 @@ import { ThreeRolesSection } from "./ThreeRolesSection";
 import { StatsSocialSection } from "./StatsSocialSection";
 import { FeaturesSection } from "./FeaturesSection";
 import { HowItWorksSection } from "./HowItWorksSection";
+import { PlatformPreviewSection } from "./PlatformPreviewSection";
 import { TrustSection } from "./TrustSection";
 import { TestimonialCarouselSection } from "./TestimonialCarouselSection";
 import { EnterprisePricingSection } from "./EnterprisePricingSection";
@@ -106,6 +107,7 @@ export default function Home() {
       <StatsSocialSection />
       <FeaturesSection />
       <HowItWorksSection />
+      <PlatformPreviewSection />
       <TrustSection />
       <TestimonialCarouselSection />
       <EnterprisePricingSection />

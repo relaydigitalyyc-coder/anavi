@@ -7,9 +7,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { 
-  User, Shield, Bell, Key, 
-  Upload, CheckCircle2, Clock, Save,
+import {
+  User,
+  Shield,
+  Bell,
+  Key,
+  Upload,
+  CheckCircle2,
+  Clock,
+  Save,
   Compass,
   Link2,
   PlugZap,
@@ -22,8 +28,12 @@ import { useAppMode } from "@/contexts/AppModeContext";
 export default function Settings() {
   const tour = useTourContext();
   const { mode: appMode } = useAppMode();
-  const { data: user, refetch } = trpc.user.getProfile.useQuery();
-  const { data: runtime } = trpc.system.runtime.useQuery();
+  const { data: user, refetch } = trpc.user.getProfile.useQuery(undefined, {
+    retry: false,
+  });
+  const { data: runtime } = trpc.system.runtime.useQuery(undefined, {
+    retry: false,
+  });
   const [profile, setProfile] = useState({
     name: user?.name || "",
     company: user?.company || "",
@@ -38,12 +48,14 @@ export default function Settings() {
       toast.success("Profile updated successfully");
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
-  const { data: docusignConfig, refetch: refetchDocusignConfig } = trpc.docusign.getConfigStatus.useQuery();
-  const { data: docusignOauthStatus, refetch: refetchDocusignOauth } = trpc.docusign.getOauthStatus.useQuery();
+  const { data: docusignConfig, refetch: refetchDocusignConfig } =
+    trpc.docusign.getConfigStatus.useQuery(undefined, { retry: false });
+  const { data: docusignOauthStatus, refetch: refetchDocusignOauth } =
+    trpc.docusign.getOauthStatus.useQuery(undefined, { retry: false });
   const {
     data: docusignDiagnostics,
     refetch: runDocusignDiagnostics,
@@ -55,7 +67,7 @@ export default function Settings() {
       await refetchDocusignOauth();
       await refetchDocusignConfig();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
@@ -86,23 +98,38 @@ export default function Settings() {
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="card-elevated p-1">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
+          <TabsTrigger
+            value="profile"
+            className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm"
+          >
             <User className="w-4 h-4 mr-2" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="verification" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
+          <TabsTrigger
+            value="verification"
+            className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm"
+          >
             <Shield className="w-4 h-4 mr-2" />
             Verification
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
+          <TabsTrigger
+            value="notifications"
+            className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm"
+          >
             <Bell className="w-4 h-4 mr-2" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
+          <TabsTrigger
+            value="security"
+            className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm"
+          >
             <Key className="w-4 h-4 mr-2" />
             Security
           </TabsTrigger>
-          <TabsTrigger value="help" className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm">
+          <TabsTrigger
+            value="help"
+            className="data-[state=active]:bg-[#0A1628] data-[state=active]:text-white rounded-md text-[#1E3A5F]/60 text-sm"
+          >
             <Compass className="w-4 h-4 mr-2" />
             Help
           </TabsTrigger>
@@ -118,19 +145,27 @@ export default function Settings() {
             <div className="space-y-5">
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Full Name</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">
+                    Full Name
+                  </Label>
                   <Input
                     value={profile.name}
-                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                    onChange={e =>
+                      setProfile({ ...profile, name: e.target.value })
+                    }
                     placeholder="John Doe"
                     className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Job Title</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">
+                    Job Title
+                  </Label>
                   <Input
                     value={profile.title}
-                    onChange={(e) => setProfile({ ...profile, title: e.target.value })}
+                    onChange={e =>
+                      setProfile({ ...profile, title: e.target.value })
+                    }
                     placeholder="Managing Director"
                     className="h-11"
                   />
@@ -139,19 +174,27 @@ export default function Settings() {
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Company</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">
+                    Company
+                  </Label>
                   <Input
                     value={profile.company}
-                    onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+                    onChange={e =>
+                      setProfile({ ...profile, company: e.target.value })
+                    }
                     placeholder="Acme Capital"
                     className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Location</Label>
+                  <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">
+                    Location
+                  </Label>
                   <Input
                     value={profile.location}
-                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                    onChange={e =>
+                      setProfile({ ...profile, location: e.target.value })
+                    }
                     placeholder="New York, NY"
                     className="h-11"
                   />
@@ -159,27 +202,39 @@ export default function Settings() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Website</Label>
+                <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">
+                  Website
+                </Label>
                 <Input
                   value={profile.website}
-                  onChange={(e) => setProfile({ ...profile, website: e.target.value })}
+                  onChange={e =>
+                    setProfile({ ...profile, website: e.target.value })
+                  }
                   placeholder="https://example.com"
                   className="h-11"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Bio</Label>
+                <Label className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">
+                  Bio
+                </Label>
                 <Textarea
                   value={profile.bio}
-                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                  onChange={e =>
+                    setProfile({ ...profile, bio: e.target.value })
+                  }
                   placeholder="Tell others about yourself and your expertise..."
                   rows={4}
                   className="resize-none"
                 />
               </div>
 
-              <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending} className="btn-gold px-6">
+              <Button
+                onClick={handleSaveProfile}
+                disabled={updateProfileMutation.isPending}
+                className="btn-gold px-6"
+              >
                 <Save className="w-4 h-4 mr-2" />
                 {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
@@ -191,30 +246,56 @@ export default function Settings() {
             <p className="text-sm text-[#1E3A5F]/60 mb-5">
               Add your communication channels for verified connections
             </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                {[
-                  { platform: "Email", icon: "📧", placeholder: "john@example.com" },
-                  { platform: "Phone", icon: "📱", placeholder: "+1 (555) 123-4567" },
-                  { platform: "LinkedIn", icon: "💼", placeholder: "linkedin.com/in/johndoe" },
-                  { platform: "Telegram", icon: "✈️", placeholder: "@johndoe" },
-                  { platform: "WhatsApp", icon: "💬", placeholder: "+1 (555) 123-4567" },
-                  { platform: "Discord", icon: "🎮", placeholder: "johndoe#1234" },
-                ].map((handle) => (
-                  <div key={handle.platform} className="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-primary/30 transition-all">
-                    <span className="text-xl">{handle.icon}</span>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium mb-1">{handle.platform}</div>
-                      <Input
-                        className="h-9"
-                        placeholder={handle.placeholder}
-                      />
+            <div className="grid md:grid-cols-2 gap-4">
+              {[
+                {
+                  platform: "Email",
+                  icon: "📧",
+                  placeholder: "john@example.com",
+                },
+                {
+                  platform: "Phone",
+                  icon: "📱",
+                  placeholder: "+1 (555) 123-4567",
+                },
+                {
+                  platform: "LinkedIn",
+                  icon: "💼",
+                  placeholder: "linkedin.com/in/johndoe",
+                },
+                { platform: "Telegram", icon: "✈️", placeholder: "@johndoe" },
+                {
+                  platform: "WhatsApp",
+                  icon: "💬",
+                  placeholder: "+1 (555) 123-4567",
+                },
+                {
+                  platform: "Discord",
+                  icon: "🎮",
+                  placeholder: "johndoe#1234",
+                },
+              ].map(handle => (
+                <div
+                  key={handle.platform}
+                  className="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-primary/30 transition-all"
+                >
+                  <span className="text-xl">{handle.icon}</span>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium mb-1">
+                      {handle.platform}
                     </div>
+                    <Input className="h-9" placeholder={handle.placeholder} />
                   </div>
-                ))}
-              </div>
-              <Button className="mt-4" variant="outline">
-                Add More Handles
-              </Button>
+                </div>
+              ))}
+            </div>
+            <Button
+              className="mt-4"
+              variant="outline"
+              onClick={() => toast.info("Coming soon")}
+            >
+              Add More Handles
+            </Button>
           </div>
         </TabsContent>
 
@@ -225,101 +306,149 @@ export default function Settings() {
             <p className="text-sm text-[#1E3A5F]/60 mb-5">
               Complete verification to unlock full platform features
             </p>
-              <div className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-r from-primary/10 to-amber-500/10 border border-primary/20 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center shadow-lg">
-                  <Shield className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold">
-                      {user?.verificationTier === 'none' ? 'Unverified' : 
-                       user?.verificationTier === 'basic' ? 'Basic' :
-                       user?.verificationTier === 'enhanced' ? 'Enhanced' : 'Institutional'}
-                    </span>
-                    <Badge className="capitalize">
-                      {user?.verificationTier || 'none'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Trust Score: <span className="font-semibold text-primary">{user?.trustScore || 0}/100</span>
-                  </p>
-                </div>
+            <div className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-r from-primary/10 to-amber-500/10 border border-primary/20 mb-6">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center shadow-lg">
+                <Shield className="w-8 h-8 text-white" />
               </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold">
+                    {user?.verificationTier === "none"
+                      ? "Unverified"
+                      : user?.verificationTier === "basic"
+                        ? "Basic"
+                        : user?.verificationTier === "enhanced"
+                          ? "Enhanced"
+                          : "Institutional"}
+                  </span>
+                  <Badge className="capitalize">
+                    {user?.verificationTier || "none"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Trust Score:{" "}
+                  <span className="font-semibold text-primary">
+                    {user?.trustScore || 0}/100
+                  </span>
+                </p>
+              </div>
+            </div>
 
-              <div className="space-y-4">
-                {[
-                  { 
-                    tier: "Basic", 
-                    status: "available",
-                    requirements: ["Email verification", "Phone verification", "Profile completion"],
-                    benefits: ["Post intents", "View matches", "Basic messaging"]
-                  },
-                  { 
-                    tier: "Enhanced", 
-                    status: "locked",
-                    requirements: ["Government ID", "Proof of address", "LinkedIn verification"],
-                    benefits: ["Create deal rooms", "Access compliance tools", "Priority matching"]
-                  },
-                  { 
-                    tier: "Institutional", 
-                    status: "locked",
-                    requirements: ["Business registration", "Accredited investor proof", "AML/KYC completion"],
-                    benefits: ["Full platform access", "API access", "White-glove support"]
-                  },
-                ].map((level) => (
-                  <div
-                    key={level.tier}
-                    className={`p-5 rounded-xl border transition-all ${
-                      level.status === 'available' 
-                        ? 'border-primary/30 bg-gradient-to-r from-primary/5 to-amber-500/5' 
-                        : 'border-border hover:border-muted-foreground/30'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-lg">{level.tier} Verification</span>
-                        {level.status === 'available' ? (
-                          <Badge className="bg-sky-100 text-sky-700 border-0">Available</Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-muted text-muted-foreground">Locked</Badge>
-                        )}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        className={level.status === 'available' ? 'bg-primary text-primary-foreground' : ''}
-                        variant={level.status === 'available' ? 'default' : 'outline'}
-                        disabled={level.status === 'locked'}
-                      >
-                        {level.status === 'available' ? 'Start Verification' : 'Complete Previous'}
-                      </Button>
+            <div className="space-y-4">
+              {[
+                {
+                  tier: "Basic",
+                  status: "available",
+                  requirements: [
+                    "Email verification",
+                    "Phone verification",
+                    "Profile completion",
+                  ],
+                  benefits: ["Post intents", "View matches", "Basic messaging"],
+                },
+                {
+                  tier: "Enhanced",
+                  status: "locked",
+                  requirements: [
+                    "Government ID",
+                    "Proof of address",
+                    "LinkedIn verification",
+                  ],
+                  benefits: [
+                    "Create deal rooms",
+                    "Access compliance tools",
+                    "Priority matching",
+                  ],
+                },
+                {
+                  tier: "Institutional",
+                  status: "locked",
+                  requirements: [
+                    "Business registration",
+                    "Accredited investor proof",
+                    "AML/KYC completion",
+                  ],
+                  benefits: [
+                    "Full platform access",
+                    "API access",
+                    "White-glove support",
+                  ],
+                },
+              ].map(level => (
+                <div
+                  key={level.tier}
+                  className={`p-5 rounded-xl border transition-all ${
+                    level.status === "available"
+                      ? "border-primary/30 bg-gradient-to-r from-primary/5 to-amber-500/5"
+                      : "border-border hover:border-muted-foreground/30"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-lg">
+                        {level.tier} Verification
+                      </span>
+                      {level.status === "available" ? (
+                        <Badge className="bg-sky-100 text-sky-700 border-0">
+                          Available
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="secondary"
+                          className="bg-muted text-muted-foreground"
+                        >
+                          Locked
+                        </Badge>
+                      )}
                     </div>
-                    <div className="grid md:grid-cols-2 gap-6 text-sm">
-                      <div>
-                        <div className="text-muted-foreground mb-2 font-medium">Requirements:</div>
-                        <ul className="space-y-2">
-                          {level.requirements.map((req, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-muted-foreground" />
-                              {req}
-                            </li>
-                          ))}
-                        </ul>
+                    <Button
+                      size="sm"
+                      className={
+                        level.status === "available"
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      }
+                      variant={
+                        level.status === "available" ? "default" : "outline"
+                      }
+                      disabled={level.status === "locked"}
+                    >
+                      {level.status === "available"
+                        ? "Start Verification"
+                        : "Complete Previous"}
+                    </Button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6 text-sm">
+                    <div>
+                      <div className="text-muted-foreground mb-2 font-medium">
+                        Requirements:
                       </div>
-                      <div>
-                        <div className="text-muted-foreground mb-2 font-medium">Benefits:</div>
-                        <ul className="space-y-2">
-                          {level.benefits.map((benefit, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <CheckCircle2 className="w-4 h-4 text-sky-600" />
-                              {benefit}
-                            </li>
-                          ))}
-                        </ul>
+                      <ul className="space-y-2">
+                        {level.requirements.map((req, i) => (
+                          <li key={i} className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            {req}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground mb-2 font-medium">
+                        Benefits:
                       </div>
+                      <ul className="space-y-2">
+                        {level.benefits.map((benefit, i) => (
+                          <li key={i} className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-sky-600" />
+                            {benefit}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="card-elevated p-6">
@@ -327,70 +456,120 @@ export default function Settings() {
             <p className="text-sm text-[#1E3A5F]/60 mb-5">
               Submit verification documents securely
             </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                {[
-                  { name: "Government ID", description: "Passport, Driver's License, or National ID" },
-                  { name: "Proof of Address", description: "Utility bill or bank statement (< 3 months)" },
-                  { name: "Business Registration", description: "Certificate of incorporation" },
-                  { name: "Accreditation Proof", description: "Letter from CPA, broker, or attorney" },
-                ].map((doc) => (
-                  <div
-                    key={doc.name}
-                    className="p-5 rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                        <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
-                      <div>
-                        <div className="font-semibold">{doc.name}</div>
-                        <div className="text-sm text-muted-foreground">{doc.description}</div>
+            <div className="grid md:grid-cols-2 gap-4">
+              {[
+                {
+                  name: "Government ID",
+                  description: "Passport, Driver's License, or National ID",
+                },
+                {
+                  name: "Proof of Address",
+                  description: "Utility bill or bank statement (< 3 months)",
+                },
+                {
+                  name: "Business Registration",
+                  description: "Certificate of incorporation",
+                },
+                {
+                  name: "Accreditation Proof",
+                  description: "Letter from CPA, broker, or attorney",
+                },
+              ].map(doc => (
+                <div
+                  key={doc.name}
+                  className="p-5 rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-all cursor-pointer group"
+                  onClick={() => toast.info("Document upload coming soon")}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                      <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <div>
+                      <div className="font-semibold">{doc.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {doc.description}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
           </div>
         </TabsContent>
 
         {/* Notifications Tab */}
         <TabsContent value="notifications" className="space-y-6">
           <div className="card-elevated p-6">
-            <h3 className="dash-heading text-lg mb-2">Notification Preferences</h3>
+            <h3 className="dash-heading text-lg mb-2">
+              Notification Preferences
+            </h3>
             <p className="text-sm text-[#1E3A5F]/60 mb-5">
               Choose how you want to be notified
             </p>
-              <div className="space-y-3">
-                {[
-                  { name: "New Matches", description: "When AI finds compatible counterparties" },
-                  { name: "Deal Updates", description: "Stage changes and milestone completions" },
-                  { name: "Messages", description: "New messages from verified contacts" },
-                  { name: "Compliance Alerts", description: "Important compliance notifications" },
-                  { name: "Payout Notifications", description: "When payouts are processed" },
-                  { name: "Weekly Digest", description: "Summary of your network activity" },
-                ].map((notification, index) => (
-                  <div
-                    key={notification.name}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/30 transition-all"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div>
-                      <div className="font-semibold">{notification.name}</div>
-                      <div className="text-sm text-muted-foreground">{notification.description}</div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <Switch defaultChecked id={`${notification.name}-email`} />
-                        <Label htmlFor={`${notification.name}-email`} className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Email</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch defaultChecked id={`${notification.name}-push`} />
-                        <Label htmlFor={`${notification.name}-push`} className="text-xs font-semibold text-[#1E3A5F]/60 uppercase">Push</Label>
-                      </div>
+            <div className="space-y-3">
+              {[
+                {
+                  name: "New Matches",
+                  description: "When AI finds compatible counterparties",
+                },
+                {
+                  name: "Deal Updates",
+                  description: "Stage changes and milestone completions",
+                },
+                {
+                  name: "Messages",
+                  description: "New messages from verified contacts",
+                },
+                {
+                  name: "Compliance Alerts",
+                  description: "Important compliance notifications",
+                },
+                {
+                  name: "Payout Notifications",
+                  description: "When payouts are processed",
+                },
+                {
+                  name: "Weekly Digest",
+                  description: "Summary of your network activity",
+                },
+              ].map((notification, index) => (
+                <div
+                  key={notification.name}
+                  className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/30 transition-all"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div>
+                    <div className="font-semibold">{notification.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {notification.description}
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        defaultChecked
+                        id={`${notification.name}-email`}
+                      />
+                      <Label
+                        htmlFor={`${notification.name}-email`}
+                        className="text-xs font-semibold text-[#1E3A5F]/60 uppercase"
+                      >
+                        Email
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch defaultChecked id={`${notification.name}-push`} />
+                      <Label
+                        htmlFor={`${notification.name}-push`}
+                        className="text-xs font-semibold text-[#1E3A5F]/60 uppercase"
+                      >
+                        Push
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </TabsContent>
 
@@ -405,25 +584,49 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl border border-border">
                 <div>
                   <div className="font-semibold">Two-Factor Authentication</div>
-                  <div className="text-sm text-muted-foreground">Add an extra layer of security to your account</div>
+                  <div className="text-sm text-muted-foreground">
+                    Add an extra layer of security to your account
+                  </div>
                 </div>
-                <Button variant="outline" className="hover:border-primary hover:text-primary">Enable 2FA</Button>
+                <Button
+                  variant="outline"
+                  className="hover:border-primary hover:text-primary"
+                  onClick={() => toast.info("Coming soon")}
+                >
+                  Enable 2FA
+                </Button>
               </div>
 
               <div className="flex items-center justify-between p-4 rounded-xl border border-border">
                 <div>
                   <div className="font-semibold">Active Sessions</div>
-                  <div className="text-sm text-muted-foreground">Manage devices where you're logged in</div>
+                  <div className="text-sm text-muted-foreground">
+                    Manage devices where you're logged in
+                  </div>
                 </div>
-                <Button variant="outline" className="hover:border-primary hover:text-primary">View Sessions</Button>
+                <Button
+                  variant="outline"
+                  className="hover:border-primary hover:text-primary"
+                  onClick={() => toast.info("Coming soon")}
+                >
+                  View Sessions
+                </Button>
               </div>
 
               <div className="flex items-center justify-between p-4 rounded-xl border border-border">
                 <div>
                   <div className="font-semibold">API Keys</div>
-                  <div className="text-sm text-muted-foreground">Manage API access for integrations</div>
+                  <div className="text-sm text-muted-foreground">
+                    Manage API access for integrations
+                  </div>
                 </div>
-                <Button variant="outline" className="hover:border-primary hover:text-primary">Manage Keys</Button>
+                <Button
+                  variant="outline"
+                  className="hover:border-primary hover:text-primary"
+                  onClick={() => toast.info("Coming soon")}
+                >
+                  Manage Keys
+                </Button>
               </div>
 
               <div className="p-4 rounded-xl border border-border">
@@ -434,23 +637,51 @@ export default function Settings() {
                       DocuSign Integration
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      Configure signature workflow using {docusignConfig?.executionMode === "mcp" ? "MCP" : docusignConfig?.executionMode === "oauth" ? "OAuth API" : "JWT API"} mode.
+                      Configure signature workflow using{" "}
+                      {docusignConfig?.executionMode === "mcp"
+                        ? "MCP"
+                        : docusignConfig?.executionMode === "oauth"
+                          ? "OAuth API"
+                          : "JWT API"}{" "}
+                      mode.
                     </div>
                   </div>
-                  <Badge variant={docusignConfig?.configured ? "default" : "secondary"}>
-                    {docusignConfig?.configured ? "Configured" : "Not Configured"}
+                  <Badge
+                    variant={
+                      docusignConfig?.configured ? "default" : "secondary"
+                    }
+                  >
+                    {docusignConfig?.configured
+                      ? "Configured"
+                      : "Not Configured"}
                   </Badge>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                   {[
-                    { label: "Execution", value: docusignConfig?.executionMode ?? "-" },
+                    {
+                      label: "Execution",
+                      value: docusignConfig?.executionMode ?? "-",
+                    },
                     { label: "Mode", value: docusignConfig?.env ?? "-" },
-                    { label: "OAuth", value: docusignOauthStatus?.connected ? "Connected" : "Disconnected" },
-                    { label: "MCP URL", value: docusignConfig?.mcpUrlPresent ? "Set" : "Missing" },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-lg border border-border px-2 py-2">
-                      <div className="uppercase tracking-wider text-[10px] text-muted-foreground">{item.label}</div>
+                    {
+                      label: "OAuth",
+                      value: docusignOauthStatus?.connected
+                        ? "Connected"
+                        : "Disconnected",
+                    },
+                    {
+                      label: "MCP URL",
+                      value: docusignConfig?.mcpUrlPresent ? "Set" : "Missing",
+                    },
+                  ].map(item => (
+                    <div
+                      key={item.label}
+                      className="rounded-lg border border-border px-2 py-2"
+                    >
+                      <div className="uppercase tracking-wider text-[10px] text-muted-foreground">
+                        {item.label}
+                      </div>
                       <div className="mt-1 font-semibold">{item.value}</div>
                     </div>
                   ))}
@@ -473,7 +704,10 @@ export default function Settings() {
                     variant="outline"
                     className="hover:border-red-300 hover:text-red-600"
                     onClick={() => disconnectDocusignOauth.mutate()}
-                    disabled={!docusignOauthStatus?.connected || disconnectDocusignOauth.isPending}
+                    disabled={
+                      !docusignOauthStatus?.connected ||
+                      disconnectDocusignOauth.isPending
+                    }
                   >
                     <Unplug className="w-4 h-4 mr-2" />
                     Disconnect OAuth
@@ -492,7 +726,9 @@ export default function Settings() {
                     onClick={() => runDocusignDiagnostics()}
                     disabled={docusignDiagnosticsRunning}
                   >
-                    {docusignDiagnosticsRunning ? "Running..." : "Run Diagnostics"}
+                    {docusignDiagnosticsRunning
+                      ? "Running..."
+                      : "Run Diagnostics"}
                   </Button>
                 </div>
                 {docusignDiagnostics && (
@@ -501,15 +737,26 @@ export default function Settings() {
                       <p className="text-xs font-semibold uppercase tracking-wider text-[#1E3A5F]/60">
                         Diagnostics
                       </p>
-                      <Badge variant={docusignDiagnostics.ok ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          docusignDiagnostics.ok ? "default" : "secondary"
+                        }
+                      >
                         {docusignDiagnostics.ok ? "Healthy" : "Needs Attention"}
                       </Badge>
                     </div>
                     <div className="space-y-1.5">
-                      {docusignDiagnostics.checks.map((item) => (
-                        <div key={item.check} className="flex items-center justify-between text-xs">
+                      {docusignDiagnostics.checks.map(item => (
+                        <div
+                          key={item.check}
+                          className="flex items-center justify-between text-xs"
+                        >
                           <span className="font-medium">{item.check}</span>
-                          <span className={item.ok ? "text-emerald-600" : "text-red-600"}>
+                          <span
+                            className={
+                              item.ok ? "text-emerald-600" : "text-red-600"
+                            }
+                          >
                             {item.detail}
                           </span>
                         </div>
@@ -521,10 +768,19 @@ export default function Settings() {
 
               <div className="flex items-center justify-between p-4 rounded-xl border border-red-200 bg-red-50/50">
                 <div>
-                  <div className="font-semibold text-red-700">Delete Account</div>
-                  <div className="text-sm text-red-600/70">Permanently delete your account and all data</div>
+                  <div className="font-semibold text-red-700">
+                    Delete Account
+                  </div>
+                  <div className="text-sm text-red-600/70">
+                    Permanently delete your account and all data
+                  </div>
                 </div>
-                <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400">Delete</Button>
+                <Button
+                  variant="outline"
+                  className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                >
+                  Delete
+                </Button>
               </div>
             </div>
           </div>
@@ -535,7 +791,8 @@ export default function Settings() {
           <div className="card-elevated p-6">
             <h3 className="dash-heading text-lg mb-2">Guided Tour</h3>
             <p className="text-sm text-[#1E3A5F]/60 mb-5">
-              Take a 2-minute tour of the platform to see where everything lives.
+              Take a 2-minute tour of the platform to see where everything
+              lives.
             </p>
             <Button
               onClick={() => {

@@ -2,7 +2,11 @@ import { useActiveIndustry, useDemoFixtures } from "@/contexts/DemoContext";
 import { trpc } from "@/lib/trpc";
 import { Shield } from "lucide-react";
 import { motion } from "framer-motion";
-import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import {
+  FadeInView,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/PageTransition";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -18,9 +22,13 @@ export default function DealFlow() {
   const demo = useDemoFixtures();
   const [location] = useLocation();
   const industry = useActiveIndustry() ?? "Infrastructure";
-  const { data: liveMatches } = trpc.match.list.useQuery(undefined, { enabled: !demo });
+  const { data: liveMatches } = trpc.match.list.useQuery(undefined, {
+    enabled: !demo,
+  });
   const utils = trpc.useUtils();
-  const rawMatches = (demo?.matches ?? liveMatches ?? []) as unknown as Array<Record<string, unknown>>;
+  const rawMatches = (demo?.matches ?? liveMatches ?? []) as unknown as Array<
+    Record<string, unknown>
+  >;
   const matches: Array<{
     id: number;
     tag: string;
@@ -28,15 +36,20 @@ export default function DealFlow() {
     dealSize: string;
     compatibilityScore: number;
     status: string;
-  }> = rawMatches.map((match) => {
+  }> = rawMatches.map(match => {
     const id = typeof match.id === "number" ? match.id : Number(match.id);
-    const tag = "tag" in match && match.tag
-      ? match.tag
-      : match.counterpartyCompany
-        ? `Counterparty - ${match.counterpartyCompany}`
-        : `Match #${id}`;
-    const assetClass = "assetClass" in match && match.assetClass ? match.assetClass : "Private Markets";
-    const dealSize = "dealSize" in match && match.dealSize ? match.dealSize : "TBD";
+    const tag =
+      "tag" in match && match.tag
+        ? match.tag
+        : match.counterpartyCompany
+          ? `Counterparty - ${match.counterpartyCompany}`
+          : `Match #${id}`;
+    const assetClass =
+      "assetClass" in match && match.assetClass
+        ? match.assetClass
+        : "Private Markets";
+    const dealSize =
+      "dealSize" in match && match.dealSize ? match.dealSize : "TBD";
     const compatibilityScore = Number(match.compatibilityScore ?? 0);
     const status = String(match.status ?? "pending");
     return {
@@ -55,10 +68,12 @@ export default function DealFlow() {
   const minScore = Number(params.get("minScore") ?? 0);
   const statusFilter = params.get("status");
   const assetFilter = params.get("assetClass");
-  const filteredMatches = matches.filter((match) => {
+  const filteredMatches = matches.filter(match => {
     const byScore = match.compatibilityScore >= minScore;
     const byStatus = statusFilter ? match.status === statusFilter : true;
-    const byAsset = assetFilter ? match.assetClass.toLowerCase() === assetFilter.toLowerCase() : true;
+    const byAsset = assetFilter
+      ? match.assetClass.toLowerCase() === assetFilter.toLowerCase()
+      : true;
     return byScore && byStatus && byAsset;
   });
   const [outcomes, setOutcomes] = useState<Record<number, string>>({});
@@ -90,7 +105,10 @@ export default function DealFlow() {
     queueNdaMutation.isPending ||
     escalateMutation.isPending;
 
-  async function handlePrimary(matchId: number, isExpressAndMaybeOpen: boolean) {
+  async function handlePrimary(
+    matchId: number,
+    isExpressAndMaybeOpen: boolean
+  ) {
     if (demo) {
       setOutcome(matchId, isExpressAndMaybeOpen ? "Opened room" : "Queued NDA");
       return;
@@ -133,9 +151,9 @@ export default function DealFlow() {
   }
 
   const setOutcome = (id: number, message: string) => {
-    setOutcomes((prev) => ({ ...prev, [id]: message }));
+    setOutcomes(prev => ({ ...prev, [id]: message }));
     window.setTimeout(() => {
-      setOutcomes((prev) => {
+      setOutcomes(prev => {
         const next = { ...prev };
         delete next[id];
         return next;
@@ -154,39 +172,80 @@ export default function DealFlow() {
           Industry Lens: {industry}
         </p>
         <p className="text-xs text-[#1E3A5F]/60 mt-2">
-          Data freshness: updated 2m ago · {filteredMatches.length} visible opportunities
+          Data freshness: updated 2m ago · {filteredMatches.length} visible
+          opportunities
         </p>
       </div>
       {(minScore > 0 || statusFilter || assetFilter) && (
         <div className="mb-3 flex flex-wrap gap-1.5">
-          {minScore > 0 && <span className="rounded-full bg-[#1E3A5F]/10 px-2 py-0.5 text-[10px] uppercase font-bold text-[#1E3A5F]/70">Min Score {minScore}</span>}
-          {statusFilter && <span className="rounded-full bg-[#1E3A5F]/10 px-2 py-0.5 text-[10px] uppercase font-bold text-[#1E3A5F]/70">Status {statusFilter}</span>}
-          {assetFilter && <span className="rounded-full bg-[#1E3A5F]/10 px-2 py-0.5 text-[10px] uppercase font-bold text-[#1E3A5F]/70">Asset {assetFilter}</span>}
+          {minScore > 0 && (
+            <span className="rounded-full bg-[#1E3A5F]/10 px-2 py-0.5 text-[10px] uppercase font-bold text-[#1E3A5F]/70">
+              Min Score {minScore}
+            </span>
+          )}
+          {statusFilter && (
+            <span className="rounded-full bg-[#1E3A5F]/10 px-2 py-0.5 text-[10px] uppercase font-bold text-[#1E3A5F]/70">
+              Status {statusFilter}
+            </span>
+          )}
+          {assetFilter && (
+            <span className="rounded-full bg-[#1E3A5F]/10 px-2 py-0.5 text-[10px] uppercase font-bold text-[#1E3A5F]/70">
+              Asset {assetFilter}
+            </span>
+          )}
         </div>
       )}
       <div className="mb-3 flex flex-wrap gap-2">
-        <button className="rounded bg-[#2563EB]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+        <button
+          disabled
+          className="rounded bg-[#2563EB]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#2563EB] opacity-50 cursor-not-allowed"
+          title="Coming soon"
+        >
           Request Docs
         </button>
-        <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1E3A5F]/70">
+        <button
+          disabled
+          className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1E3A5F]/70 opacity-50 cursor-not-allowed"
+          title="Coming soon"
+        >
           Update Intent
         </button>
-        <button className="rounded bg-[#059669]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#059669]">
+        <button
+          disabled
+          className="rounded bg-[#059669]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#059669] opacity-50 cursor-not-allowed"
+          title="Coming soon"
+        >
           Confirm Settlement
         </button>
       </div>
       <KpiRibbon
         items={[
-          { label: "Blind Opportunities", value: String(matches.length), tone: "blue" },
-          { label: "Avg Compatibility", value: `${(matches.reduce((sum, match) => sum + match.compatibilityScore, 0) / Math.max(1, matches.length)).toFixed(0)}%`, tone: "green" },
+          {
+            label: "Blind Opportunities",
+            value: String(matches.length),
+            tone: "blue",
+          },
+          {
+            label: "Avg Compatibility",
+            value: `${(matches.reduce((sum, match) => sum + match.compatibilityScore, 0) / Math.max(1, matches.length)).toFixed(0)}%`,
+            tone: "green",
+          },
           { label: "Verified Counterparties", value: "100%", tone: "gold" },
         ]}
       />
       <LiveProofStrip
         items={[
-          { label: "New Verified Matches", value: `${Math.min(4, matches.length)} in 24h`, delta: "+31%" },
+          {
+            label: "New Verified Matches",
+            value: `${Math.min(4, matches.length)} in 24h`,
+            delta: "+31%",
+          },
           { label: "Median Diligence Time", value: "2.4 days", delta: "-0.8d" },
-          { label: "Identity Exposure", value: "0 unauthorized", delta: "Sealed" },
+          {
+            label: "Identity Exposure",
+            value: "0 unauthorized",
+            delta: "Sealed",
+          },
         ]}
       />
       <StoryBeats active="match" />
@@ -224,16 +283,24 @@ export default function DealFlow() {
                   <p className="font-semibold text-[#0A1628]">{match.tag}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-bold text-[#C4972A]">{match.compatibilityScore}%</p>
+                  <p className="text-xl font-bold text-[#C4972A]">
+                    {match.compatibilityScore}%
+                  </p>
                   <p className="text-xs text-[#1E3A5F]/50">compatibility</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-xs text-[#1E3A5F]/60 mb-4">
-                <span className="px-2 py-0.5 bg-[#1E3A5F]/8 rounded">{match.assetClass}</span>
+                <span className="px-2 py-0.5 bg-[#1E3A5F]/8 rounded">
+                  {match.assetClass}
+                </span>
                 <span>{match.dealSize}</span>
-                <span className="px-2 py-0.5 bg-[#1E3A5F]/8 rounded uppercase font-bold">SEALED</span>
-                <span className="px-2 py-0.5 bg-[#F59E0B]/15 text-[#F59E0B] rounded uppercase font-bold">Requires Consent</span>
+                <span className="px-2 py-0.5 bg-[#1E3A5F]/8 rounded uppercase font-bold">
+                  SEALED
+                </span>
+                <span className="px-2 py-0.5 bg-[#F59E0B]/15 text-[#F59E0B] rounded uppercase font-bold">
+                  Requires Consent
+                </span>
               </div>
 
               <div className="flex gap-2">

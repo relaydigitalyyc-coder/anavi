@@ -5,12 +5,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { 
-  TrendingUp, Plus, Search, DollarSign, Users, 
-  Clock, CheckCircle2, Circle, FileText, Filter, ArrowUpRight, ChevronRight, UserPlus, Loader2
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  TrendingUp,
+  Plus,
+  Search,
+  DollarSign,
+  Users,
+  Clock,
+  CheckCircle2,
+  Circle,
+  FileText,
+  Filter,
+  ArrowUpRight,
+  ChevronRight,
+  UserPlus,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,14 +56,24 @@ const DEAL_STAGES = [
 ];
 
 const PARTICIPANT_ROLES = [
-  "originator", "buyer", "seller", "introducer", "advisor", "legal", "escrow", "observer",
+  "originator",
+  "buyer",
+  "seller",
+  "introducer",
+  "advisor",
+  "legal",
+  "escrow",
+  "observer",
 ] as const;
 
 export default function Deals() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
-  const [newParticipant, setNewParticipant] = useState({ userId: "", role: "observer" as string });
+  const [newParticipant, setNewParticipant] = useState({
+    userId: "",
+    role: "observer" as string,
+  });
   const [newDeal, setNewDeal] = useState({
     title: "",
     description: "",
@@ -43,17 +83,23 @@ export default function Deals() {
   });
 
   const utils = trpc.useUtils();
-  const { data: deals, isLoading, refetch } = trpc.deal.list.useQuery();
+  const {
+    data: deals,
+    isLoading,
+    refetch,
+  } = trpc.deal.list.useQuery(undefined, { retry: false });
 
-  const { data: dealDetail, isLoading: isDetailLoading } = trpc.deal.get.useQuery(
-    { id: selectedDealId! },
-    { enabled: selectedDealId !== null },
-  );
+  const { data: dealDetail, isLoading: isDetailLoading } =
+    trpc.deal.get.useQuery(
+      { id: selectedDealId! },
+      { enabled: selectedDealId !== null }
+    );
 
-  const { data: participants, isLoading: isParticipantsLoading } = trpc.deal.getParticipants.useQuery(
-    { dealId: selectedDealId! },
-    { enabled: selectedDealId !== null },
-  );
+  const { data: participants, isLoading: isParticipantsLoading } =
+    trpc.deal.getParticipants.useQuery(
+      { dealId: selectedDealId! },
+      { enabled: selectedDealId !== null }
+    );
 
   const addParticipantMutation = trpc.deal.addParticipant.useMutation({
     onSuccess: () => {
@@ -62,7 +108,7 @@ export default function Deals() {
       utils.deal.getParticipants.invalidate();
       utils.deal.get.invalidate();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
@@ -80,7 +126,7 @@ export default function Deals() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
@@ -90,15 +136,17 @@ export default function Deals() {
       toast.success("Deal stage updated");
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
   });
 
-  const filteredDeals = deals?.filter(deal => 
-    deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    deal.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredDeals =
+    deals?.filter(
+      deal =>
+        deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        deal.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
 
   const getStageIndex = (stage: string) => {
     return DEAL_STAGES.findIndex(s => s.id === stage);
@@ -111,16 +159,37 @@ export default function Deals() {
   };
 
   const getDealTypeLabel = (type: string) => {
-    return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    return type
+      .split("_")
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   };
 
-  const totalPipelineValue = deals?.reduce((sum, d) => sum + parseFloat(d.dealValue || "0"), 0) || 0;
-  const activeDeals = deals?.filter(d => !['completed', 'cancelled'].includes(d.stage || '')).length || 0;
+  const totalPipelineValue =
+    deals?.reduce((sum, d) => sum + parseFloat(d.dealValue || "0"), 0) || 0;
+  const activeDeals =
+    deals?.filter(d => !["completed", "cancelled"].includes(d.stage || ""))
+      .length || 0;
 
   const stats = [
-    { label: "Total Pipeline", value: `$${(totalPipelineValue / 1000000).toFixed(1)}M`, icon: DollarSign, trend: "+12% this month" },
-    { label: "Active Deals", value: activeDeals, icon: TrendingUp, trend: `${deals?.length || 0} total` },
-    { label: "Avg Deal Size", value: `$${deals?.length ? ((totalPipelineValue / deals.length) / 1000000).toFixed(2) : 0}M`, icon: FileText, trend: "Per deal" },
+    {
+      label: "Total Pipeline",
+      value: `$${(totalPipelineValue / 1000000).toFixed(1)}M`,
+      icon: DollarSign,
+      trend: "+12% this month",
+    },
+    {
+      label: "Active Deals",
+      value: activeDeals,
+      icon: TrendingUp,
+      trend: `${deals?.length || 0} total`,
+    },
+    {
+      label: "Avg Deal Size",
+      value: `$${deals?.length ? (totalPipelineValue / deals.length / 1000000).toFixed(2) : 0}M`,
+      icon: FileText,
+      trend: "Per deal",
+    },
   ];
 
   return (
@@ -131,7 +200,9 @@ export default function Deals() {
           <div className="animate-fade-in">
             <div className="flex items-center gap-3 mb-4">
               <div className="geo-dot" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Deal Pipeline</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Deal Pipeline
+              </span>
             </div>
             <h1 className="text-4xl font-semibold tracking-tight text-foreground mb-3">
               Active <span className="gradient-text">Deals</span>
@@ -140,7 +211,7 @@ export default function Deals() {
               Track and manage your deal flow from lead to close.
             </p>
           </div>
-          
+
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2 animate-fade-in stagger-2">
@@ -150,7 +221,9 @@ export default function Deals() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-semibold tracking-tight">Create Deal</DialogTitle>
+                <DialogTitle className="text-2xl font-semibold tracking-tight">
+                  Create Deal
+                </DialogTitle>
                 <DialogDescription>
                   Add a new deal to your pipeline
                 </DialogDescription>
@@ -161,7 +234,9 @@ export default function Deals() {
                   <Input
                     placeholder="e.g., 50,000 MT EN590 Rotterdam"
                     value={newDeal.title}
-                    onChange={(e) => setNewDeal({ ...newDeal, title: e.target.value })}
+                    onChange={e =>
+                      setNewDeal({ ...newDeal, title: e.target.value })
+                    }
                     className="h-11"
                   />
                 </div>
@@ -171,7 +246,9 @@ export default function Deals() {
                   <Textarea
                     placeholder="Deal details and notes..."
                     value={newDeal.description}
-                    onChange={(e) => setNewDeal({ ...newDeal, description: e.target.value })}
+                    onChange={e =>
+                      setNewDeal({ ...newDeal, description: e.target.value })
+                    }
                     rows={3}
                   />
                 </div>
@@ -181,18 +258,30 @@ export default function Deals() {
                     <Label>Deal Type</Label>
                     <Select
                       value={newDeal.dealType}
-                      onValueChange={(value: any) => setNewDeal({ ...newDeal, dealType: value })}
+                      onValueChange={(value: any) =>
+                        setNewDeal({ ...newDeal, dealType: value })
+                      }
                     >
                       <SelectTrigger className="h-11">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="commodity_trade">Commodity Trade</SelectItem>
+                        <SelectItem value="commodity_trade">
+                          Commodity Trade
+                        </SelectItem>
                         <SelectItem value="real_estate">Real Estate</SelectItem>
-                        <SelectItem value="equity_investment">Equity Investment</SelectItem>
-                        <SelectItem value="debt_financing">Debt Financing</SelectItem>
-                        <SelectItem value="ma_transaction">M&A Transaction</SelectItem>
-                        <SelectItem value="joint_venture">Joint Venture</SelectItem>
+                        <SelectItem value="equity_investment">
+                          Equity Investment
+                        </SelectItem>
+                        <SelectItem value="debt_financing">
+                          Debt Financing
+                        </SelectItem>
+                        <SelectItem value="ma_transaction">
+                          M&A Transaction
+                        </SelectItem>
+                        <SelectItem value="joint_venture">
+                          Joint Venture
+                        </SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -201,7 +290,9 @@ export default function Deals() {
                     <Label>Currency</Label>
                     <Select
                       value={newDeal.currency}
-                      onValueChange={(value) => setNewDeal({ ...newDeal, currency: value })}
+                      onValueChange={value =>
+                        setNewDeal({ ...newDeal, currency: value })
+                      }
                     >
                       <SelectTrigger className="h-11">
                         <SelectValue />
@@ -222,7 +313,9 @@ export default function Deals() {
                     type="number"
                     placeholder="10,000,000"
                     value={newDeal.dealValue}
-                    onChange={(e) => setNewDeal({ ...newDeal, dealValue: e.target.value })}
+                    onChange={e =>
+                      setNewDeal({ ...newDeal, dealValue: e.target.value })
+                    }
                     className="h-11"
                   />
                 </div>
@@ -258,7 +351,7 @@ export default function Deals() {
               placeholder="Search deals..."
               className="pl-11 h-12 rounded-xl"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
           <Button variant="outline" className="flex items-center gap-2">
@@ -272,14 +365,21 @@ export default function Deals() {
       <div className="px-8 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in stagger-4">
           {stats.map((stat, index) => (
-            <div key={index} className="rounded-lg border border-border/60 bg-card p-6 shadow-sm">
+            <div
+              key={index}
+              className="rounded-lg border border-border/60 bg-card p-6 shadow-sm"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-11 h-11 rounded-xl icon-container-accent flex items-center justify-center">
                   <stat.icon className="w-5 h-5 text-accent" />
                 </div>
-                <span className="text-xs text-accent font-medium">{stat.trend}</span>
+                <span className="text-xs text-accent font-medium">
+                  {stat.trend}
+                </span>
               </div>
-              <div className="text-number-lg text-foreground mb-1">{stat.value}</div>
+              <div className="text-number-lg text-foreground mb-1">
+                {stat.value}
+              </div>
               <div className="text-xs text-muted-foreground">{stat.label}</div>
             </div>
           ))}
@@ -293,11 +393,20 @@ export default function Deals() {
             const count = deals?.filter(d => d.stage === stage.id).length || 0;
             return (
               <div key={stage.id} className="flex items-center">
-                <Button variant="ghost" className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                  count > 0 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}>
+                <Button
+                  variant="ghost"
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                    count > 0
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
                   {stage.label}
-                  {count > 0 && <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/20 text-xs">{count}</span>}
+                  {count > 0 && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/20 text-xs">
+                      {count}
+                    </span>
+                  )}
                 </Button>
                 {index < DEAL_STAGES.length - 2 && (
                   <ChevronRight className="w-4 h-4 text-muted-foreground mx-1" />
@@ -312,8 +421,11 @@ export default function Deals() {
       <div className="px-8 pb-12">
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="rounded-lg border border-border/60 bg-card p-6 shadow-sm">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div
+                key={i}
+                className="rounded-lg border border-border/60 bg-card p-6 shadow-sm"
+              >
                 <div className="h-40 animate-shimmer rounded-xl" />
               </div>
             ))}
@@ -323,7 +435,9 @@ export default function Deals() {
             <div className="w-20 h-20 rounded-2xl icon-container mx-auto mb-6 flex items-center justify-center">
               <TrendingUp className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-2xl font-semibold tracking-tight text-foreground mb-2">No Deals Yet</h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
+              No Deals Yet
+            </h3>
             <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
               Create your first deal to start tracking your pipeline
             </p>
@@ -335,27 +449,26 @@ export default function Deals() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDeals.map((deal, index) => {
-              const stageInfo = DEAL_STAGES.find(s => s.id === deal.stage) || DEAL_STAGES[0];
-              const progress = getStageProgress(deal.stage || 'lead');
-              
+              const stageInfo =
+                DEAL_STAGES.find(s => s.id === deal.stage) || DEAL_STAGES[0];
+              const progress = getStageProgress(deal.stage || "lead");
+
               return (
-                <div 
-                  key={deal.id} 
+                <div
+                  key={deal.id}
                   className={`rounded-lg border border-border/60 bg-card p-6 shadow-sm hover-lift cursor-pointer group animate-fade-in stagger-${Math.min(index + 1, 8)}`}
                   onClick={() => setSelectedDealId(deal.id)}
                 >
                   {/* Progress bar */}
                   <div className="h-1 bg-muted rounded-full mb-5 overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-accent rounded-full transition-all duration-500"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
 
                   <div className="flex items-start justify-between mb-4">
-                    <Badge className="text-xs">
-                      {stageInfo.label}
-                    </Badge>
+                    <Badge className="text-xs">{stageInfo.label}</Badge>
                     <span className="text-xs text-muted-foreground capitalize">
                       {getDealTypeLabel(deal.dealType)}
                     </span>
@@ -364,7 +477,7 @@ export default function Deals() {
                   <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-accent transition-colors line-clamp-2">
                     {deal.title}
                   </h3>
-                  
+
                   {deal.description && (
                     <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       {deal.description}
@@ -375,28 +488,42 @@ export default function Deals() {
                     <div className="flex items-center gap-2">
                       <DollarSign className="w-4 h-4 text-accent" />
                       <span className="font-semibold text-foreground">
-                        {deal.currency} {(parseFloat(deal.dealValue || "0") / 1000000).toFixed(2)}M
+                        {deal.currency}{" "}
+                        {(parseFloat(deal.dealValue || "0") / 1000000).toFixed(
+                          2
+                        )}
+                        M
                       </span>
                     </div>
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex items-center gap-2"
+                      onClick={e => e.stopPropagation()}
+                    >
                       <Select
-                        value={deal.stage || 'lead'}
-                        onValueChange={(value) => {
-                          updateStageMutation.mutate({ id: deal.id, stage: value as any });
+                        value={deal.stage || "lead"}
+                        onValueChange={value => {
+                          updateStageMutation.mutate({
+                            id: deal.id,
+                            stage: value as any,
+                          });
                         }}
                       >
                         <SelectTrigger className="h-8 w-auto text-xs border-0 bg-transparent">
                           <ChevronRight className="w-4 h-4" />
                         </SelectTrigger>
                         <SelectContent>
-                          {DEAL_STAGES.map((stage) => (
+                          {DEAL_STAGES.map(stage => (
                             <SelectItem key={stage.id} value={stage.id}>
                               {stage.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button variant="ghost" size="icon" className="p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
                         <ArrowUpRight className="w-4 h-4" />
                       </Button>
                     </div>
@@ -409,8 +536,14 @@ export default function Deals() {
       </div>
 
       {/* Deal Detail Slide-out */}
-      <Sheet open={selectedDealId !== null} onOpenChange={(open) => !open && setSelectedDealId(null)}>
-        <SheetContent side="right" className="sm:max-w-lg w-full overflow-y-auto">
+      <Sheet
+        open={selectedDealId !== null}
+        onOpenChange={open => !open && setSelectedDealId(null)}
+      >
+        <SheetContent
+          side="right"
+          className="sm:max-w-lg w-full overflow-y-auto"
+        >
           <SheetHeader>
             <SheetTitle className="text-2xl tracking-tight">
               {isDetailLoading ? "Loading…" : dealDetail?.deal.title}
@@ -426,27 +559,44 @@ export default function Deals() {
               {/* Deal Info */}
               <div className="space-y-3">
                 {dealDetail.deal.description && (
-                  <p className="text-sm text-muted-foreground">{dealDetail.deal.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {dealDetail.deal.description}
+                  </p>
                 )}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-border/60 p-3">
-                    <div className="text-xs text-muted-foreground mb-1">Value</div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Value
+                    </div>
                     <div className="font-semibold text-foreground">
-                      {dealDetail.deal.currency} {(parseFloat(dealDetail.deal.dealValue || "0") / 1_000_000).toFixed(2)}M
+                      {dealDetail.deal.currency}{" "}
+                      {(
+                        parseFloat(dealDetail.deal.dealValue || "0") / 1_000_000
+                      ).toFixed(2)}
+                      M
                     </div>
                   </div>
                   <div className="rounded-lg border border-border/60 p-3">
-                    <div className="text-xs text-muted-foreground mb-1">Stage</div>
-                    <Badge>{DEAL_STAGES.find(s => s.id === dealDetail.deal.stage)?.label ?? dealDetail.deal.stage}</Badge>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Stage
+                    </div>
+                    <Badge>
+                      {DEAL_STAGES.find(s => s.id === dealDetail.deal.stage)
+                        ?.label ?? dealDetail.deal.stage}
+                    </Badge>
                   </div>
                   <div className="rounded-lg border border-border/60 p-3">
-                    <div className="text-xs text-muted-foreground mb-1">Type</div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Type
+                    </div>
                     <div className="text-sm font-medium capitalize">
                       {dealDetail.deal.dealType.replace(/_/g, " ")}
                     </div>
                   </div>
                   <div className="rounded-lg border border-border/60 p-3">
-                    <div className="text-xs text-muted-foreground mb-1">Created</div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Created
+                    </div>
                     <div className="text-sm font-medium">
                       {new Date(dealDetail.deal.createdAt).toLocaleDateString()}
                     </div>
@@ -458,7 +608,9 @@ export default function Deals() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-accent" />
-                  <h4 className="font-semibold text-foreground">Participants</h4>
+                  <h4 className="font-semibold text-foreground">
+                    Participants
+                  </h4>
                 </div>
 
                 {isParticipantsLoading ? (
@@ -467,22 +619,33 @@ export default function Deals() {
                   </div>
                 ) : participants && participants.length > 0 ? (
                   <div className="space-y-2">
-                    {participants.map((p) => (
-                      <div key={p.id} className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2">
-                        <span className="text-sm font-medium text-foreground">User #{p.userId}</span>
-                        <Badge variant="outline" className="capitalize text-xs">{p.role}</Badge>
+                    {participants.map(p => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2"
+                      >
+                        <span className="text-sm font-medium text-foreground">
+                          User #{p.userId}
+                        </span>
+                        <Badge variant="outline" className="capitalize text-xs">
+                          {p.role}
+                        </Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No participants yet.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No participants yet.
+                  </p>
                 )}
 
                 {/* Add Participant Form */}
                 <div className="rounded-lg border border-border/60 p-4 space-y-3">
                   <div className="flex items-center gap-2 mb-1">
                     <UserPlus className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-foreground">Add Participant</span>
+                    <span className="text-sm font-medium text-foreground">
+                      Add Participant
+                    </span>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs">User ID</Label>
@@ -491,21 +654,32 @@ export default function Deals() {
                       placeholder="Enter user ID"
                       className="h-9"
                       value={newParticipant.userId}
-                      onChange={(e) => setNewParticipant({ ...newParticipant, userId: e.target.value })}
+                      onChange={e =>
+                        setNewParticipant({
+                          ...newParticipant,
+                          userId: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs">Role</Label>
                     <Select
                       value={newParticipant.role}
-                      onValueChange={(value) => setNewParticipant({ ...newParticipant, role: value })}
+                      onValueChange={value =>
+                        setNewParticipant({ ...newParticipant, role: value })
+                      }
                     >
                       <SelectTrigger className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {PARTICIPANT_ROLES.map((role) => (
-                          <SelectItem key={role} value={role} className="capitalize">
+                        {PARTICIPANT_ROLES.map(role => (
+                          <SelectItem
+                            key={role}
+                            value={role}
+                            className="capitalize"
+                          >
                             {role.charAt(0).toUpperCase() + role.slice(1)}
                           </SelectItem>
                         ))}
@@ -515,7 +689,9 @@ export default function Deals() {
                   <Button
                     size="sm"
                     className="w-full"
-                    disabled={!newParticipant.userId || addParticipantMutation.isPending}
+                    disabled={
+                      !newParticipant.userId || addParticipantMutation.isPending
+                    }
                     onClick={() => {
                       if (!selectedDealId) return;
                       addParticipantMutation.mutate({
@@ -525,7 +701,9 @@ export default function Deals() {
                       });
                     }}
                   >
-                    {addParticipantMutation.isPending ? "Adding…" : "Add Participant"}
+                    {addParticipantMutation.isPending
+                      ? "Adding…"
+                      : "Add Participant"}
                   </Button>
                 </div>
               </div>

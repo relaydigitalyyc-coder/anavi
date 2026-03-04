@@ -32,20 +32,39 @@ For current execution tracking, see:
 - AI: Anthropic Claude integration
 - Tooling: pnpm, Vitest, TypeScript
 
-## Local Development
-From the app directory:
+## Quick Start (Fresh Clone)
+
+Prerequisites: **Node.js >= 20** (20.19+ or 22.12+ recommended), **pnpm**
 
 ```bash
+# Option A: activate pnpm via corepack
+corepack enable
+# If corepack fails with a key verification error (Node 20.18), use:
+#   COREPACK_INTEGRITY_KEYS=0 corepack enable
+# Option B: install pnpm directly
+#   npm install -g pnpm
+
 cd anavi
 pnpm install
-pnpm dev
+cp .env.example .env.local   # edit if you want DB/AI features
+pnpm dev                 # starts Express + Vite HMR on http://localhost:3000
 ```
 
-Build and run:
+The default runtime mode is `demo` — no database or API keys required. All pages render with demo fixtures.
+
+### Verify
+
+```bash
+pnpm check   # TypeScript type-check
+pnpm test    # 67 tests (no DB required)
+pnpm build   # production build
+```
+
+### Production
 
 ```bash
 pnpm build
-pnpm start
+pnpm start   # serves from dist/ on port 3000
 ```
 
 ## Environment Variables

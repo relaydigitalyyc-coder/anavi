@@ -1,23 +1,13 @@
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Shield,
-  Network,
-  Lock,
-  TrendingUp,
-  Users,
-  Sparkles,
-  Brain,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Sparkles, Brain } from "lucide-react";
 import { Link } from "wouter";
 import { Magnetic } from "@/components/AwwwardsAnimations";
 import {
   AuroraBackground,
   GlowingBorder,
   MorphingBlob,
-  FloatingElement,
 } from "@/components/PremiumAnimations";
+import { InteractiveGlobe } from "@/components/ui/interactive-globe";
 
 interface HeroSectionProps {
   heroRef: React.RefObject<HTMLDivElement | null>;
@@ -223,7 +213,7 @@ export function HeroSection({
             </motion.div>
           </div>
 
-          {/* Hero Visual - Enhanced */}
+          {/* Hero Visual - Interactive Global Network */}
           <motion.div
             className="relative hidden lg:block"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -234,109 +224,12 @@ export function HeroSection({
               ease: [0.25, 0.1, 0.25, 1],
             }}
           >
-            <div className="relative aspect-square max-w-xl mx-auto">
-              {/* Animated orbital rings */}
-              {[...Array(4)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute inset-0 border border-border/20"
-                  style={{
-                    transform: `scale(${1 - i * 0.12})`,
-                  }}
-                  animate={{
-                    rotate: i % 2 === 0 ? [0, 360] : [360, 0],
-                    borderColor: [
-                      "rgba(255,255,255,0.05)",
-                      "rgba(255,255,255,0.15)",
-                      "rgba(255,255,255,0.05)",
-                    ],
-                  }}
-                  transition={{
-                    rotate: {
-                      duration: 25 + i * 8,
-                      repeat: Infinity,
-                      ease: "linear",
-                    },
-                    borderColor: { duration: 4, repeat: Infinity },
-                  }}
-                />
-              ))}
-
-              {/* Central glowing element - @navi sky blue */}
-              <motion.div
-                className="absolute inset-[25%] bg-gradient-to-br from-sky-500/20 via-sky-500/5 to-transparent border border-sky-500/30 flex items-center justify-center backdrop-blur-sm rounded-lg"
-                animate={{
-                  scale: [1, 1.05, 1],
-                  boxShadow: [
-                    "0 0 60px oklch(0.65 0.19 230 / 0.15)",
-                    "0 0 100px oklch(0.65 0.19 230 / 0.3)",
-                    "0 0 60px oklch(0.65 0.19 230 / 0.15)",
-                  ],
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    duration: 20,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                >
-                  <Network className="w-20 h-20 text-accent" />
-                </motion.div>
-              </motion.div>
-
-              {/* Floating icons with trails */}
-              {[
-                { Icon: Shield, pos: "top-[5%] left-[20%]", delay: 0 },
-                { Icon: Lock, pos: "top-[20%] right-[5%]", delay: 0.5 },
-                { Icon: TrendingUp, pos: "bottom-[20%] left-[5%]", delay: 1 },
-                { Icon: Users, pos: "bottom-[5%] right-[20%]", delay: 1.5 },
-                { Icon: Zap, pos: "top-[50%] left-[0%]", delay: 2 },
-                { Icon: Brain, pos: "top-[50%] right-[0%]", delay: 2.5 },
-              ].map(({ Icon, pos, delay }, i) => (
-                <FloatingElement key={i} duration={3 + i * 0.5} distance={15}>
-                  <motion.div
-                    className={`absolute ${pos} w-14 h-14 bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center`}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                      delay: 1 + delay * 0.2,
-                      type: "spring",
-                      stiffness: 200,
-                    }}
-                    whileHover={{
-                      scale: 1.1,
-                      borderColor: "oklch(0.65 0.19 230 / 0.5)",
-                    }}
-                  >
-                    <Icon className="w-6 h-6 text-white/40" />
-                  </motion.div>
-                </FloatingElement>
-              ))}
-
-              {/* Particle dots */}
-              {[...Array(12)].map((_, i) => (
-                <motion.div
-                  key={`particle-${i}`}
-                  className="absolute w-1 h-1 bg-accent/60"
-                  style={{
-                    left: `${20 + Math.random() * 60}%`,
-                    top: `${20 + Math.random() * 60}%`,
-                  }}
-                  animate={{
-                    opacity: [0, 1, 0],
-                    scale: [0, 1.5, 0],
-                  }}
-                  transition={{
-                    duration: 2 + Math.random() * 2,
-                    repeat: Infinity,
-                    delay: Math.random() * 3,
-                  }}
-                />
-              ))}
-            </div>
+            <InteractiveGlobe
+              size={480}
+              dotColor="rgba(34, 212, 245, ALPHA)"
+              arcColor="rgba(196, 151, 42, 0.5)"
+              markerColor="rgba(34, 212, 245, 1)"
+            />
           </motion.div>
         </div>
       </motion.div>
