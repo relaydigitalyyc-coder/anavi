@@ -115,7 +115,7 @@ export function HeroSection({
               </span>
             </motion.div>
 
-            <h1 className="font-display text-6xl md:text-7xl lg:text-[96px] xl:text-[120px] font-serif leading-[0.85] mb-8 md:mb-10 text-white">
+            <h1 className="font-serif text-6xl md:text-7xl lg:text-[96px] xl:text-[120px] leading-[0.88] mb-8 md:mb-10 text-white italic">
               <span className="block overflow-y-hidden overflow-x-visible">
                 <motion.span
                   className="block"
@@ -155,15 +155,13 @@ export function HeroSection({
                     ease: [0.25, 0.1, 0.25, 1],
                   }}
                 >
-                  <span className="text-gradient-gold font-display">
-                    Relationships
-                  </span>
+                  <span className="text-gradient-gold">Relationships</span>
                 </motion.span>
               </span>
             </h1>
 
             <motion.p
-              className="text-lg md:text-xl text-white/70 max-w-lg mb-10 md:mb-14 leading-relaxed"
+              className="text-lg md:text-xl text-white/60 max-w-lg mb-10 md:mb-14 leading-relaxed font-light"
               initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.8, duration: 0.8 }}

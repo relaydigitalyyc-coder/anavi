@@ -164,15 +164,7 @@ export function InvestorDashboardContent() {
         <StaggerItem>
           <DashCard title="Trust Score" dataTour="trust-score" className="mb-4">
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <TrustRing score={trustScore} size={120} strokeWidth={8} />
-                <span
-                  className="font-data-hud text-3xl font-bold absolute inset-0 flex items-center justify-center"
-                  style={{ color: scoreColor }}
-                >
-                  <SmoothCounter value={Math.round(trustScore)} duration={1} />
-                </span>
-              </div>
+              <TrustRing score={trustScore} size={120} strokeWidth={8} />
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/50">
                   Industry Lens

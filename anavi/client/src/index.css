@@ -59,8 +59,8 @@
   --color-sidebar-ring: #2563EB;
 
   --radius: 0.5rem;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', 'Courier New', ui-monospace, monospace;
   /* CINEMATIC UI — CANVAS PALETTE */
   --color-canvas-void:     #060A12;
@@ -89,7 +89,7 @@
   --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* CINEMATIC UI — TYPOGRAPHY */
-  --font-display: 'Inter', var(--font-sans);
+  --font-display: 'Instrument Serif', Georgia, serif;
   --font-mono:    'JetBrains Mono', 'Courier New', monospace;
 
 }
@@ -116,8 +116,9 @@
 @layer utilities {
   .bg-geometric {
     background:
-      radial-gradient(circle at 15% 20%, rgb(37 99 235 / 0.06), transparent 38%),
-      radial-gradient(circle at 85% 80%, rgb(196 151 42 / 0.04), transparent 42%),
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgb(37 99 235 / 0.04), transparent 50%),
+      radial-gradient(ellipse 60% 50% at 90% 75%, rgb(196 151 42 / 0.03), transparent 45%),
+      radial-gradient(ellipse 120% 80% at 50% 0%, rgb(209 220 240 / 0.3), transparent 60%),
       var(--color-background);
   }
 
@@ -232,17 +233,37 @@
   }
 
   .btn-gold {
-    background-color: var(--color-trust-gold);
+    background: linear-gradient(160deg, #D4A73A 0%, #C4972A 50%, #A07A1A 100%);
     color: #FFFFFF;
-    border-radius: 8px;
+    border-radius: 10px;
     height: 48px;
-    padding: 0 24px;
-    font-weight: bold;
-    transition: background-color 160ms ease;
+    padding: 0 28px;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    border: 1px solid rgb(196 151 42 / 0.3);
+    box-shadow:
+      0 1px 2px rgb(160 122 26 / 0.3),
+      0 4px 12px rgb(160 122 26 / 0.15),
+      inset 0 1px 0 rgb(255 255 255 / 0.15);
+    transition:
+      box-shadow 200ms var(--ease-cinematic),
+      transform 200ms var(--ease-cinematic),
+      filter 200ms var(--ease-cinematic);
   }
 
   .btn-gold:hover {
-    background-color: #B08724;
+    box-shadow:
+      0 2px 4px rgb(160 122 26 / 0.3),
+      0 8px 24px rgb(160 122 26 / 0.2),
+      inset 0 1px 0 rgb(255 255 255 / 0.2);
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+
+  .btn-gold:active {
+    transform: translateY(0px);
+    filter: brightness(0.95);
   }
 
   .status-pill {
@@ -466,18 +487,19 @@
     border: 1px solid rgb(255 255 255 / 0.60);
   }
 
-  /* Display typography */
+  /* Display typography — Instrument Serif for gravitas */
   .font-display {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    font-weight: 900;
-    letter-spacing: -0.05em;
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
     line-height: 0.95;
+    font-style: normal;
   }
 
   .font-heading-tight {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.04em;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
   .font-data-hud {
@@ -539,28 +561,43 @@
 
   /* ── Elevated light card — authenticated dashboard pages ── */
   .card-elevated {
-    background: rgb(255 255 255 / 0.75);
-    backdrop-filter: blur(16px) saturate(120%);
-    -webkit-backdrop-filter: blur(16px) saturate(120%);
-    border: 1px solid rgb(255 255 255 / 0.70);
+    background: rgb(255 255 255 / 0.82);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    border: 1px solid rgb(209 220 240 / 0.50);
     box-shadow:
-      0 4px 24px rgb(10 22 40 / 0.08),
-      0 1px 4px rgb(10 22 40 / 0.04);
+      0 1px 2px rgb(10 22 40 / 0.04),
+      0 4px 16px rgb(10 22 40 / 0.06),
+      0 12px 48px rgb(10 22 40 / 0.04);
     border-radius: 16px;
-    transition: box-shadow 200ms ease, transform 200ms ease;
+    transition:
+      box-shadow 280ms var(--ease-cinematic),
+      transform 280ms var(--ease-cinematic),
+      border-color 280ms var(--ease-cinematic);
   }
 
   .card-elevated:hover {
+    border-color: rgb(196 151 42 / 0.18);
     box-shadow:
-      0 8px 40px rgb(10 22 40 / 0.12),
-      0 2px 8px rgb(10 22 40 / 0.06);
+      0 2px 4px rgb(10 22 40 / 0.04),
+      0 8px 32px rgb(10 22 40 / 0.08),
+      0 24px 64px rgb(10 22 40 / 0.06);
+    transform: translateY(-1px);
   }
 
-  /* Dashboard heading — Inter 800 tight tracking */
+  /* Dashboard heading — Instrument Serif for financial gravitas */
   .dash-heading {
     font-family: var(--font-display);
-    font-weight: 800;
-    letter-spacing: -0.04em;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: #0A1628;
+  }
+
+  /* Dashboard sub-heading — Plus Jakarta Sans for UI sections */
+  .dash-subheading {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: #0A1628;
   }
 
@@ -572,5 +609,18 @@
     text-transform: uppercase;
     color: rgb(30 58 95 / 0.50);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Reduced motion: respect user preference */
+  @media (prefers-reduced-motion: reduce) {
+    .card-elevated,
+    .hover-lift,
+    .btn-gold {
+      transition: none !important;
+      animation: none !important;
+    }
+    .card-elevated:hover {
+      transform: none !important;
+    }
   }
 }

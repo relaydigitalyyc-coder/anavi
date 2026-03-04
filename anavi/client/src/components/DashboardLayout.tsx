@@ -588,7 +588,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         style={{ backgroundColor: "#060A12" }}
       >
         <div className="flex h-14 shrink-0 items-center px-5">
-          <span className="text-lg font-bold tracking-wide text-white">
+          <span className="font-serif italic text-xl text-white tracking-normal">
             ANAVI
           </span>
         </div>
@@ -609,7 +609,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             aria-label="Navigation menu"
           >
             <div className="flex h-14 shrink-0 items-center justify-between px-5">
-              <span className="text-lg font-bold tracking-wide text-white">
+              <span className="font-serif italic text-xl text-white tracking-normal">
                 ANAVI
               </span>
               <button
@@ -703,12 +703,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           className="flex-1 min-h-0 overflow-y-auto pb-20 scrollbar-premium lg:pb-0 relative"
           style={{ backgroundColor: "#F3F7FC" }}
         >
-          {/* Subtle ambient depth — very faint, non-animated for performance */}
+          {/* Ambient depth gradient */}
           <div
-            className="pointer-events-none absolute top-0 right-0 w-[600px] h-[400px]"
+            className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at top right, rgb(196 151 42 / 0.04) 0%, transparent 60%)",
+                "radial-gradient(ellipse 80% 60% at 10% 20%, rgb(37 99 235 / 0.03) 0%, transparent 50%), radial-gradient(ellipse 60% 50% at 90% 75%, rgb(196 151 42 / 0.025) 0%, transparent 45%), radial-gradient(ellipse 120% 80% at 50% 0%, rgb(209 220 240 / 0.25) 0%, transparent 60%)",
             }}
             aria-hidden="true"
           />

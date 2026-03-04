@@ -473,3 +473,14 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Added `EvervaultCard` sealed visual to Originator Blind Matches heading and Investor Active Deal Flow card, reinforcing blind matching / sealed identity concepts from the whitepaper.
 - Globe is hidden on < lg breakpoints to keep mobile clean; EvervaultCard hidden on < md.
 - Validation: tsc clean; vitest 67/67; vite build success.
+
+### 2026-03-04 — Frontend Design Overhaul: Typography + Visual Polish
+
+- **Typography revolution**: Replaced Inter with **Instrument Serif** (display/headings) + **Plus Jakarta Sans** (body text) + JetBrains Mono (data). This gives ANAVI a "private bank meets intelligence terminal" aesthetic instead of generic SaaS.
+- Updated `--font-sans`, `--font-serif`, `--font-display`, `--font-mono` tokens in `index.css`.
+- Updated Google Fonts import in `index.html`.
+- **CSS refinements**: card-elevated upgraded with triple-layer shadow, gold border-on-hover, cinematic easing. btn-gold upgraded with gradient background, inset highlight, depth shadow, active state. dash-heading now uses Instrument Serif for financial gravitas. Added bg-geometric ambient depth. Added `prefers-reduced-motion` support.
+- **TrustRing**: Now self-contained with animated SVG stroke reveal (motion.circle) and animated number counter built in. Removed external SmoothCounter overlays from all three persona dashboards.
+- **Landing page**: Hero h1 now renders in Instrument Serif italic. Step numbers in HowItWorksSection use serif italic ghost text. Subtext uses font-light.
+- **DashboardLayout**: ANAVI logo in sidebar uses serif italic. Main content area has refined ambient gradient.
+- Validation: tsc clean; vitest 67/67; vite build success.

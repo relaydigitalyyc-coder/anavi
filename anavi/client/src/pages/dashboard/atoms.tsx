@@ -1,11 +1,34 @@
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { useEffect, useRef } from "react";
 import { DASHBOARD } from "@/lib/copy";
 
 export function getScoreColor(score: number) {
   if (score > 70) return "#059669";
   if (score >= 40) return "#F59E0B";
   return "#DC2626";
+}
+
+function AnimatedNumber({ value }: { value: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const motionVal = useMotionValue(0);
+  const rounded = useTransform(motionVal, v => Math.round(v));
+
+  useEffect(() => {
+    const controls = animate(motionVal, value, {
+      duration: 1.2,
+      ease: [0.16, 1, 0.3, 1],
+    });
+    const unsub = rounded.on("change", v => {
+      if (ref.current) ref.current.textContent = String(v);
+    });
+    return () => {
+      controls.stop();
+      unsub();
+    };
+  }, [value, motionVal, rounded]);
+
+  return <span ref={ref}>0</span>;
 }
 
 export function TrustRing({
@@ -24,35 +47,44 @@ export function TrustRing({
   const color = getScoreColor(score);
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      className="mx-auto"
-    >
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="#0A1628"
-        strokeWidth={strokeWidth}
-        opacity="0.12"
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        className="transition-all duration-700"
-      />
-    </svg>
+    <div className="relative mx-auto" style={{ width: size, height: size }}>
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="absolute inset-0"
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#0A1628"
+          strokeWidth={strokeWidth}
+          opacity="0.08"
+        />
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-serif text-4xl" style={{ color }}>
+          <AnimatedNumber value={score} />
+        </span>
+        <span className="data-label mt-0.5">Trust</span>
+      </div>
+    </div>
   );
 }
 

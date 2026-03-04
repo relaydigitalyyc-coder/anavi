@@ -247,14 +247,8 @@ export function OriginatorDashboardContent() {
                 {DASHBOARD.trustScore.title}
               </h3>
 
-              <div className="relative mx-auto w-[180px] transition-transform duration-200 group-hover:scale-105">
+              <div className="mx-auto w-[180px] transition-transform duration-200 group-hover:scale-105">
                 <TrustRing score={trustScore} size={180} strokeWidth={10} />
-                <span
-                  className="font-data-hud text-5xl font-bold absolute inset-0 flex items-center justify-center"
-                  style={{ color: scoreColor }}
-                >
-                  <SmoothCounter value={Math.round(trustScore)} duration={1} />
-                </span>
               </div>
               <div className="mt-4 grid grid-cols-3 gap-2 text-left">
                 {[
