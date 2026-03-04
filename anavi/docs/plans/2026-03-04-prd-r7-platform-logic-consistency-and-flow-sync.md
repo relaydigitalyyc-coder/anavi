@@ -22,6 +22,9 @@ This R7 pass is a full-system consistency hardening initiative:
 - Advanced lifecycle coherence (exceptions, reversals, retries, multi-actor conflicts, recovery)
 - Docs + operational memory synchronization
 
+Canonical advanced-flow checklist source:
+- `anavi/docs/plans/2026-03-04-prd-r7-advanced-flow-catalog.md` (`AF-*` IDs)
+
 ---
 
 ## Canonical User Flow Map (Detailed)
@@ -356,6 +359,7 @@ Legend:
    - commands run
    - contradiction resolved
 4. Never mark complete while critical contradictions remain.
+5. Treat unresolved critical `AF-*` items as blockers for closeout.
 
 ---
 

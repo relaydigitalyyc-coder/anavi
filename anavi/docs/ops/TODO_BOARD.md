@@ -7,6 +7,7 @@ Last updated: 2026-03-04
 - R7 Master Consistency Mission: resolve all logical contradictions across route/runtime/persona/demo/lifecycle systems (`specs/002-platform-logic-consistency-and-flow-synchronization.md`).
 - Execute 50-pass Ralph hardening loop in agent mode with contradiction-first triage and strict verification gates.
 - Expand R7 execution to advanced flows: exception, retry, reversal, multi-actor conflict, governance hold/release, and recovery semantics.
+- Execute exhaustive `AF-*` advanced-flow catalog and keep unresolved critical items as closeout blockers (`anavi/docs/plans/2026-03-04-prd-r7-advanced-flow-catalog.md`).
 - (Done via Spec 001) Wire optimistic UI action outcomes (`opened room`, `queued NDA`, `escalated`) to real backend mutations.
 - Add principal `what changed in 24h` events from real activity/audit APIs.
 - Add investor export/publish actions to real endpoints.
@@ -19,7 +20,7 @@ Last updated: 2026-03-04
 - Documentation organization and agent workflow normalization.
 - DocuSign backend integration wiring (provider + webhook + deal room endpoint integration).
 - Platform-wide logic consistency and flow synchronization hardening (R7).
-- Demo system unification complete — removed duplicate client/src/lib/DemoContext.tsx; demo route now uses canonical contexts/DemoContext + fixtures adapter.
+- Demo system unification complete — removed duplicate client/src/lib/DemoContext.tsx; demo route now uses canonical contexts/DemoContext + fixtures adapter. Persona canonicalization wired (developer→principal, allocator→investor).
 - R7 50-pass Ralph agent-mode run active (`logs/ralph_agent50_20260303_214206.meta`).
 
 ## Done

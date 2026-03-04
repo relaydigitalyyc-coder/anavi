@@ -81,7 +81,7 @@ export function ThreeRolesSection() {
                       ))}
                     </div>
                   )}
-                  {key === 'developer' && (
+                  {key === 'principal' && (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-white/60">Riyadh Solar JV</span>

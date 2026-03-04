@@ -145,8 +145,8 @@ Do not prematurely claim all done. Continue sweeping for edge-case drift until n
 - Persona labels and capabilities must not conflict with domain language.
 
 **Acceptance Criteria**
-- [ ] Originator/Investor/Principal flows have consistent journey definitions across navigation and page logic.
-- [ ] No mixed persona aliases that cause ambiguous product behavior.
+- [x] Originator/Investor/Principal flows have consistent journey definitions across navigation and page logic.
+- [x] No mixed persona aliases that cause ambiguous product behavior.
 
 ### FR-3: Demo System Unification
 
@@ -193,7 +193,7 @@ Do not prematurely claim all done. Continue sweeping for edge-case drift until n
 The agent must validate and resolve these high-risk areas:
 
 - [x] Multiple demo-context implementations (resolved): unified on client/src/contexts/DemoContext.tsx; removed client/src/lib/DemoContext.tsx; updated client/src/pages/demo/index.tsx to use canonical context and adapter.
-- [ ] Persona taxonomy mismatch (`developer`/`institutional` remnants vs canonical `principal` semantics).
+- [x] Persona taxonomy mismatch (`developer`/`institutional` remnants vs canonical `principal` semantics).
 - [ ] Route/page naming drift and module inconsistency across nav labels and actual page content.
 - [ ] Runtime gating edge cases where demo behaviors leak into `live` expectations.
 - [ ] Status/notification semantics that do not fully align with UI outcomes and Trust Score narratives.
@@ -657,55 +657,9 @@ computing gzip size...
 ../dist/public/assets/fortran-free-form-D22FLkUw.js                87.15 kB │ gzip:  10.92 kB
 ../dist/public/assets/racket-BqYA7rlc.js                           92.39 kB │ gzip:  15.02 kB
 ../dist/public/assets/less-B1dDrJ26.js                             97.63 kB │ gzip:  14.70 kB
-../dist/public/assets/sequenceDiagram-WL72ISMW-fm90k-_W.js         97.82 kB │ gzip:  26.86 kB
-../dist/public/assets/blade-DVc8C-J4.js                           103.80 kB │ gzip:  28.14 kB
-../dist/public/assets/objective-c-DXmwc3jG.js                     105.41 kB │ gzip:  23.33 kB
-../dist/public/assets/php-CDn_0X-4.js                             111.00 kB │ gzip:  28.52 kB
-../dist/public/assets/asciidoc-Dv7Oe6Be.js                        131.51 kB │ gzip:   9.34 kB
-../dist/public/assets/mdx-Cmh6b_Ma.js                             136.11 kB │ gzip:  23.35 kB
-../dist/public/assets/architectureDiagram-VXUJARFQ-BTWKhTz3.js    148.64 kB │ gzip:  42.06 kB
-../dist/public/assets/objective-cpp-CLxacb5B.js                   171.97 kB │ gzip:  30.62 kB
-../dist/public/assets/javascript-wDzz0qaB.js                      174.83 kB │ gzip:  16.51 kB
-../dist/public/assets/tsx-COt5Ahok.js                             175.54 kB │ gzip:  16.51 kB
-../dist/public/assets/jsx-g9-lgVsj.js                             177.79 kB │ gzip:  16.61 kB
-../dist/public/assets/typescript-BPQ3VLAy.js                      181.08 kB │ gzip:  16.04 kB
-../dist/public/assets/angular-ts-BwZT4LLn.js                      183.82 kB │ gzip:  16.63 kB
-../dist/public/assets/vue-vine-_Ih-lPRR.js                        190.22 kB │ gzip:  18.07 kB
-../dist/public/assets/wolfram-lXgVvXCa.js                         262.39 kB │ gzip:  77.14 kB
-../dist/public/assets/treemap-KMMF4GRG-DmZO7hmh.js                330.00 kB │ gzip:  80.44 kB
-../dist/public/assets/mermaid.core-DF-CnYEz.js                    414.46 kB │ gzip: 113.72 kB
-../dist/public/assets/cytoscape.esm-DtBltrT8.js                   442.41 kB │ gzip: 141.91 kB
-../dist/public/assets/wasm-CG6Dc4jp.js                            622.34 kB │ gzip: 230.29 kB
-../dist/public/assets/cpp-CofmeUqb.js                             626.08 kB │ gzip:  44.82 kB
-../dist/public/assets/emacs-lisp-C9XAeP06.js                      779.85 kB │ gzip: 196.03 kB
-../dist/public/assets/index-B_FifZVB.js                         2,593.05 kB │ gzip: 715.49 kB
-✓ built in 13.32s passes
-
-#### Flow Integrity
-- [ ] Public/authenticated route transitions verified against runtime mode rules.
-- [ ] Persona navigation/workflow coherence verified.
-- [ ] Demo flow path verified end-to-end (persona select → workflow → deal room interaction).
-- [ ] Deal lifecycle action outcomes verified against persisted backend state.
-
-#### Sync Integrity
-- [ ] Plan registry, engineering memory, and TODO board all updated with no contradictions.
-- [ ] Persona navigation/workflow coherence verified.
-- [ ] Demo flow path verified end-to-end (persona select → workflow → deal room interaction).
-- [ ] Deal lifecycle action outcomes verified against persisted backend state.
-
-#### Sync Integrity
-- [ ] Plan registry, engineering memory, and TODO board all updated with no contradictions.
-
-<!-- NR_OF_TRIES: 2 -->
-
-### Iteration Instructions
-
-If ANY check fails:
-1. Capture contradiction precisely (file + behavior + expected canonical behavior).
-2. Fix root cause.
-3. Re-run the relevant validation command(s).
-4. Re-validate impacted flows.
 5. Update docs/ops memory.
 6. Continue until all criteria are satisfied.
 
 **Only when ALL checks pass, output:** `<promise>DONE</promise>`
+
+<!-- NR_OF_TRIES: 1 -->

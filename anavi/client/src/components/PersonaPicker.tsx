@@ -16,7 +16,6 @@ import { AuroraBackground, MorphingBlob } from "@/components/PremiumAnimations";
 const ICONS: Record<PersonaKey, React.ComponentType<{ className?: string }>> = {
   originator: Handshake,
   investor: TrendingUp,
-  developer: Building2,
   principal: Landmark,
 };
 const PICKER_PERSONAS: PersonaKey[] = ["originator", "investor", "principal"];

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 // Unify demo on canonical DemoContext + fixtures
 import { DemoContextProvider, useDemoContext, useDemoFixtures, usePersonaSwitcher } from '@/contexts/DemoContext';
+import { canonicalizePersona } from '@shared/persona';
 // Bridge fixtures to rich demo UI data contract
 import { type DemoDealRoom, type DemoPersona } from '@/pages/demo/demoAdapter';
 import { convertFixturesToDemoData, type DemoData } from '@/pages/demo/demoAdapter';
@@ -231,7 +232,7 @@ function DemoInner({ initial }: { initial: { persona: DemoPersona; name: string 
   const [demoUserName, setDemoUserName] = useState('');
 
   const fixtures = useDemoFixtures();
-  const persona = (activePersona === 'developer' ? 'principal' : activePersona) as DemoPersona | null;
+  const persona = (canonicalizePersona(activePersona) as DemoPersona) ?? null;
 
   useEffect(() => {
     if (!initialized.current) {

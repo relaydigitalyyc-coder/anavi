@@ -41,13 +41,6 @@ export const PERSONAS = {
     answer: "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
     tourPitch: "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
   },
-  developer: {
-    label: "Developer / Asset Owner",
-    role: "Capital Seeker",
-    problem: "Raising capital means exposing my thesis before anyone commits.",
-    answer: "Anonymous until you consent. NDA-gated rooms. Escrow-backed milestones.",
-    tourPitch: "You raised $30M. ANAVI would have protected your thesis until the moment you chose to disclose it.",
-  },
   principal: {
     label: "Principal / Asset Owner",
     role: "Supply Side",
@@ -73,10 +66,6 @@ export const TOUR = {
       title: "Protect Your Counterparty",
       body: "Click to custody a counterparty relationship. Every counterparty you protect has passed KYB verification, OFAC screening, and accreditation confirmation — and every disclosure is logged permanently.",
     },
-    developer: {
-      title: "Seal Your Register",
-      body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
-    },
     principal: {
       title: "Seal Your Register",
       body: "Click to seal this relationship. Counterparties know a qualified party exists — nothing is disclosed until mutual consent is established, and every disclosure is cryptographically logged.",
@@ -98,10 +87,6 @@ export const TOUR = {
     investor: {
       title: "Attribution & Payout",
       body: "Your capital deployed across 3 verified SPVs. Every subsequent deal from this relationship credits your participation — compounding attribution over time.",
-    },
-    developer: {
-      title: "Escrow Milestone",
-      body: "Milestone reached: $12M of $30M committed. Funds release triggered automatically. Your operator economics, protected and automated.",
     },
     principal: {
       title: "Escrow Milestone",

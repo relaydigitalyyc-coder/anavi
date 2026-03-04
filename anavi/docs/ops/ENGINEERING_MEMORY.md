@@ -1,9 +1,11 @@
 # Engineering Memory
-### R7 Demo Unification — Duplicate DemoContext Removed
+### R7 Persona Canonicalization + Demo Unification
 
 - Removed legacy client/src/lib/DemoContext.tsx (duplicate demo provider).
 - Updated client/src/pages/demo/index.tsx to use canonical contexts/DemoContext with fixtures adapter (convertFixturesToDemoData).
-- Mapped stray persona alias 'developer' to canonical 'principal' in demo route to enforce taxonomy consistency.
+- Added shared `canonicalizePersona()` util at `anavi/shared/persona.ts`.
+- Applied canonicalization in Demo route and Dashboard sidebar resolution.
+- Removed remaining reliance on legacy 'developer' persona at runtime; maps to `principal` for flows; 'allocator' maps to `investor`.
 - Validation: cd anavi && pnpm check/test/build all green on Node 20.18 (Vite warns but builds).
 - Updated Spec 002 contradiction register and ops TODO board to reflect resolution.
 
@@ -66,6 +68,17 @@ Purpose: lightweight, chronological memory of significant implementation decisio
   - governance/compliance hold-release behavior
   - attribution/payout recompute integrity
 - Updated master spec and R7 PRD so Ralph passes treat advanced flows as first-class contradiction targets rather than optional edge cases.
+
+### R7 Exhaustive Advanced-Flow Catalog
+
+- Added canonical exhaustive advanced-flow matrix with explicit `AF-*` IDs:
+  - `anavi/docs/plans/2026-03-04-prd-r7-advanced-flow-catalog.md`
+- Catalog now governs R7 closeout by requiring all applicable advanced flows to be resolved or explicitly not-applicable with evidence.
+- Linked catalog into:
+  - `specs/002-platform-logic-consistency-and-flow-synchronization.md`
+  - `anavi/docs/plans/2026-03-04-prd-r7-platform-logic-consistency-and-flow-sync.md`
+  - `anavi/docs/plans/README.md`
+  - `anavi/docs/ops/TODO_BOARD.md`
 
 ## 2026-03-02
 

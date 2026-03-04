@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useDemoContext } from "@/contexts/DemoContext";
 import { useAppMode } from "@/contexts/AppModeContext";
 import { PERSONAS, type PersonaKey } from "@/lib/copy";
+import { canonicalizePersona } from "@shared/persona";
 import {
   BarChart3,
   Bell,
@@ -77,11 +78,6 @@ const personaPrimaryNav: Record<PersonaKey, NavItem[]> = {
     },
   ],
   principal: [
-    { icon: Briefcase, label: "Asset Register", path: "/assets" },
-    { icon: Users, label: "Demand Room", path: "/demand" },
-    { icon: CheckCircle2, label: "Close Tracker", path: "/close" },
-  ],
-  developer: [
     { icon: Briefcase, label: "Asset Register", path: "/assets" },
     { icon: Users, label: "Demand Room", path: "/demand" },
     { icon: CheckCircle2, label: "Close Tracker", path: "/close" },
@@ -273,16 +269,6 @@ const workflowByPersona: Record<PersonaKey, WorkflowBeat[]> = {
     { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
     { key: "close", label: "Close", paths: ["/close", "/payouts"] },
   ],
-  developer: [
-    { key: "assets", label: "Assets", paths: ["/dashboard", "/assets"] },
-    {
-      key: "demand",
-      label: "Demand",
-      paths: ["/demand", "/deal-matching", "/matches"],
-    },
-    { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
-    { key: "close", label: "Close", paths: ["/close", "/payouts"] },
-  ],
 };
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -416,7 +402,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return localStorage.getItem("anavi_active_industry") ?? "Infrastructure";
   });
   const resolvedPersona: PersonaKey = activePersona ?? "originator";
-  const sidebarPersona = isDemo ? resolvedPersona : livePersona;
+  const sidebarPersona = canonicalizePersona(
+    (isDemo ? resolvedPersona : livePersona) as string
+  ) as PersonaKey;
   const sidebarIndustry = isDemo ? activeIndustry : liveIndustry;
   const flow =
     workflowByPersona[sidebarPersona] ?? workflowByPersona.originator;
