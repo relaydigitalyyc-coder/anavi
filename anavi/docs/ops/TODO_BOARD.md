@@ -28,6 +28,7 @@ Last updated: 2026-03-04
 ## Done
 
 - Ralph Wiggum autonomous loop setup completed (scripts, constitution, templates, Claude/Cursor command helpers).
+- R7 FR-1: Route/wrapper coherence verified; added runtime guard matrix (demo/hybrid/live) to R7 plan; Blind Matching naming aligned (page title + h1).
 - Persona-specific dashboard and page upgrades for Originator, Investor, Principal.
 - Shared `PersonaSurface` institutional component system (KPI ribbon, story beats, live proof, action cards).
 - Dashboard drill-through filtering and freshness metadata across persona flows.
