@@ -160,6 +160,87 @@ export function InvestorDashboardContent() {
         </div>
       </div>
 
+      <DashCard title="Portfolio Intelligence" className="mb-4">
+        <div className="mb-4">
+          <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/50 mb-2">
+            Pipeline Visualization
+          </p>
+          <div className="h-8 flex rounded-full overflow-hidden bg-[#1E3A5F]/10">
+            {[
+              { label: "Sourcing", count: 12, color: "#2563EB" },
+              { label: "Due Diligence", count: 8, color: "#C4972A" },
+              { label: "Term Sheet", count: 4, color: "#059669" },
+              { label: "Closing", count: 2, color: "#9B7CF8" },
+            ].map(({ label, count, color }, idx) => {
+              const pct = (count / 26) * 100;
+              return (
+                <motion.div
+                  key={label}
+                  className="flex items-center justify-center min-w-0 shrink-0"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{
+                    duration: 0.8,
+                    delay: idx * 0.1,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  style={{
+                    backgroundColor: color,
+                    borderRadius:
+                      idx === 0
+                        ? "9999px 0 0 9999px"
+                        : idx === 3
+                          ? "0 9999px 9999px 0"
+                          : "0",
+                  }}
+                  title={`${label}: ${count} deals`}
+                >
+                  <span className="text-[10px] font-bold text-white truncate px-1">
+                    {count}
+                  </span>
+                </motion.div>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            {[
+              { label: "Sourcing", count: 12, color: "#2563EB" },
+              { label: "Due Diligence", count: 8, color: "#C4972A" },
+              { label: "Term Sheet", count: 4, color: "#059669" },
+              { label: "Closing", count: 2, color: "#9B7CF8" },
+            ].map(({ label, count, color }) => (
+              <span key={label} className="text-[10px] text-[#1E3A5F]/70">
+                <span
+                  className="inline-block w-2 h-2 rounded-full mr-1 align-middle"
+                  style={{ backgroundColor: color }}
+                />
+                {label}: {count}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Active Pipeline", value: "26" },
+            { label: "Committed Capital", value: "$340M" },
+            { label: "Weighted Trust Score", value: "87" },
+            { label: "Avg Time-to-Close", value: "18d" },
+          ].map(metric => (
+            <div
+              key={metric.label}
+              className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2"
+            >
+              <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">
+                {metric.label}
+              </p>
+              <p className="text-sm font-bold text-[#0A1628] mt-1">
+                {metric.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </DashCard>
+
       <StaggerContainer>
         <StaggerItem>
           <DashCard title="Trust Score" dataTour="trust-score" className="mb-4">

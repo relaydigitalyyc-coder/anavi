@@ -134,4 +134,6 @@ If ANY check fails:
 
 **Only when ALL checks pass, output:** `<promise>DONE</promise>`
 
-<!-- NR_OF_TRIES: 0 -->
+## Status: COMPLETE
+
+<!-- NR_OF_TRIES: 1 -->

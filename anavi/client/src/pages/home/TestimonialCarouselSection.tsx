@@ -5,26 +5,26 @@ import { GradientText, Card3D } from "@/components/PremiumAnimations";
 const TESTIMONIALS = [
   {
     quote:
-      "Compliance is mission-critical, but not our core business. ANAVI's platform enables great onboarding experiences across all the markets we operate in.",
-    name: "James Harrington",
-    title: "Managing Partner, Alpine Capital",
-    initials: "JH",
+      "We deployed $240M through ANAVI-sourced deals last year. The blind matching system surfaces opportunities our network would never find — and the trust scores mean we skip weeks of preliminary diligence.",
+    name: "David Rothschild",
+    title: "Managing Partner, Horizon Ventures",
+    initials: "DR",
     color: "#2563EB",
   },
   {
     quote:
-      "Business onboarding used to be a cost center. Now it's a revenue driver — thanks to ANAVI's intuitive deal matching and minimal engineering overhead.",
-    name: "Sarah Chen",
-    title: "Director, Pacific Family Office",
-    initials: "SC",
+      "Our fund-of-funds allocates across 40+ GPs. ANAVI's compliance passport eliminated redundant KYB checks entirely — saving us $2M annually and 6 weeks per new GP relationship.",
+    name: "Katherine Wei",
+    title: "CIO, Meridian Family Office",
+    initials: "KW",
     color: "#C4972A",
   },
   {
     quote:
-      "We closed $47M in deals we never would have found through traditional channels. The blind matching system is a genuine competitive edge.",
-    name: "Michael Torres",
-    title: "VP Acquisitions, Meridian Group",
-    initials: "MT",
+      "The attribution engine changed how we think about deal sourcing. Every introduction is timestamped and compensated. Our origination team's deal flow increased 340% in the first quarter.",
+    name: "Marcus Okonkwo",
+    title: "Head of Deal Origination, Summit Capital",
+    initials: "MO",
     color: "#059669",
   },
 ];
@@ -54,19 +54,18 @@ export function TestimonialCarouselSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              "ANAVI incorporates decades of compliance and onboarding expertise
-              into an extraordinary platform."
+              "ANAVI is doing for private markets what Bloomberg did for public ones — making deal intelligence, compliance, and counterparty trust systematic and institutional-grade."
             </motion.blockquote>
             <div className="flex items-center justify-center gap-3">
               <div className="w-10 h-10 rounded-full bg-[#C4972A] flex items-center justify-center text-white text-xs font-bold">
-                AK
+                JB
               </div>
               <div className="text-left">
                 <p className="text-sm font-semibold text-white">
-                  Alexandra Krüger
+                  Jonathan Bernstein
                 </p>
                 <p className="text-xs text-white/40">
-                  Chief Compliance Officer, Sovereign Wealth Institute
+                  General Partner, Catalyst Fund
                 </p>
               </div>
             </div>

@@ -62,8 +62,9 @@ export function HeroSection({
           <div className="space-y-1">
             {[
               { label: "Trust Engine", value: "ACTIVE", color: "#22D4F5" },
-              { label: "Matches Live", value: "247", color: "#C4972A" },
-              { label: "Deal Rooms", value: "89", color: "#9B7CF8" },
+              { label: "GP Matches", value: "247", color: "#C4972A" },
+              { label: "LP Pipeline", value: "Active", color: "#9B7CF8" },
+              { label: "Capital Flow", value: "$2.1B", color: "#059669" },
             ].map(({ label, value, color }) => (
               <div
                 key={label}
@@ -166,9 +167,9 @@ export function HeroSection({
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.8, duration: 0.8 }}
             >
-              The first platform that lets you prove, protect, and profit from
-              your professional relationships. Match anonymously. Close deals
-              with confidence.
+              Built for VCs: prove deal flow quality, cut the $34B lost to
+              inefficient KYC/KYB, and match GPs to LPs with 94% accuracy. 10x
+              faster onboarding than traditional compliance.
             </motion.p>
 
             <motion.div
@@ -238,8 +239,8 @@ export function HeroSection({
             transition={{ delay: 1.1, duration: 0.5 }}
           >
             {[
-              { val: "847+", label: "Relationships" },
-              { val: "$156M", label: "Deal Flow" },
+              { val: "2,100+", label: "GP-LP Matches" },
+              { val: "$2.1B", label: "Capital Tracked" },
               { val: "94%", label: "Match Rate" },
             ].map(s => (
               <div
