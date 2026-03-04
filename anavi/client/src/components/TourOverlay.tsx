@@ -155,8 +155,8 @@ export function TourOverlay({
         ref={popoverRef}
         className={`absolute z-[9999] rounded-xl border bg-white shadow-xl ${
           isLast
-            ? "min-w-[340px] max-w-[420px] border-[#C4972A]/30 p-8 text-center"
-            : "min-w-[280px] max-w-[360px] border-[#0A1628]/10 p-5"
+            ? "min-w-[260px] sm:min-w-[340px] max-w-[90vw] sm:max-w-[420px] border-[#C4972A]/30 p-6 sm:p-8 text-center"
+            : "min-w-[220px] sm:min-w-[280px] max-w-[85vw] sm:max-w-[360px] border-[#0A1628]/10 p-4 sm:p-5"
         }`}
         style={getPopoverPosition(
           useTarget ? targetRect! : null,

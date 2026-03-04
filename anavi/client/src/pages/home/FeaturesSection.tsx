@@ -109,7 +109,7 @@ export function FeaturesSection() {
             >
               Platform Features
             </motion.p>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-serif">
               <SplitText>Everything You Need</SplitText>
             </h2>
           </div>

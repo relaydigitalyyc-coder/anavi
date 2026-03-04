@@ -18,13 +18,13 @@ export function HowItWorksSection() {
             <p className="text-xs uppercase tracking-[0.3em] text-[#22D4F5] mb-4 md:mb-6">
               Process
             </p>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-serif">
               How It Works
             </h2>
           </div>
         </SmoothReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             {
               step: "01",
@@ -53,7 +53,7 @@ export function HowItWorksSection() {
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.3 }}
               >
-                <motion.div className="font-serif italic text-7xl md:text-9xl text-white/[0.06] mb-4 md:mb-6 group-hover:text-white/[0.12] transition-colors duration-500">
+                <motion.div className="font-serif italic text-5xl sm:text-6xl md:text-9xl text-white/[0.06] mb-4 md:mb-6 group-hover:text-white/[0.12] transition-colors duration-500">
                   {item.step}
                 </motion.div>
                 <h3 className="text-2xl md:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">

@@ -26,18 +26,23 @@ interface PersonaPickerProps {
 
 export function PersonaPicker({ onClose }: PersonaPickerProps) {
   const { capabilities } = useAppMode();
-  const [selectedPersona, setSelectedPersona] = useState<PersonaKey | null>(null);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaKey | null>(
+    null
+  );
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const handleSelect = useCallback((persona: PersonaKey) => {
-    if (!capabilities.allowDemoFixtures) return;
-    setIsTransitioning(true);
-    // After flash animation completes, mount demo shell
-    setTimeout(() => {
-      setSelectedPersona(persona);
-      setIsTransitioning(false);
-    }, 500);
-  }, [capabilities.allowDemoFixtures]);
+  const handleSelect = useCallback(
+    (persona: PersonaKey) => {
+      if (!capabilities.allowDemoFixtures) return;
+      setIsTransitioning(true);
+      // After flash animation completes, mount demo shell
+      setTimeout(() => {
+        setSelectedPersona(persona);
+        setIsTransitioning(false);
+      }, 500);
+    },
+    [capabilities.allowDemoFixtures]
+  );
 
   useEffect(() => {
     if (!capabilities.allowDemoFixtures) onClose();
@@ -70,11 +75,11 @@ export function PersonaPicker({ onClose }: PersonaPickerProps) {
       >
         <AuroraBackground className="opacity-30" />
         <MorphingBlob
-          className="w-[600px] h-[600px] absolute -top-[200px] -right-[200px]"
+          className="w-[300px] h-[300px] md:w-[600px] md:h-[600px] absolute -top-[100px] md:-top-[200px] -right-[100px] md:-right-[200px]"
           color="oklch(0.65 0.19 230 / 0.06)"
         />
         <MorphingBlob
-          className="w-[400px] h-[400px] absolute bottom-[10%] -left-[100px]"
+          className="w-[200px] h-[200px] md:w-[400px] md:h-[400px] absolute bottom-[10%] -left-[50px] md:-left-[100px]"
           color="oklch(0.55 0.15 160 / 0.05)"
         />
 
@@ -97,44 +102,44 @@ export function PersonaPicker({ onClose }: PersonaPickerProps) {
             {PICKER_PERSONAS.map((key, i) => {
               const persona = PERSONAS[key];
               const Icon = ICONS[key];
-                return (
-                  <motion.button
-                    key={key}
-                    onClick={() => handleSelect(key)}
-                    className="relative group text-left p-8 md:p-10 glass-dark border border-white/10 hover:border-sky-500/50 transition-all duration-300 overflow-hidden rounded-xl cursor-pointer"
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
-                    whileHover={{
-                      y: -4,
-                      boxShadow:
-                        "0 20px 60px rgb(0 0 0 / 0.4), 0 0 40px oklch(0.65 0.19 230 / 0.12)",
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {/* Hover glow */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              return (
+                <motion.button
+                  key={key}
+                  onClick={() => handleSelect(key)}
+                  className="relative group text-left p-8 md:p-10 glass-dark border border-white/10 hover:border-sky-500/50 transition-all duration-300 overflow-hidden rounded-xl cursor-pointer"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
+                  whileHover={{
+                    y: -4,
+                    boxShadow:
+                      "0 20px 60px rgb(0 0 0 / 0.4), 0 0 40px oklch(0.65 0.19 230 / 0.12)",
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                    <Icon className="w-10 h-10 mb-6 text-white/30 group-hover:text-[#22D4F5] transition-colors duration-300 relative z-10" />
+                  <Icon className="w-10 h-10 mb-6 text-white/30 group-hover:text-[#22D4F5] transition-colors duration-300 relative z-10" />
 
-                    <p className="text-xs uppercase tracking-widest text-white/30 mb-2 relative z-10">
-                      {persona.role}
+                  <p className="text-xs uppercase tracking-widest text-white/30 mb-2 relative z-10">
+                    {persona.role}
+                  </p>
+                  <h3 className="text-xl md:text-2xl font-serif text-white mb-4 relative z-10">
+                    {persona.label}
+                  </h3>
+
+                  {/* Problem / Answer — show answer on mobile, crossfade on desktop */}
+                  <div className="relative min-h-[48px]">
+                    <p className="text-sm text-white/50 italic md:absolute md:inset-0 md:group-hover:opacity-0 transition-opacity duration-300 hidden md:block">
+                      "{persona.problem}"
                     </p>
-                    <h3 className="text-xl md:text-2xl font-serif text-white mb-4 relative z-10">
-                      {persona.label}
-                    </h3>
-
-                    {/* Problem / Answer crossfade */}
-                    <div className="relative min-h-[48px]">
-                      <p className="text-sm text-white/50 italic absolute inset-0 group-hover:opacity-0 transition-opacity duration-300">
-                        "{persona.problem}"
-                      </p>
-                      <p className="text-sm text-[#22D4F5]/80 absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        {persona.answer}
-                      </p>
-                    </div>
-                  </motion.button>
-                );
+                    <p className="text-sm text-[#22D4F5]/80 md:absolute md:inset-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+                      {persona.answer}
+                    </p>
+                  </div>
+                </motion.button>
+              );
             })}
           </div>
 

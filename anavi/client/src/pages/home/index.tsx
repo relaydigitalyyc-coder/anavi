@@ -1,5 +1,11 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  AnimatePresence,
+} from "framer-motion";
 import { useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { Magnetic } from "@/components/AwwwardsAnimations";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { HeroSection } from "./HeroSection";
@@ -18,6 +24,7 @@ import { CTAFooterSection } from "./CTAFooterSection";
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
@@ -90,9 +97,47 @@ export default function Home() {
                 </span>
               </motion.button>
             </Magnetic>
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden text-white/60 hover:text-white p-1 cursor-pointer"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
           </div>
         </div>
       </motion.nav>
+
+      {/* Mobile menu overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="fixed inset-x-0 top-16 z-40 md:hidden glass-dark border-b border-hairline"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex flex-col p-4 gap-3">
+              {["Features", "How It Works", "Trust"].map(item => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                  className="text-sm text-white/70 hover:text-white py-2 px-3 rounded-lg hover:bg-white/5 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item}
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <HeroSection
         heroRef={heroRef}

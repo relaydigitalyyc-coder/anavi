@@ -66,6 +66,19 @@ export function TrustSection() {
             <div className="relative max-w-lg mx-auto hidden lg:block h-[28rem]">
               <EvervaultCard text="Blind" />
             </div>
+            {/* Mobile: compact trust badge instead of EvervaultCard */}
+            <div className="lg:hidden mt-8 glass-dark rounded-xl p-6 border border-white/10 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-[#22D4F5]/10 flex items-center justify-center">
+                <Shield className="w-8 h-8 text-[#22D4F5]" />
+              </div>
+              <p className="font-serif text-2xl text-white mb-2">
+                Blind Matching
+              </p>
+              <p className="text-sm text-white/50 leading-relaxed">
+                Identities remain sealed until both parties consent. The
+                platform cannot see unencrypted details.
+              </p>
+            </div>
           </SmoothReveal>
         </div>
       </div>

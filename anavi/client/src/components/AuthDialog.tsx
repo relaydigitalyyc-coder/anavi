@@ -52,26 +52,27 @@ export function AuthDialog({
       open={onOpenChange ? open : internalOpen}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent className="py-5 bg-[#2D3748] rounded-[20px] w-[400px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.3)] border border-sky-500/20 backdrop-blur-2xl p-0 gap-0 text-center overflow-hidden">
+      <DialogContent className="py-5 bg-[#2D3748] rounded-[20px] w-full max-w-[400px] mx-4 shadow-[0px_8px_32px_0px_rgba(0,0,0,0.3)] border border-sky-500/20 backdrop-blur-2xl p-0 gap-0 text-center overflow-hidden">
         {/* Animated background gradient */}
         <motion.div
           className="absolute inset-0 opacity-20"
           style={{
-            background: "radial-gradient(circle at 50% 0%, oklch(0.72 0.14 220), transparent 70%)"
+            background:
+              "radial-gradient(circle at 50% 0%, oklch(0.72 0.14 220), transparent 70%)",
           }}
           animate={{
-            opacity: [0.1, 0.2, 0.1]
+            opacity: [0.1, 0.2, 0.1],
           }}
           transition={{
             duration: 3,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         />
-        
+
         <div className="flex flex-col items-center gap-4 p-6 pt-12 relative z-10">
           {/* Logo with glow effect */}
-          <motion.div 
+          <motion.div
             className="relative"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -79,11 +80,7 @@ export function AuthDialog({
           >
             {logo ? (
               <div className="w-16 h-16 bg-[#1a202c] rounded-xl border border-sky-500/30 flex items-center justify-center shadow-lg shadow-sky-500/10">
-                <img
-                  src={logo}
-                  alt="Logo"
-                  className="w-10 h-10 rounded-md"
-                />
+                <img src={logo} alt="Logo" className="w-10 h-10 rounded-md" />
               </div>
             ) : (
               <div className="w-16 h-16 bg-[#1a202c] rounded-xl border border-sky-500/30 flex items-center justify-center shadow-lg shadow-sky-500/10">
@@ -95,12 +92,12 @@ export function AuthDialog({
               className="absolute -top-1 -right-1 w-4 h-4 bg-sky-400 rounded-full"
               animate={{
                 scale: [1, 1.2, 1],
-                opacity: [1, 0.8, 1]
+                opacity: [1, 0.8, 1],
               }}
               transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             />
           </motion.div>
@@ -115,7 +112,7 @@ export function AuthDialog({
               {title}
             </DialogTitle>
           </motion.div>
-          
+
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -142,7 +139,7 @@ export function AuthDialog({
               Enter @navi
             </Button>
           </motion.div>
-          
+
           <motion.p
             className="text-xs text-gray-500 mt-3 w-full text-center"
             initial={{ opacity: 0 }}

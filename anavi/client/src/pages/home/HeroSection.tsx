@@ -115,7 +115,7 @@ export function HeroSection({
               </span>
             </motion.div>
 
-            <h1 className="font-serif text-6xl md:text-7xl lg:text-[96px] xl:text-[120px] leading-[0.88] mb-8 md:mb-10 text-white italic">
+            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[96px] xl:text-[120px] leading-[0.88] mb-8 md:mb-10 text-white italic">
               <span className="block overflow-y-hidden overflow-x-visible">
                 <motion.span
                   className="block"
@@ -211,7 +211,7 @@ export function HeroSection({
             </motion.div>
           </div>
 
-          {/* Hero Visual - Interactive Global Network */}
+          {/* Hero Visual - Interactive Global Network (desktop) */}
           <motion.div
             className="relative hidden lg:block"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -228,6 +228,30 @@ export function HeroSection({
               arcColor="rgba(196, 151, 42, 0.5)"
               markerColor="rgba(34, 212, 245, 1)"
             />
+          </motion.div>
+
+          {/* Mobile hero stats — shown when globe is hidden */}
+          <motion.div
+            className="lg:hidden grid grid-cols-3 gap-3 mt-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1, duration: 0.5 }}
+          >
+            {[
+              { val: "847+", label: "Relationships" },
+              { val: "$156M", label: "Deal Flow" },
+              { val: "94%", label: "Match Rate" },
+            ].map(s => (
+              <div
+                key={s.label}
+                className="glass-dark rounded-lg p-3 text-center border border-white/5"
+              >
+                <p className="font-serif text-lg text-white">{s.val}</p>
+                <p className="text-[9px] text-white/40 uppercase tracking-wider mt-0.5">
+                  {s.label}
+                </p>
+              </div>
+            ))}
           </motion.div>
         </div>
       </motion.div>

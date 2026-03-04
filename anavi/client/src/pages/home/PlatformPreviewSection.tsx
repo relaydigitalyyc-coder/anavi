@@ -54,7 +54,7 @@ function DashboardMockup() {
         </div>
 
         {/* Trust Score + Stats Row */}
-        <div className="grid grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-3 md:mb-4">
           {/* Trust Score */}
           <div className="bg-white rounded-xl p-3 border border-[#D1DCF0]/50 col-span-1">
             <p className="text-[8px] uppercase tracking-wider text-[#1E3A5F]/40 mb-1">
@@ -125,9 +125,9 @@ function DashboardMockup() {
         </div>
 
         {/* Deal Flow + Activity */}
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-3">
           {/* Deal Flow Chart */}
-          <div className="col-span-3 bg-white rounded-xl p-3 border border-[#D1DCF0]/50">
+          <div className="md:col-span-3 bg-white rounded-xl p-3 border border-[#D1DCF0]/50">
             <p className="text-[8px] uppercase tracking-wider text-[#1E3A5F]/40 mb-2">
               Deal Flow
             </p>
@@ -167,7 +167,7 @@ function DashboardMockup() {
           </div>
 
           {/* Recent Activity */}
-          <div className="col-span-2 bg-white rounded-xl p-3 border border-[#D1DCF0]/50">
+          <div className="md:col-span-2 bg-white rounded-xl p-3 border border-[#D1DCF0]/50">
             <p className="text-[8px] uppercase tracking-wider text-[#1E3A5F]/40 mb-2">
               Activity
             </p>
