@@ -101,6 +101,14 @@ Run from repository root:
 ./scripts/ralph-loop.sh
 ```
 
+Codex loop defaults to Collaboration **Plan mode** (plan-first execution).  
+Override when needed:
+
+```bash
+./scripts/ralph-loop-codex.sh --collab-mode default
+./scripts/ralph-loop-codex.sh --collab-mode plan
+```
+
 ## Known Gaps
 - Several advanced pages currently rely on static/demo data
 - Compliance checks are not yet integrated with external providers

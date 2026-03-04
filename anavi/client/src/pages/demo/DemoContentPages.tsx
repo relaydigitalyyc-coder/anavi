@@ -13,10 +13,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import ConceptTooltip from '@/components/ConceptTooltip';
 import { TOOLTIP_CONTENT } from '@/lib/tooltipContent';
-import {
-  type DemoData,
-  type DemoDealRoom,
-} from '@/lib/demoData';
+import { type DemoData, type DemoDealRoom } from '@/pages/demo/demoAdapter';
 import {
   C,
   useCountUp,
@@ -309,7 +306,7 @@ function DemoRelationshipsContent({ data }: { data: DemoData }) {
                 <span>Matches</span>
                 <span className="font-medium" style={{ color: C.navy }}>{rel.matchCount}</span>
               </div>
-              {rel.earnings > 0 && (
+              {typeof rel.earnings === 'number' && rel.earnings > 0 && (
                 <div className="flex justify-between">
                   <span>Earnings</span>
                   <span className="font-bold" style={{ color: C.green }}>
@@ -419,7 +416,7 @@ function DemoMatchesContent({ data, onOpenDealRoom }: { data: DemoData; onOpenDe
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
-                {match.highlights.map((h, i) => (
+                {(match.highlights ?? []).map((h, i) => (
                   <span
                     key={i}
                     className="rounded-full px-2.5 py-0.5 text-[11px]"
@@ -445,9 +442,11 @@ function DemoMatchesContent({ data, onOpenDealRoom }: { data: DemoData; onOpenDe
                     Open Deal Room
                   </button>
                 )}
-                <span className="text-xs" style={{ color: `${C.navyLight}80` }}>
-                  Matched {formatDistanceToNow(new Date(match.matchedAt), { addSuffix: true })}
-                </span>
+                {match.matchedAt && (
+                  <span className="text-xs" style={{ color: `${C.navyLight}80` }}>
+                    Matched {formatDistanceToNow(new Date(match.matchedAt), { addSuffix: true })}
+                  </span>
+                )}
               </div>
             </div>
           );
@@ -676,9 +675,11 @@ function DemoDealRoomsContent({ data, onEnterRoom }: { data: DemoData; onEnterRo
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" /> {room.participants} participants
                 </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> {formatDistanceToNow(new Date(room.lastActivity), { addSuffix: true })}
-                </span>
+                {room.lastActivity && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> {formatDistanceToNow(new Date(room.lastActivity), { addSuffix: true })}
+                  </span>
+                )}
               </div>
 
               {room.status !== 'completed' && (

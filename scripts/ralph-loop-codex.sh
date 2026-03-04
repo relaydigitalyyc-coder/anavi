@@ -9,6 +9,7 @@
 #   ./scripts/ralph-loop-codex.sh              # Build mode (unlimited)
 #   ./scripts/ralph-loop-codex.sh 20           # Build mode (max 20 iterations)
 #   ./scripts/ralph-loop-codex.sh plan         # Planning mode (optional)
+#   ./scripts/ralph-loop-codex.sh --collab-mode default
 #
 
 set -e
@@ -25,6 +26,7 @@ MODE="build"
 CODEX_CMD="${CODEX_CMD:-codex}"
 CODEX_MODEL="${CODEX_MODEL:-gpt-5}"
 CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-high}"
+CODEX_COLLAB_MODE="${CODEX_COLLAB_MODE:-plan}"
 TAIL_LINES=5
 TAIL_RENDERED_LINES=0
 ROLLING_OUTPUT_LINES=5
@@ -58,10 +60,15 @@ Usage:
   ./scripts/ralph-loop-codex.sh              # Build mode, unlimited
   ./scripts/ralph-loop-codex.sh 20           # Build mode, max 20 iterations
   ./scripts/ralph-loop-codex.sh plan         # Planning mode (OPTIONAL)
+  ./scripts/ralph-loop-codex.sh --collab-mode plan|default
 
 Modes:
   build (default)  Pick incomplete spec and implement
   plan             Create IMPLEMENTATION_PLAN.md (OPTIONAL)
+
+Codex Collaboration Mode:
+  plan (default)   Run Codex in Plan mode (execution plan first, then implementation)
+  default          Run Codex in Default mode
 
 Work Source:
   Agent reads specs/*.md and picks the highest priority incomplete spec.
@@ -71,6 +78,47 @@ YOLO Mode: Uses --dangerously-bypass-approvals-and-sandbox
 EOF
 }
 
+escape_for_toml_basic_string() {
+    local value="$1"
+    value=${value//\\/\\\\}
+    value=${value//\"/\\\"}
+    value=${value//$'\n'/\\n}
+    printf '%s' "$value"
+}
+
+build_collaboration_instructions() {
+    local mode="$1"
+    case "$mode" in
+        plan)
+            cat <<'EOF'
+<collaboration_mode># Collaboration Mode: Plan
+
+You are now in Plan mode.
+
+Always start by creating/updating a concrete execution plan before edits.
+Keep exactly one step in_progress at a time and mark completed work immediately.
+Do not claim completion until implementation is verified against acceptance criteria.
+
+</collaboration_mode>
+EOF
+            ;;
+        default)
+            cat <<'EOF'
+<collaboration_mode># Collaboration Mode: Default
+
+You are now in Default mode.
+
+Execute directly and keep communication concise.
+
+</collaboration_mode>
+EOF
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 print_latest_output() {
     local log_file="$1"
     local label="${2:-Codex}"
@@ -78,7 +126,7 @@ print_latest_output() {
 
     [ -f "$log_file" ] || return 0
 
-    if [ ! -w "$target" ] 2>/dev/null; then
+    if [ ! -t 1 ] || [ ! -w "$target" ] 2>/dev/null; then
         target="/dev/stdout"
     fi
 
@@ -105,7 +153,7 @@ watch_latest_output() {
 
     [ -f "$log_file" ] || return 0
 
-    if [ ! -w "$target" ] 2>/dev/null; then
+    if [ ! -t 1 ] || [ ! -w "$target" ] 2>/dev/null; then
         target="/dev/stdout"
     else
         use_tty=true
@@ -164,6 +212,30 @@ while [[ $# -gt 0 ]]; do
                 shift
             fi
             ;;
+        --collab-mode)
+            if [ -z "${2:-}" ]; then
+                echo -e "${RED}Missing value for --collab-mode (use: plan|default)${NC}"
+                exit 1
+            fi
+            case "$2" in
+                plan|default)
+                    CODEX_COLLAB_MODE="$2"
+                    ;;
+                *)
+                    echo -e "${RED}Invalid --collab-mode value: $2 (use: plan|default)${NC}"
+                    exit 1
+                    ;;
+            esac
+            shift 2
+            ;;
+        --plan-mode)
+            CODEX_COLLAB_MODE="plan"
+            shift
+            ;;
+        --default-mode)
+            CODEX_COLLAB_MODE="default"
+            shift
+            ;;
         -h|--help)
             show_help
             exit 0
@@ -215,8 +287,9 @@ You are running inside a Ralph Wiggum autonomous loop (Context A).
 Read `.specify/memory/constitution.md` — it contains all project principles, workflow
 instructions, work sources, and completion signal requirements.
 
-Find the highest-priority incomplete work item, implement it completely, verify all
-acceptance criteria, commit and push, then output `<promise>DONE</promise>`.
+Find the highest-priority incomplete work item, eliminate illogical/inconsistent
+implementation paths, implement root-cause fixes, verify all acceptance criteria,
+commit and push, then output `<promise>DONE</promise>`.
 BUILDEOF
 
 cat > "PROMPT_plan.md" << 'PLANEOF'
@@ -234,10 +307,21 @@ When the plan is complete, output `<promise>DONE</promise>`.
 PLANEOF
 
 # Build Codex flags for exec mode
-CODEX_FLAGS="exec"
-CODEX_FLAGS="$CODEX_FLAGS -m $CODEX_MODEL -c model_reasoning_effort=\"$CODEX_REASONING_EFFORT\""
+COLLAB_INSTRUCTIONS="$(build_collaboration_instructions "$CODEX_COLLAB_MODE" || true)"
+if [ -z "$COLLAB_INSTRUCTIONS" ]; then
+    echo -e "${RED}Error: unsupported CODEX_COLLAB_MODE=$CODEX_COLLAB_MODE${NC}"
+    exit 1
+fi
+COLLAB_INSTRUCTIONS_ESCAPED="$(escape_for_toml_basic_string "$COLLAB_INSTRUCTIONS")"
+
+CODEX_FLAGS=(
+    exec
+    -m "$CODEX_MODEL"
+    -c "model_reasoning_effort=\"$CODEX_REASONING_EFFORT\""
+    -c "developer_instructions=\"$COLLAB_INSTRUCTIONS_ESCAPED\""
+)
 if [ "$YOLO_ENABLED" = true ]; then
-    CODEX_FLAGS="$CODEX_FLAGS --dangerously-bypass-approvals-and-sandbox"
+    CODEX_FLAGS+=(--dangerously-bypass-approvals-and-sandbox)
 fi
 
 # Get current branch
@@ -257,6 +341,7 @@ echo -e "${GREEN}              RALPH LOOP (Codex) STARTING                    ${
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo -e "${BLUE}Mode:${NC}     $MODE"
+echo -e "${BLUE}Collab:${NC}   $CODEX_COLLAB_MODE"
 echo -e "${BLUE}Prompt:${NC}   $PROMPT_FILE"
 echo -e "${BLUE}Branch:${NC}   $CURRENT_BRANCH"
 echo -e "${YELLOW}YOLO:${NC}     $([ "$YOLO_ENABLED" = true ] && echo "ENABLED" || echo "DISABLED")"
@@ -270,7 +355,7 @@ else
     echo -e "  ${RED}✗${NC} specs/ folder (no .md files found)"
 fi
 echo ""
-echo -e "${CYAN}Using: $CODEX_CMD $CODEX_FLAGS${NC}"
+echo -e "${CYAN}Using: $CODEX_CMD ${CODEX_FLAGS[*]}${NC}"
 echo -e "${CYAN}Agent must output <promise>DONE</promise> when complete.${NC}"
 echo ""
 echo -e "${YELLOW}Press Ctrl+C to stop the loop${NC}"
@@ -308,11 +393,11 @@ while true; do
 
     # Run Codex with exec mode, reading prompt from stdin with "-"
     # Use --output-last-message to capture the final response for checking
-    echo -e "${BLUE}Running: cat $PROMPT_FILE | $CODEX_CMD $CODEX_FLAGS - --output-last-message $OUTPUT_FILE${NC}"
+    echo -e "${BLUE}Running: cat $PROMPT_FILE | $CODEX_CMD ${CODEX_FLAGS[*]} - --output-last-message $OUTPUT_FILE${NC}"
     echo ""
     
     CODEX_EXIT=0
-    if cat "$PROMPT_FILE" | "$CODEX_CMD" $CODEX_FLAGS - --output-last-message "$OUTPUT_FILE" 2>&1 | tee "$LOG_FILE"; then
+    if cat "$PROMPT_FILE" | "$CODEX_CMD" "${CODEX_FLAGS[@]}" - --output-last-message "$OUTPUT_FILE" 2>&1 | tee "$LOG_FILE"; then
         if [ -n "$WATCH_PID" ]; then
             kill "$WATCH_PID" 2>/dev/null || true
             wait "$WATCH_PID" 2>/dev/null || true

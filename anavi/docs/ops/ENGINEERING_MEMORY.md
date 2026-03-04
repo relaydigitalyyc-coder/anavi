@@ -20,6 +20,36 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Added templates and baseline spec/history scaffolding (`templates/`, `specs/README.md`, `history.md`).
 - Updated root guidance (`AGENTS.md`, `CLAUDE.md`, `README.md`) to include Ralph loop mode and constitution linkage.
 
+### R7 Massive Consistency Mission Initialization
+
+- Added master Ralph execution spec: `specs/002-platform-logic-consistency-and-flow-synchronization.md`.
+- Added detailed R7 PRD and execution backlog: `anavi/docs/plans/2026-03-04-prd-r7-platform-logic-consistency-and-flow-sync.md`.
+- Captured full-scope mission to eliminate contradictions across:
+  - route wrappers and runtime guards
+  - persona journey semantics
+  - dual demo context/data pipelines
+  - deal lifecycle state-machine, notification, and audit semantics
+- Updated plan registry and ops board to make R7 the current highest-leverage systems-hardening initiative.
+- Prepared for 50-pass Ralph agent loop execution with contradiction-first triage and strict verification gates.
+
+### Demo System Unification (R7 — Pass C7)
+
+- Chose canonical demo path: `client/src/contexts/DemoContext.tsx` + `client/src/lib/demoFixtures.ts`.
+- Added adapter `client/src/pages/demo/demoAdapter.ts` to bridge fixture shapes to the rich demo UI contract used under `pages/demo/*`.
+- Refactored consumers to import types from adapter and to rely on `DemoProvider` wired to fixtures.
+- Removed reliance on legacy `lib/demoData.ts` in active demo surfaces to prevent drift.
+- Hardened nullability across demo pages (optional fields guarded).
+- Validation: `pnpm check` passes; `pnpm test` passes; `pnpm build` produces bundle (Node 20.18 shows warning, build completes).
+
+### R7 Agent-Mode Loop Relaunch + Obsidian Memory Enforcement
+
+- Relaunched 50-pass Ralph loop in detached process mode (`setsid`) to survive CLI process-group cleanup:
+  - run metadata: `logs/ralph_agent50_20260303_214206.meta`
+  - launcher log: `logs/ralph_agent50_20260303_214206.launcher.log`
+  - session log: `logs/ralph_codex_build_session_20260303_214206.log`
+- Verified loop is actively executing iteration 1 with MCP stack startup including `obsidian`.
+- Added explicit Obsidian long-term memory integration requirements to `.specify/memory/constitution.md` so future Ralph passes maintain external memory synchronization by policy.
+
 ## 2026-03-02
 
 ### Dashboard/Persona Upgrade Progress

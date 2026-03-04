@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { getDemoData, type DemoPersona, type DemoData } from './demoData';
 import { useAppMode } from "@/contexts/AppModeContext";
+import { getDemoFixtures } from "@/lib/demoFixtures";
+import { convertFixturesToDemoData, type DemoPersona, type DemoData } from "@/pages/demo/demoAdapter";
 
 interface DemoContextValue {
   isDemo: boolean;
@@ -28,7 +29,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   const setPersona = useCallback((p: DemoPersona) => {
     setPersonaState(p);
-    setDemoData(getDemoData(p));
+    const fixtures = getDemoFixtures(p as any, "baseline");
+    setDemoData(convertFixturesToDemoData(fixtures as any, p));
   }, []);
 
   return (

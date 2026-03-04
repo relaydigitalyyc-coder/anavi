@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, CheckCircle2, Landmark } from 'lucide-react';
 import { Link } from 'wouter';
-import { PERSONA_CARDS, type DemoPersona } from '@/lib/demoData';
+import { PERSONA_CARDS, type DemoPersona } from '@/pages/demo/demoAdapter';
 import { C, ICON_MAP } from './atoms';
 
 export function PersonaSelector({
@@ -87,8 +87,7 @@ export function PersonaSelector({
                   <p className="mb-4 text-xs font-medium" style={{ color: C.gold }}>
                     {card.id === 'originator' && 'See how originators protect relationships worth millions.'}
                     {card.id === 'investor' && 'See how investors discover qualified deal flow automatically.'}
-                    {card.id === 'developer' && 'See how developers connect with ready capital.'}
-                    {card.id === 'institutional' && 'See how institutions streamline compliance and matching.'}
+                    {card.id === 'principal' && 'See how principals connect with ready capital.'}
                   </p>
 
                   <div className="flex flex-wrap gap-2">

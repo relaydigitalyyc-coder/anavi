@@ -4,6 +4,8 @@ Last updated: 2026-03-04
 
 ## Next Up
 
+- R7 Master Consistency Mission: resolve all logical contradictions across route/runtime/persona/demo/lifecycle systems (`specs/002-platform-logic-consistency-and-flow-synchronization.md`).
+- Execute 50-pass Ralph hardening loop in agent mode with contradiction-first triage and strict verification gates.
 - (Done via Spec 001) Wire optimistic UI action outcomes (`opened room`, `queued NDA`, `escalated`) to real backend mutations.
 - Add principal `what changed in 24h` events from real activity/audit APIs.
 - Add investor export/publish actions to real endpoints.
@@ -15,6 +17,9 @@ Last updated: 2026-03-04
 
 - Documentation organization and agent workflow normalization.
 - DocuSign backend integration wiring (provider + webhook + deal room endpoint integration).
+- Platform-wide logic consistency and flow synchronization hardening (R7).
+- Demo system unification: fixtures canonical + adapter bridge (active).
+- R7 50-pass Ralph agent-mode run active (`logs/ralph_agent50_20260303_214206.meta`).
 
 ## Done
 
@@ -29,6 +34,7 @@ Last updated: 2026-03-04
 - DocuSign provider service + webhook processing + deal-room NDA workflow endpoints wired.
 - DocuSign runbook and API reference docs added for implementation and operations handoff.
 - Project-wide runtime mode contract (`demo` / `hybrid` / `live`) wired across backend context/auth and frontend routing/demo surfaces.
+- Demo system canon selected; adapter implemented; pages updated; checks/build green.
 
 ## Backlog
 
@@ -41,3 +47,4 @@ Last updated: 2026-03-04
 
 - Historical checklist retained at `../todo_legacy_2026-02-15.md`.
 - Deal Flow action outcomes now backed by persisted mutations (Spec 001): NDA queue, escalation, and open room flows wired end-to-end with tests.
+- Massive consistency execution queue tracked in `anavi/docs/plans/2026-03-04-prd-r7-platform-logic-consistency-and-flow-sync.md`.

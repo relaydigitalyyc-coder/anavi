@@ -10,7 +10,8 @@ import {
   Bell,
 } from 'lucide-react';
 import { DemoProvider, useDemo } from '@/lib/DemoContext';
-import { type DemoDealRoom, type DemoPersona } from '@/lib/demoData';
+// Demo data now unified via contexts/DemoContext -> lib/demoFixtures adapter bridge
+import { type DemoDealRoom, type DemoPersona } from '@/pages/demo/demoAdapter';
 import GuidedTour, { clearTourCompleted } from '@/components/GuidedTour';
 import { demoTour } from '@/lib/tourDefinitions';
 import { useAppMode } from '@/contexts/AppModeContext';

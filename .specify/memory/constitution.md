@@ -19,6 +19,7 @@
 - Implement, test, commit, push
 - Output `<promise>DONE</promise>` only when 100% complete
 - Output `<promise>ALL_DONE</promise>` when no work remains
+- `scripts/ralph-loop-codex.sh` defaults to Codex Collaboration **Plan mode** (plan-first execution discipline)
 
 **Interactive Mode** (normal conversation):
 - Help with architecture, specification, and implementation guidance
@@ -85,6 +86,17 @@ Helper script: `scripts/lib/nr_of_tries.sh`
 ## History
 
 Append a one-line summary to `history.md` after each spec completion. For details, create `history/YYYY-MM-DD--spec-name.md` with lessons learned, decisions made, and blockers encountered.
+
+---
+
+## Obsidian Memory Integration
+
+During Ralph Loop execution, use the Obsidian MCP server as long-term execution memory:
+
+- Read mission context before implementation from the ANAVI mission note in the Obsidian vault.
+- Append concise updates when major contradictions are found, resolved, or re-opened.
+- Keep Obsidian notes synchronized with canonical repo docs in `anavi/docs/plans/` and `anavi/docs/ops/`.
+- Prefer additive entries (dated deltas) over rewriting prior observations.
 
 ---
 
