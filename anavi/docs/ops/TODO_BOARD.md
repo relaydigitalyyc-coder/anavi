@@ -38,6 +38,7 @@ Last updated: 2026-03-04
 - Project-wide runtime mode contract (`demo` / `hybrid` / `live`) wired across backend context/auth and frontend routing/demo surfaces.
 - Demo system canon selected; adapter implemented; pages updated; checks/build green.
 - R7 Demo unification (duplicate DemoContext removed; demo route updated); checks/tests/build pass.
+ - Persona taxonomy coherence: removed `developer` alias in active flows, unified on `principal`; updated nav/workflow maps and demo path; spec 002 FR-2 acceptance satisfied.
 
 ## Backlog
 

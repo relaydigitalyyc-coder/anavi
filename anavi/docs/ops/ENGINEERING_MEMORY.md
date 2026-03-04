@@ -13,6 +13,16 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 
 ## 2026-03-04
 
+### Persona Taxonomy Coherence (R7 — Pass P2)
+
+- Canonicalized persona keys across active flows to Originator / Investor / Principal.
+- Removed legacy `developer` alias from `client/src/lib/copy.ts` (PERSONAS + TOUR) and from `DashboardLayout` nav/workflow maps.
+- Updated demo path: removed `developer→principal` shim in `pages/demo/index.tsx` as canonicalization happens at source.
+- Fixed imports to use `@shared/persona` canonicalization util and removed bad alias usages.
+- Updated marketing/home section to use `principal` condition.
+- Validation: `./node_modules/.bin/tsc --noEmit` clean; `./node_modules/.bin/vitest run` 62/62 passing; `./node_modules/.bin/vite build` bundles (Node 20.18 warning persists but build completes). Corepack/pnpm signature issue observed; verified via direct binaries.
+- Spec 002 updates: FR-2 acceptance items checked; contradiction register marks persona mismatch resolved; added NR_OF_TRIES: 1.
+
 ### Ralph Wiggum Setup
 
 - Installed Ralph Wiggum autonomous loop tooling in repository root:
