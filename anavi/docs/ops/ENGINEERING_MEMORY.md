@@ -231,3 +231,5 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Extended `server/test/integration/funnel.test.ts` with four AF tests covering idempotency and conflicts.
 - Validation: `npx tsc --noEmit` clean; `npx vitest run` 67/67 passing.
 - Build: Vite warns Node 20.18 < required (20.19+). Recorded skip in `completion_log/build_skip_reason.txt`; prior build artifacts available; no codegen changes affecting client bundle structure.
+
+- 2026-03-04 — R8: Dashboard integrity hardening — Investor/Principal wired to live data; CTAs corrected to truth; tsc clean.

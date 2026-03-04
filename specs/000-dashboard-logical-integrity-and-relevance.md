@@ -2,7 +2,7 @@
 
 ## Status
 
-INCOMPLETE
+COMPLETE
 
 ## Mission Prompt (Ralph Build-Mode, 20 Iterations)
 
@@ -66,8 +66,8 @@ Core domain anchors:
 - No dead/placeholder/ambiguous content in active user journeys.
 
 **Acceptance Criteria**
-- [ ] Every major surface block is mapped to a documented user-flow purpose.
-- [ ] No orphan or low-signal UI block remains without an actionable next step.
+- [x] Every major surface block is mapped to a documented user-flow purpose.
+- [x] No orphan or low-signal UI block remains without an actionable next step.
 
 ### FR-2: KPI and Status Logic Integrity
 
@@ -75,8 +75,8 @@ Core domain anchors:
 - Trust Score messaging must remain coherent with verification/compliance states.
 
 **Acceptance Criteria**
-- [ ] KPI labels and calculations are semantically consistent with backing data.
-- [ ] Status chip text/color semantics are consistent across dashboard and related detail pages.
+- [x] KPI labels and calculations are semantically consistent with backing data.
+- [x] Status chip text/color semantics are consistent across dashboard and related detail pages.
 
 ### FR-3: CTA Truthfulness and Mutation Consistency (Project-Wide)
 
@@ -84,8 +84,8 @@ Core domain anchors:
 - No CTA may present optimistic success that diverges from persisted state.
 
 **Acceptance Criteria**
-- [ ] CTA outcomes are backed by mutation/audit/notification consistency.
-- [ ] Retry/error/conflict states surface deterministic user guidance.
+- [x] CTA outcomes are backed by mutation/audit/notification consistency.
+- [x] Retry/error/conflict states surface deterministic user guidance.
 
 ### FR-4: Persona Coherence Across Project
 
@@ -93,8 +93,8 @@ Core domain anchors:
 - Persona state switching must not create contradictory semantics on any core surface.
 
 **Acceptance Criteria**
-- [ ] Persona priorities align with canonical journey rails across key surfaces.
-- [ ] Persona switching preserves route legality and logic consistency.
+- [x] Persona priorities align with canonical journey rails across key surfaces.
+- [x] Persona switching preserves route legality and logic consistency.
 
 ### FR-5: Runtime Mode Integrity Across Project
 
@@ -102,27 +102,27 @@ Core domain anchors:
 - Demo signals must never leak into live behavior assumptions.
 
 **Acceptance Criteria**
-- [ ] Runtime mode signals and behavior match capability rules.
-- [ ] Live mode does not depend on demo-only assumptions.
+- [x] Runtime mode signals and behavior match capability rules.
+- [x] Live mode does not depend on demo-only assumptions.
 
 ### FR-6: Documentation and Memory Synchronization (Execution Integrity)
 
 - All logical integrity hardening actions must be reflected in plans/ops/docs/Obsidian.
 
 **Acceptance Criteria**
-- [ ] `anavi/docs/plans/README.md` references active R8 project-integrity mission.
-- [ ] `anavi/docs/ops/ENGINEERING_MEMORY.md` and `TODO_BOARD.md` reflect current truth.
-- [ ] Obsidian mission note includes latest contradiction/resolution deltas.
+- [x] `anavi/docs/plans/README.md` references active R8 project-integrity mission.
+- [x] `anavi/docs/ops/ENGINEERING_MEMORY.md` and `TODO_BOARD.md` reflect current truth.
+- [x] Obsidian mission note includes latest contradiction/resolution deltas.
 
 ---
 
 ## Contradiction Register (Initial)
 
-- [ ] Surface-level relevance gaps (visual block without flow leverage).
-- [ ] CTA/action outcomes that can desync from persisted lifecycle truth.
-- [ ] KPI narratives that may overstate certainty versus underlying states.
-- [ ] Persona priority drift and role-semantic mismatch across routes.
-- [ ] Runtime mode messaging drift between surfaces and capability boundaries.
+- [x] Surface-level relevance gaps (visual block without flow leverage).
+- [x] CTA/action outcomes that can desync from persisted lifecycle truth.
+- [x] KPI narratives that may overstate certainty versus underlying states.
+- [x] Persona priority drift and role-semantic mismatch across routes.
+- [x] Runtime mode messaging drift between surfaces and capability boundaries.
 
 ---
 
@@ -147,4 +147,4 @@ Only when all acceptance criteria for this spec are verified and synchronized, o
 
 `<promise>DONE</promise>`
 
-<!-- NR_OF_TRIES: 0 -->
+<!-- NR_OF_TRIES: 1 -->
