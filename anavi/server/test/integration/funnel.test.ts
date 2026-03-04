@@ -279,4 +279,43 @@ describe("F20: Integration Funnel", () => {
     expect(lastAudit.entityType).toBe("match");
     expect(lastAudit.entityId).toBe(101);
   });
+
+  it("Interest + DealRoom emit audit/notifications consistently", async () => {
+    const userA = createTestCaller(appRouter, 11);
+    const userB = createTestCaller(appRouter, 12);
+
+    // Seed a match owned by both users
+    store.matches.push({
+      id: 200,
+      intent1Id: 100,
+      intent2Id: 101,
+      user1Id: 11,
+      user2Id: 12,
+      status: "pending",
+      user1Consent: false,
+      user2Consent: false,
+    });
+
+    // A expresses interest
+    await userA.match.expressInterest({ matchId: 200 });
+    // B expresses interest → mutual_interest
+    await userB.match.expressInterest({ matchId: 200 });
+
+    // Create room
+    const res = await userA.match.createDealRoom({ matchId: 200 });
+    expect(res.dealRoomId).toBeGreaterThan(0);
+
+    // Verify audit + notifications called
+    const auditCalls = (db.logAuditEvent as unknown as { mock: { calls: any[] } }).mock.calls;
+    const lastAudit = auditCalls[auditCalls.length - 1][0];
+    expect(lastAudit.action).toBe("deal_room_created");
+    expect(lastAudit.entityType).toBe("match");
+    expect(lastAudit.entityId).toBe(200);
+
+    const notifyCalls = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls;
+    const lastNotify = notifyCalls[notifyCalls.length - 1][0];
+    expect(lastNotify.type).toBe("deal_update");
+    expect(lastNotify.relatedEntityType).toBe("match");
+    expect(lastNotify.relatedEntityId).toBe(200);
+  });
 });

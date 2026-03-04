@@ -69,6 +69,17 @@ export const matchRouter = router({
 
       await db.updateMatch(input.matchId, updateData);
 
+      // Audit interest expression for lifecycle traceability
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: 'interest_expressed',
+        entityType: 'match',
+        entityId: input.matchId,
+        previousState: { status: match.status },
+        newState: { status: (updateData as any).status },
+        metadata: { actor: isUser1 ? 'user1' : 'user2' },
+      });
+
       const otherUserId = isUser1 ? match.user2Id : match.user1Id;
       await db.createNotification({
         userId: otherUserId,
@@ -91,6 +102,25 @@ export const matchRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
       await db.updateMatch(input.matchId, { status: 'declined' as const });
+
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: 'match_declined',
+        entityType: 'match',
+        entityId: input.matchId,
+        previousState: { status: match.status },
+        newState: { status: 'declined' },
+      });
+
+      const otherUserId = match.user1Id === ctx.user.id ? match.user2Id : match.user1Id;
+      await db.createNotification({
+        userId: otherUserId,
+        type: 'system',
+        title: 'Match Declined',
+        message: 'The counterparty has declined this match.',
+        relatedEntityType: 'match',
+        relatedEntityId: input.matchId,
+      });
       return { success: true };
     }),
 
@@ -164,6 +194,34 @@ export const matchRouter = router({
         ndaDocumentId,
       });
       await db.updateMatch(input.matchId, { dealRoomId, status: 'deal_room_created' });
+
+      // Audit + notify on deal room creation for lifecycle consistency
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: 'deal_room_created',
+        entityType: 'match',
+        entityId: input.matchId,
+        previousState: { status: match.status },
+        newState: { status: 'deal_room_created', dealRoomId },
+      });
+
+      // Notify both counterparties that a room is available
+      await db.createNotification({
+        userId: match.user1Id,
+        type: 'deal_update',
+        title: 'Deal Room Created',
+        message: `A deal room was created for Match #${input.matchId}.`,
+        relatedEntityType: 'match',
+        relatedEntityId: input.matchId,
+      });
+      await db.createNotification({
+        userId: match.user2Id,
+        type: 'deal_update',
+        title: 'Deal Room Created',
+        message: `A deal room was created for Match #${input.matchId}.`,
+        relatedEntityType: 'match',
+        relatedEntityId: input.matchId,
+      });
 
       return { dealRoomId };
     }),

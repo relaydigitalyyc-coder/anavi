@@ -171,3 +171,11 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Added UI disabling while pending, error toasts, and query invalidation.
 - Extended integration tests in `server/test/integration/funnel.test.ts` to verify NDA queue (status=nda_pending + notification) and escalation (status=declined + audit).
 - Validation: `pnpm check` and `pnpm test` both pass.
+
+### 2026-03-04 — R7 FR-4 Lifecycle Audit/Notify Consistency
+
+- Added audit logging for `match.expressInterest` (action: `interest_expressed`).
+- Added audit + notifications on `match.createDealRoom` (action: `deal_room_created`; notifications to both counterparties).
+- Added audit + notification on `match.decline` (action: `match_declined`).
+- Extended `server/test/integration/funnel.test.ts` to enforce audit + notification on interest→deal_room path.
+- Validation: `npx tsc --noEmit` clean; `npx vitest run` 63/63 passing. Corepack/pnpm signature issue observed; used direct npx runners.

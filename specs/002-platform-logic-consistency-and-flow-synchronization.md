@@ -163,8 +163,8 @@ Do not prematurely claim all done. Continue sweeping for edge-case drift until n
 - Deal Room/NDA/escalation transitions must be auditable and user-visible.
 
 **Acceptance Criteria**
-- [ ] Status transitions are coherent between client intent and server persistence.
-- [ ] Notifications and audit events are emitted consistently for lifecycle actions.
+- [x] Status transitions are coherent between client intent and server persistence. (Express interest → mutual_interest, createDealRoom → deal_room_created; decline/escalate → declined)
+- [x] Notifications and audit events are emitted consistently for lifecycle actions. (Added audit for interest; audit + notifications for deal_room_created; audit + notification for decline; queueNda/escalate already covered)
 
 ### FR-5: Documentation and Ops Synchronization
 
