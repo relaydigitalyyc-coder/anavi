@@ -136,8 +136,8 @@ Do not prematurely claim all done. Continue sweeping for edge-case drift until n
 - Runtime/auth guards must not allow contradictory behavior across `demo`, `hybrid`, and `live`.
 
 **Acceptance Criteria**
-- [ ] No orphaned or contradictory route wrappers (`ShellRoute` vs `ProtectedPage`) for intended behavior.
-- [ ] Auth guard behavior is deterministic and documented for all runtime modes.
+- [x] No orphaned or contradictory route wrappers (`ShellRoute` vs `ProtectedPage`) for intended behavior.
+- [x] Auth guard behavior is deterministic and documented for all runtime modes.
 
 ### FR-2: Persona Flow Coherence
 
