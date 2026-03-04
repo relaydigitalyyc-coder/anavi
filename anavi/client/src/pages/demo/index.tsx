@@ -9,9 +9,11 @@ import {
   Wallet,
   Bell,
 } from 'lucide-react';
-import { DemoProvider, useDemo } from '@/lib/DemoContext';
-// Demo data now unified via contexts/DemoContext -> lib/demoFixtures adapter bridge
+// Unify demo on canonical DemoContext + fixtures
+import { DemoContextProvider, useDemoContext, useDemoFixtures, usePersonaSwitcher } from '@/contexts/DemoContext';
+// Bridge fixtures to rich demo UI data contract
 import { type DemoDealRoom, type DemoPersona } from '@/pages/demo/demoAdapter';
+import { convertFixturesToDemoData, type DemoData } from '@/pages/demo/demoAdapter';
 import GuidedTour, { clearTourCompleted } from '@/components/GuidedTour';
 import { demoTour } from '@/lib/tourDefinitions';
 import { useAppMode } from '@/contexts/AppModeContext';
@@ -56,15 +58,16 @@ function DemoDashboard({
   activePage,
   setActivePage,
   onRestartTour,
+  demoData,
+  demoUserName,
 }: {
   activePage: DemoPage;
   setActivePage: (p: DemoPage) => void;
   onRestartTour?: () => void;
+  demoData: DemoData;
+  demoUserName: string;
 }) {
-  const { demoData, demoUserName } = useDemo();
   const [dealRoomOpen, setDealRoomOpen] = useState<DemoDealRoom | null>(null);
-
-  if (!demoData) return null;
 
   const displayName = demoUserName || demoData.user.name;
   const initials = displayName
@@ -213,25 +216,30 @@ export default function Demo() {
   }
 
   return (
-    <DemoProvider>
+    <DemoContextProvider persona={initial.persona}>
       <DemoInner initial={initial} />
-    </DemoProvider>
+    </DemoContextProvider>
   );
 }
 
 function DemoInner({ initial }: { initial: { persona: DemoPersona; name: string } }) {
-  const { setPersona, setDemoUserName, persona } = useDemo();
+  const { activePersona } = useDemoContext();
+  const { switchPersona } = usePersonaSwitcher();
   const initialized = useRef(false);
   const [activePage, setActivePage] = useState<DemoPage>('dashboard');
   const [tourKey, setTourKey] = useState(0);
+  const [demoUserName, setDemoUserName] = useState('');
+
+  const fixtures = useDemoFixtures();
+  const persona = (activePersona === 'developer' ? 'principal' : activePersona) as DemoPersona | null;
 
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      setPersona(initial.persona);
+      switchPersona(initial.persona);
       if (initial.name) setDemoUserName(initial.name);
     }
-  }, [initial, setPersona, setDemoUserName]);
+  }, [initial, switchPersona]);
 
   const handleTourStepChange = (stepIndex: number) => {
     const page = TOUR_STEP_TO_PAGE[stepIndex];
@@ -243,7 +251,8 @@ function DemoInner({ initial }: { initial: { persona: DemoPersona; name: string 
     setTourKey((k) => k + 1);
   };
 
-  if (!persona) return null;
+  if (!persona || !fixtures) return null;
+  const demoData = convertFixturesToDemoData(fixtures as any, persona);
 
   return (
     <>
@@ -259,6 +268,8 @@ function DemoInner({ initial }: { initial: { persona: DemoPersona; name: string 
         activePage={activePage}
         setActivePage={setActivePage}
         onRestartTour={handleRestartTour}
+        demoData={demoData}
+        demoUserName={demoUserName}
       />
     </>
   );

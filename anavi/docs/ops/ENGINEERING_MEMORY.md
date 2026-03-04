@@ -1,4 +1,11 @@
 # Engineering Memory
+### R7 Demo Unification — Duplicate DemoContext Removed
+
+- Removed legacy client/src/lib/DemoContext.tsx (duplicate demo provider).
+- Updated client/src/pages/demo/index.tsx to use canonical contexts/DemoContext with fixtures adapter (convertFixturesToDemoData).
+- Mapped stray persona alias 'developer' to canonical 'principal' in demo route to enforce taxonomy consistency.
+- Validation: cd anavi && pnpm check/test/build all green on Node 20.18 (Vite warns but builds).
+- Updated Spec 002 contradiction register and ops TODO board to reflect resolution.
 
 Purpose: lightweight, chronological memory of significant implementation decisions and outcomes.
 
@@ -49,6 +56,16 @@ Purpose: lightweight, chronological memory of significant implementation decisio
   - session log: `logs/ralph_codex_build_session_20260303_214206.log`
 - Verified loop is actively executing iteration 1 with MCP stack startup including `obsidian`.
 - Added explicit Obsidian long-term memory integration requirements to `.specify/memory/constitution.md` so future Ralph passes maintain external memory synchronization by policy.
+
+### R7 Scope Expansion — Advanced Flows
+
+- Expanded active R7 mission/scope to explicitly include advanced flows:
+  - exception and stale-state conflict paths
+  - retry/reversal/recovery semantics
+  - multi-actor conflict resolution
+  - governance/compliance hold-release behavior
+  - attribution/payout recompute integrity
+- Updated master spec and R7 PRD so Ralph passes treat advanced flows as first-class contradiction targets rather than optional edge cases.
 
 ## 2026-03-02
 

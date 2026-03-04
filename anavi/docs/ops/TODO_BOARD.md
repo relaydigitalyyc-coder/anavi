@@ -6,6 +6,7 @@ Last updated: 2026-03-04
 
 - R7 Master Consistency Mission: resolve all logical contradictions across route/runtime/persona/demo/lifecycle systems (`specs/002-platform-logic-consistency-and-flow-synchronization.md`).
 - Execute 50-pass Ralph hardening loop in agent mode with contradiction-first triage and strict verification gates.
+- Expand R7 execution to advanced flows: exception, retry, reversal, multi-actor conflict, governance hold/release, and recovery semantics.
 - (Done via Spec 001) Wire optimistic UI action outcomes (`opened room`, `queued NDA`, `escalated`) to real backend mutations.
 - Add principal `what changed in 24h` events from real activity/audit APIs.
 - Add investor export/publish actions to real endpoints.
@@ -18,7 +19,7 @@ Last updated: 2026-03-04
 - Documentation organization and agent workflow normalization.
 - DocuSign backend integration wiring (provider + webhook + deal room endpoint integration).
 - Platform-wide logic consistency and flow synchronization hardening (R7).
-- Demo system unification: fixtures canonical + adapter bridge (active).
+- Demo system unification complete — removed duplicate client/src/lib/DemoContext.tsx; demo route now uses canonical contexts/DemoContext + fixtures adapter.
 - R7 50-pass Ralph agent-mode run active (`logs/ralph_agent50_20260303_214206.meta`).
 
 ## Done
@@ -35,6 +36,7 @@ Last updated: 2026-03-04
 - DocuSign runbook and API reference docs added for implementation and operations handoff.
 - Project-wide runtime mode contract (`demo` / `hybrid` / `live`) wired across backend context/auth and frontend routing/demo surfaces.
 - Demo system canon selected; adapter implemented; pages updated; checks/build green.
+- R7 Demo unification (duplicate DemoContext removed; demo route updated); checks/tests/build pass.
 
 ## Backlog
 

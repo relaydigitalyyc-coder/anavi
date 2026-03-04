@@ -19,6 +19,7 @@ This R7 pass is a full-system consistency hardening initiative:
 - Demo flow and live flow contract parity
 - Runtime mode and auth guard coherence
 - State-machine and lifecycle coherence (Match → Deal Room → NDA → Attribution/Payout)
+- Advanced lifecycle coherence (exceptions, reversals, retries, multi-actor conflicts, recovery)
 - Docs + operational memory synchronization
 
 ---
@@ -146,6 +147,46 @@ R7 objective:
 
 ---
 
+## Advanced Flow Map (Meticulous)
+
+### A) Exception and Recovery Journey
+
+1. User triggers lifecycle action on stale or conflicting state.
+2. Server returns deterministic conflict/retry guidance (not ambiguous failure).
+3. UI surfaces canonical resolution path:
+   - retry now
+   - refresh state
+   - escalate workflow
+4. Audit trail captures attempted action, failure reason, and follow-up action.
+
+### B) Deal Room Governance + Reversal Journey
+
+1. Access or NDA action triggers governance/compliance hold.
+2. Hold status propagates to:
+   - Deal Room actions
+   - notifications
+   - status chips/labels
+3. Release/reversal path re-opens only canonical transitions.
+4. Attribution and payout narratives are recomputed and synchronized.
+
+### C) Multi-Actor Conflict Journey
+
+1. Originator/Investor/Principal issue overlapping or conflicting intents.
+2. Canonical conflict resolver determines winning transition.
+3. Non-winning transitions are recorded as superseded with explicit reason.
+4. User-facing outcomes and audit events remain coherent across pages.
+
+### D) Runtime Degradation Journey
+
+1. Live dependency degradation (e.g. DocuSign/provider unavailability) occurs.
+2. Platform enters explicit degraded behavior mode:
+   - clear user messaging
+   - safe fallback actions
+   - retry/recovery hooks
+3. Recovery restores canonical lifecycle path without state ambiguity.
+
+---
+
 ## Current Inconsistency Hypotheses (To Resolve)
 
 1. Duplicate demo context/data pipelines can drift and create semantic mismatch.
@@ -155,6 +196,7 @@ R7 objective:
 5. Status taxonomies across match/deal/deal-room surfaces may be semantically inconsistent.
 6. UX outcomes can present confidence that is not backed by persisted state in some modules.
 7. Ops documentation may lag implementation truth.
+8. Advanced flows (retry/reversal/recovery/conflict-resolution) may not have a canonical cross-layer contract.
 
 ---
 
@@ -284,6 +326,21 @@ Legend:
 - [ ] H7. Ensure no contradictions between README, AGENTS, and actual behavior.
 - [ ] H8. Final closeout memo with resolved vs deferred contradiction register.
 
+### Epic I — Advanced Flow Hardening
+
+- [ ] I1. Define canonical error classes for stale-state/conflict/retry/reversal outcomes.
+- [ ] I2. Add server-side transition guards for advanced lifecycle conflicts.
+- [ ] I3. Add deterministic UI resolution states for retry and refresh paths.
+- [ ] I4. Add conflict-resolution policy for multi-actor action collisions.
+- [ ] I5. Ensure superseded actions produce explicit audit events.
+- [ ] I6. Ensure governance/compliance hold states gate Deal Room and payout CTAs.
+- [ ] I7. Add release/reversal transitions with invariant checks.
+- [ ] I8. Ensure Attribution and payout recompute logic is deterministic post-reversal.
+- [ ] I9. Add notification taxonomy coverage for advanced transitions.
+- [ ] I10. Add integration tests for conflict/retry/reversal/recovery paths.
+- [ ] I11. Add runtime degradation + recovery tests for external dependency failures.
+- [ ] I12. Add operator-facing diagnostics for unresolved advanced-state contradictions.
+
 ---
 
 ## Execution Strategy for Ralph (50 Passes)
@@ -310,3 +367,4 @@ R7 is successful when:
 2. Demo and live pathways are coherent and explicitly bounded by mode capabilities.
 3. ANAVI domain terms are consistently represented in UX and backend semantics.
 4. Testing/build gates pass and docs/ops memory reflect reality.
+5. Advanced flow paths are deterministic, auditable, and synchronized across UI/server/docs.
