@@ -194,7 +194,7 @@ The agent must validate and resolve these high-risk areas:
 
 - [x] Multiple demo-context implementations (resolved): unified on client/src/contexts/DemoContext.tsx; removed client/src/lib/DemoContext.tsx; updated client/src/pages/demo/index.tsx to use canonical context and adapter.
 - [x] Persona taxonomy mismatch (`developer`/`institutional` remnants vs canonical `principal` semantics).
-- [ ] Route/page naming drift and module inconsistency across nav labels and actual page content.
+- [~] Route/page naming drift and module inconsistency across nav labels and actual page content.
 - [ ] Runtime gating edge cases where demo behaviors leak into `live` expectations.
 - [ ] Status/notification semantics that do not fully align with UI outcomes and Trust Score narratives.
 - [ ] Advanced flow gaps (retry/reversal/recovery/multi-actor conflict) with missing or contradictory outcomes.
@@ -662,4 +662,4 @@ computing gzip size...
 
 **Only when ALL checks pass, output:** `<promise>DONE</promise>`
 
-<!-- NR_OF_TRIES: 1 -->
+<!-- 0 -->
