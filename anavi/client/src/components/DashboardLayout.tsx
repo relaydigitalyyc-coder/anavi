@@ -181,7 +181,7 @@ function TrustScoreChip({ score }: { score: number }) {
   return (
     <div
       className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${bg}`}
-      aria-label={`Trust score ${score} out of 100, Tier 2 Enhanced verification`}
+      aria-label={`Trust score ${score} out of 100`}
     >
       <span className="font-mono">{score}</span>
       <span className="text-[10px] opacity-60">/ 100</span>
@@ -665,7 +665,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 score={
                   isDemo
                     ? (demoFixtures?.user.trustScore ?? 84)
-                    : Number(meData?.trustScore ?? 84)
+                    : Number(meData?.trustScore ?? 0)
                 }
               />
             </div>

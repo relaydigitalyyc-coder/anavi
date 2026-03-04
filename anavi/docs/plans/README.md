@@ -27,6 +27,7 @@ Global standards:
 - `2026-03-03-prd-r6-docs-and-config-hygiene.md` — Fix stale docs, rotate credentials, clean config
 - `2026-03-04-prd-r7-platform-logic-consistency-and-flow-sync.md` — System-wide userflow/demo-flow consistency, contradiction removal, and synchronization hardening.
 - `2026-03-04-prd-r7-advanced-flow-catalog.md` — Exhaustive advanced-flow matrix (`AF-*`) for exception/retry/reversal/conflict/recovery hardening.
+- `2026-03-04-prd-r8-dashboard-logic-integrity.md` — Project-wide logical integrity hardening (dashboard-first, then full-core-surface coherence).
 
 ### Workflow / Tooling
 - `2026-03-04-ralph-wiggum-autonomy-setup.md` — Install Ralph Wiggum autonomous spec loop tooling and constitution.

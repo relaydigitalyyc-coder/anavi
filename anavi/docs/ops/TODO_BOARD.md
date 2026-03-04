@@ -4,6 +4,9 @@ Last updated: 2026-03-04 (late)
 
 ## Next Up
 
+- R8 Project Logic Integrity Mission: extend dashboard integrity/relevance discipline across all core project surfaces (`specs/000-dashboard-logical-integrity-and-relevance.md`).
+- Run potent Ralph in actual BUILD mode for R8 with a 20-iteration execution window.
+- Use parallel-agent fanout for project-wide contradiction discovery and synthesis before/alongside R8 implementation.
 - R7 Master Consistency Mission: resolve all logical contradictions across route/runtime/persona/demo/lifecycle systems (`specs/002-platform-logic-consistency-and-flow-synchronization.md`).
 - Execute 50-pass Ralph hardening loop in agent mode with contradiction-first triage and strict verification gates.
 - Expand R7 execution to advanced flows: exception, retry, reversal, multi-actor conflict, governance hold/release, and recovery semantics.
@@ -19,6 +22,7 @@ Last updated: 2026-03-04 (late)
 
 ## In Progress
 
+- R8 project logic integrity hardening (actual BUILD-mode 20-pass Ralph run + parallel-agent synthesis).
 - Documentation organization and agent workflow normalization.
 - DocuSign backend integration wiring (provider + webhook + deal room endpoint integration).
 - Platform-wide logic consistency and flow synchronization hardening (R7).

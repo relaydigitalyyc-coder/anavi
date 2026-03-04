@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { useDemoFixtures, useActiveIndustry } from "@/contexts/DemoContext";
 import { formatDistanceToNow } from "date-fns";
@@ -13,10 +14,14 @@ import { DashCard, TrustRing, MaybeLink, getScoreColor } from "./atoms";
 export function PrincipalDashboardContent() {
   const demo = useDemoFixtures();
   const industry = useActiveIndustry() ?? "Infrastructure";
-  const trustScore = Number(demo?.user.trustScore ?? 0);
+  const { data: stats } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const trustScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
   const scoreColor = getScoreColor(trustScore);
-  const relationships = demo?.relationships ?? [];
-  const dr = demo?.dealRooms[0];
+  const { data: liveRelationships } = trpc.relationship.list.useQuery(undefined, { enabled: !demo });
+  const isDemo = !!demo;
+  const relationships = demo?.relationships ?? liveRelationships ?? [];
+  const { data: liveDealRooms } = trpc.dealRoom.list.useQuery(undefined, { enabled: !demo });
+  const dr = (demo?.dealRooms ?? liveDealRooms ?? [])[0] as any;
   const [showChanges, setShowChanges] = useState(false);
   const opsEvents = (demo as unknown as {
     opsEvents?: Array<{ id: number; level: string; kind: string; message: string; minutesAgo: number }>;
@@ -43,7 +48,7 @@ export function PrincipalDashboardContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
             { label: "Qualified Demand 24h", value: `${Math.min(3, demo?.matches.length ?? 0)}`, delta: "+19%" },
-            { label: "Escrow Momentum", value: dr ? `${dr.escrowProgress}%` : "0%", delta: "+4%" },
+            { label: "Escrow Momentum", value: dr ? `${dr.escrowProgress ?? 0}%` : "0%", delta: "+4%" },
             { label: "Disclosure Safety", value: "0 leaks", delta: "Sealed defaults" },
           ].map((item) => (
             <div key={item.label} className="rounded-lg bg-white/5 px-3 py-2">
@@ -145,11 +150,11 @@ export function PrincipalDashboardContent() {
         <StaggerItem>
           <DashCard title="Sealed Relationships" dataTour="relationships" className="mb-4">
             <div className="space-y-2">
-              {relationships.slice(0, 3).map((rel) => (
+              {relationships.slice(0, 3).map((rel: any) => (
                 <div key={rel.id} className="card-elevated px-3 py-2.5 flex items-center justify-between text-sm">
                   <div>
-                    <p className="font-semibold text-[#0A1628]">{rel.name}</p>
-                    <p className="text-xs text-[#1E3A5F]/50">{rel.company}</p>
+                    <p className="font-semibold text-[#0A1628]">{rel.name ?? `Relationship #${rel.id}`}</p>
+                    <p className="text-xs text-[#1E3A5F]/50">{rel.company ?? rel.relationshipType ?? "Counterparty"}</p>
                   </div>
                   <span className="text-xs font-bold text-[#C4972A]">Sealed</span>
                 </div>
@@ -158,18 +163,35 @@ export function PrincipalDashboardContent() {
           </DashCard>
         </StaggerItem>
 
-        <StaggerItem>
           <DashCard title="Compliance Passport" dataTour="verification" className="mb-4">
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              {["KYB", "OFAC", "AML"].map((check) => (
-                <div key={check} className="flex items-center justify-center rounded bg-[#059669]/10 text-[#059669] font-semibold py-2">
-                  {check} OK
+            {isDemo ? (
+              <>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  {["KYB", "OFAC", "AML"].map((check) => (
+                    <div key={check} className="flex items-center justify-center rounded bg-[#059669]/10 text-[#059669] font-semibold py-2">
+                      {check} OK
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <p className="text-xs text-[#1E3A5F]/50 mt-3">
-              Upgrade to unlock institutional investor mandates.
-            </p>
+                <p className="text-xs text-[#1E3A5F]/50 mt-3">
+                  Upgrade to unlock institutional investor mandates.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-[#1E3A5F]/70">
+                  Complete verification to enable compliance-backed matching and governance workflows.
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <a href="/verification" className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15">
+                    Verify Identity
+                  </a>
+                  <a href="/compliance" className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15">
+                    Run Checks
+                  </a>
+                </div>
+              </>
+            )}
           </DashCard>
         </StaggerItem>
 
@@ -189,11 +211,11 @@ export function PrincipalDashboardContent() {
                 <motion.div
                   className="h-full bg-[#C4972A] rounded-full"
                   initial={{ width: 0 }}
-                  animate={{ width: `${dr.escrowProgress}%` }}
+                  animate={{ width: `${dr.escrowProgress ?? 0}%` }}
                   transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                 />
               </div>
-              <p className="text-xs text-[#1E3A5F]/50 mt-2">{dr.escrowProgress}% · {dr.counterparty}</p>
+              <p className="text-xs text-[#1E3A5F]/50 mt-2">{(dr.escrowProgress ?? 0)}% · {dr.counterparty}</p>
               <div className="mt-3 grid grid-cols-3 gap-2">
                 {[
                   { label: "Committed Ratio", value: `${Math.round((dr.escrowCurrent / Math.max(1, dr.escrowTarget)) * 100)}%` },
@@ -320,9 +342,11 @@ export function PrincipalDashboardContent() {
             </div>
             <div className="mt-3 flex items-center justify-between">
               <p className="text-xs text-[#1E3A5F]/55">State: {blockersOpen} blockers active.</p>
-              <button className="btn-gold rounded px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                Resolve Top Blocker
-              </button>
+              <MaybeLink href="/deal-rooms" demo={!!demo}>
+                <button className="btn-gold rounded px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Resolve Top Blocker
+                </button>
+              </MaybeLink>
             </div>
           </DashCard>
         </StaggerItem>
@@ -336,12 +360,14 @@ export function PrincipalDashboardContent() {
                   Upgrade to Enhanced to unlock Tier 3 investor mandates
                 </p>
               </div>
-              <motion.button
-                className="text-xs px-3 py-1.5 border border-[#C4972A]/40 text-[#C4972A] font-semibold uppercase tracking-wider hover:bg-[#C4972A]/5"
-                whileHover={{ scale: 1.02 }}
-              >
-                Upgrade
-              </motion.button>
+              <MaybeLink href="/verification" demo={!!demo}>
+                <motion.button
+                  className="text-xs px-3 py-1.5 border border-[#C4972A]/40 text-[#C4972A] font-semibold uppercase tracking-wider hover:bg-[#C4972A]/5"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  Upgrade
+                </motion.button>
+              </MaybeLink>
             </div>
           </DashCard>
         </StaggerItem>

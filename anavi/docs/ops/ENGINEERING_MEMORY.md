@@ -13,6 +13,38 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 
 ## 2026-03-04
 
+### R8 Dashboard Logic Integrity Mission Kickoff
+
+- Added focused dashboard mission spec: `specs/000-dashboard-logical-integrity-and-relevance.md` (highest-priority incomplete spec for next Ralph passes).
+- Added R8 PRD with explicit dashboard logic model and 10-iteration execution structure:
+  - `anavi/docs/plans/2026-03-04-prd-r8-dashboard-logic-integrity.md`
+- Registered R8 in plan index and moved it to Next Up/In Progress on ops board.
+- Scope emphasis: zero irrelevance, zero fallacious KPI/status/CTA narratives, strict semantic consistency for Relationship Custody, Trust Score, Blind Matching, Deal Room, Attribution, and Intent surfaces on dashboard.
+
+### R8 Execution Launch (Actual Build Loop + Parallel Agents)
+
+- User requested non-redundant execution: switched from Plan-mode loop to actual build loop.
+- Stopped redundant R8 plan-mode run (`logs/ralph_r8_plan10_20260304_020230.meta`).
+- Started R8 build-mode 10-pass run:
+  - `logs/ralph_r8_build10_20260304_020713.meta`
+  - `logs/ralph_r8_build10_20260304_020713.launcher.log`
+  - checkpoint monitor: `logs/ralph_r8_build10_20260304_020713.checkpoint-monitor.meta`
+- Started parallel-agent fanout for concurrent contradiction discovery:
+  - `logs/r8_parallel_fanout_20260304_020725.meta`
+  - output root: `scripts/outputs/codex-mcp-fanout-20260304-020725`
+
+### R8 Scope Expansion + 20-Iteration Relaunch
+
+- Expanded R8 mission from dashboard-only scope to project-wide logical integrity/relevance across core surfaces.
+- Updated:
+  - `specs/000-dashboard-logical-integrity-and-relevance.md` (now project-wide mission wording + 20-iteration build cadence)
+  - `anavi/docs/plans/2026-03-04-prd-r8-dashboard-logic-integrity.md` (project-wide model + 20-step execution plan)
+  - `anavi/docs/plans/README.md` + `anavi/docs/ops/TODO_BOARD.md` alignment
+- User-directed execution change:
+  - stop 10-iteration runs
+  - relaunch potent Ralph in actual build mode for 20 iterations
+  - continue parallel-agent synthesis in parallel
+
 ### Persona Taxonomy Coherence (R7 — Pass P2)
 
 - Canonicalized persona keys across active flows to Originator / Investor / Principal.

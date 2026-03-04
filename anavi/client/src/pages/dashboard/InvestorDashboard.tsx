@@ -35,22 +35,34 @@ import {
   DashboardSkeleton,
   MaybeLink,
   getGreeting,
-  MarketDepthBar,
 } from "./atoms";
 export function InvestorDashboardContent() {
   const demo = useDemoFixtures();
   const industry = useActiveIndustry() ?? "Infrastructure";
-  const trustScore = Number(demo?.user.trustScore ?? 0);
+  const isDemo = !!demo;
+  const { data: stats } = trpc.user.getStats.useQuery(undefined, { enabled: !demo });
+  const trustScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
   const scoreColor = getScoreColor(trustScore);
   const telemetry = (demo as unknown as { opsTelemetry?: { updatedAt?: string; snapshotPeriod?: string } } | null)?.opsTelemetry;
   const reportPeriod = telemetry?.snapshotPeriod ?? "QTD";
+  const { data: liveRelationships } = trpc.relationship.list.useQuery(undefined, { enabled: !demo });
+  const { data: livePayouts } = trpc.payout.list.useQuery(undefined, { enabled: !demo });
+  const { data: liveMatches } = trpc.match.list.useQuery(undefined, { enabled: !demo });
+  const { data: liveDealRooms } = trpc.dealRoom.list.useQuery(undefined, { enabled: !demo });
+
+  const relationships = demo?.relationships ?? liveRelationships ?? [];
+  const portfolioPositions = demo?.payouts ?? livePayouts ?? [];
+  const matches = [...(demo?.matches ?? (liveMatches as any[]) ?? [])].map((m: any) => ({
+    id: typeof m.id === "number" ? m.id : Number(m.id),
+    tag: m.tag ?? (m.counterpartyCompany ? `Counterparty - ${m.counterpartyCompany}` : `Match #${m.id}`),
+    assetClass: m.assetClass ?? "Private Markets",
+    dealSize: m.dealSize ?? "TBD",
+    compatibilityScore: Number(m.compatibilityScore ?? 0),
+  }));
 
   const deploymentCapacity = demo
     ? { available: 196000000, committed: 2850000, deployed: 141150000, total: 340000000 }
     : null;
-
-  const portfolioPositions = demo?.payouts ?? [];
-  const relationships = demo?.relationships ?? [];
 
   return (
     <FadeInView>
@@ -133,13 +145,13 @@ export function InvestorDashboardContent() {
         <StaggerItem>
           <DashCard title="Counterparty Network" dataTour="relationships" className="mb-4">
             <div className="space-y-2">
-              {relationships.slice(0, 3).map((rel) => (
+              {relationships.slice(0, 3).map((rel: any) => (
                 <div key={rel.id} className="card-elevated px-3 py-2.5 flex items-center justify-between text-sm">
                   <div>
-                    <p className="font-semibold text-[#0A1628]">{rel.name}</p>
-                    <p className="text-xs text-[#1E3A5F]/50">{rel.company}</p>
+                    <p className="font-semibold text-[#0A1628]">{rel.name ?? `Relationship #${rel.id}`}</p>
+                    <p className="text-xs text-[#1E3A5F]/50">{rel.company ?? rel.relationshipType ?? "Counterparty"}</p>
                   </div>
-                  <span className="text-xs font-bold text-[#059669]">Trust {rel.trustScore}</span>
+                  <span className="text-xs font-bold text-[#059669]">Trust {rel.trustScore ?? "–"}</span>
                 </div>
               ))}
             </div>
@@ -148,16 +160,34 @@ export function InvestorDashboardContent() {
 
         <StaggerItem>
           <DashCard title="Compliance Passport" dataTour="verification" className="mb-4">
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              {["KYB", "OFAC", "AML"].map((check) => (
-                <div key={check} className="flex items-center justify-center rounded bg-[#059669]/10 text-[#059669] font-semibold py-2">
-                  {check} OK
+            {isDemo ? (
+              <>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  {["KYB", "OFAC", "AML"].map((check) => (
+                    <div key={check} className="flex items-center justify-center rounded bg-[#059669]/10 text-[#059669] font-semibold py-2">
+                      {check} OK
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <p className="text-xs text-[#1E3A5F]/50 mt-3">
-              Shared compliance passport reduces duplicated diligence.
-            </p>
+                <p className="text-xs text-[#1E3A5F]/50 mt-3">
+                  Shared compliance passport reduces duplicated diligence.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-[#1E3A5F]/70">
+                  Complete verification to enable compliance-backed matching and investor workflows.
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Link href="/verification" className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15">
+                    Verify Identity
+                  </Link>
+                  <Link href="/compliance" className="rounded bg-[#1E3A5F]/10 px-2 py-1 text-[11px] font-semibold text-[#1E3A5F] hover:bg-[#1E3A5F]/15">
+                    Run Checks
+                  </Link>
+                </div>
+              </>
+            )}
           </DashCard>
         </StaggerItem>
 
@@ -192,7 +222,7 @@ export function InvestorDashboardContent() {
         <StaggerItem>
           <DashCard title="Active Deal Flow" className="mb-4">
             <div className="space-y-2">
-              {(demo?.matches ?? []).map((match, idx) => (
+              {matches.map((match, idx) => (
                 <div
                   key={match.id}
                   data-tour={idx === 0 ? "match-card" : undefined}
@@ -212,12 +242,15 @@ export function InvestorDashboardContent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-[#C4972A]">{match.compatibilityScore}%</span>
-                    <motion.button
-                      className="text-xs px-2 py-1 bg-[#2563EB]/10 text-[#2563EB] rounded font-medium"
-                      whileHover={{ scale: 1.04 }}
-                    >
-                      Express Interest
-                    </motion.button>
+                    <MaybeLink href={`/deal-flow?assetClass=${encodeURIComponent(match.assetClass)}&minScore=80`} demo={!!demo}>
+                      <motion.button
+                        className="text-xs px-2 py-1 bg-[#2563EB]/10 text-[#2563EB] rounded font-medium"
+                        whileHover={{ scale: 1.04 }}
+                        aria-label="Open in Deal Flow"
+                      >
+                        Open in Deal Flow
+                      </motion.button>
+                    </MaybeLink>
                   </div>
                 </div>
               ))}
@@ -253,12 +286,12 @@ export function InvestorDashboardContent() {
               {portfolioPositions.map((payout) => (
                 <div key={payout.id} className="card-elevated px-3 py-2.5 flex items-center justify-between text-sm">
                   <div>
-                    <span className="font-semibold">{payout.deal}</span>
+                    <span className="font-semibold">{("deal" in payout && payout.deal) ? payout.deal : (payout as any).payoutType ? String((payout as any).payoutType).replace(/_/g, " ") : `Payout #${payout.id}`}</span>
                     {"irr" in payout && (
                       <span className="ml-2 text-xs text-[#059669] font-medium">{(payout as { irr: number }).irr}% IRR</span>
                     )}
                   </div>
-                  <span className="font-bold text-[#0A1628]">${(payout.amount / 1e6).toFixed(2)}M</span>
+                  <span className="font-bold text-[#0A1628]">{typeof payout.amount === "number" ? `$${(payout.amount / 1e6).toFixed(2)}M` : `$${parseFloat(String(payout.amount ?? 0))}`}</span>
                 </div>
               ))}
             </div>
@@ -278,7 +311,7 @@ export function InvestorDashboardContent() {
         <StaggerItem>
           <DashCard title="Active Deal Rooms">
             <div className="space-y-2">
-              {(demo?.dealRooms ?? []).map((dr, idx) => (
+              {Array.from([...(demo?.dealRooms ?? []), ...((liveDealRooms as any[]) ?? [])] as any[]).map((dr, idx) => (
                 <div
                   key={dr.id}
                   data-tour={idx === 0 ? "deal-room" : undefined}
@@ -286,7 +319,7 @@ export function InvestorDashboardContent() {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-semibold">{dr.name}</span>
-                    <span className="text-xs uppercase tracking-wider text-[#2563EB] font-bold">{dr.stage}</span>
+                    <span className="text-xs uppercase tracking-wider text-[#2563EB] font-bold">{dr.stage ?? dr.status ?? "Active"}</span>
                   </div>
                   <div className="mb-1 flex gap-1.5">
                     <span className="rounded-full bg-[#059669]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#059669]">
@@ -300,11 +333,11 @@ export function InvestorDashboardContent() {
                     <motion.div
                       className="h-full bg-[#2563EB] rounded-full"
                       initial={{ width: 0 }}
-                      animate={{ width: `${dr.escrowProgress}%` }}
+                      animate={{ width: `${dr.escrowProgress ?? 0}%` }}
                       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     />
                   </div>
-                  <p className="text-xs text-[#1E3A5F]/50 mt-1">{dr.escrowProgress}% escrow · {dr.auditEvents} audit events</p>
+                  <p className="text-xs text-[#1E3A5F]/50 mt-1">{(dr.escrowProgress ?? 0)}% escrow · {(dr.auditEvents ?? 0)} audit events</p>
                 </div>
               ))}
             </div>
@@ -328,4 +361,3 @@ export function InvestorDashboardContent() {
     </FadeInView>
   );
 }
-
