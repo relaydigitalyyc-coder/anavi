@@ -957,8 +957,10 @@ export function AddRelationshipFlow({
     });
   };
 
-  const confirmationId = `REL-${Math.floor(Math.random() * 90000) + 10000}`;
-  const confirmationHash = generateFakeHash();
+  const [confirmationId] = useState(
+    () => `REL-${Math.floor(Math.random() * 90000) + 10000}`
+  );
+  const [confirmationHash] = useState(() => generateFakeHash());
 
   if (!open) return null;
 
@@ -996,9 +998,7 @@ export function AddRelationshipFlow({
           }}
         >
           <div>
-            <h2
-              style={{ fontSize: 20, fontWeight: 700, color: COLORS.navy }}
-            >
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.navy }}>
               Protect a Relationship
             </h2>
             <p style={{ fontSize: 13, color: "#6B7A90", marginTop: 4 }}>

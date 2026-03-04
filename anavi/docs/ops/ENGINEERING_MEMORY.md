@@ -2,6 +2,24 @@
 
 Purpose: lightweight, chronological memory of significant implementation decisions and outcomes.
 
+## 2026-03-04
+
+### Ralph Wiggum Setup
+
+- Installed Ralph Wiggum autonomous loop tooling in repository root:
+  - `scripts/ralph-loop.sh`
+  - `scripts/ralph-loop-codex.sh`
+  - `scripts/ralph-loop-gemini.sh`
+  - `scripts/ralph-loop-copilot.sh`
+- Added Ralph helper libraries under `scripts/lib/`.
+- Added loop constitution at `.specify/memory/constitution.md` with ANAVI terminology and validation constraints.
+- Added command helpers for local workflows:
+  - `.claude/commands/ralph-loop.md`
+  - `.cursor/commands/speckit.specify.md`
+  - `.cursor/commands/speckit.implement.md`
+- Added templates and baseline spec/history scaffolding (`templates/`, `specs/README.md`, `history.md`).
+- Updated root guidance (`AGENTS.md`, `CLAUDE.md`, `README.md`) to include Ralph loop mode and constitution linkage.
+
 ## 2026-03-02
 
 ### Dashboard/Persona Upgrade Progress
@@ -76,3 +94,10 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Added visible runtime indicators in:
   - `client/src/components/DashboardLayout.tsx`
   - `client/src/pages/Settings.tsx`
+### Deal Flow Action Mutations (Spec 001)
+
+- Implemented persisted NDA queue and escalation actions in `server/routers/match.ts` (`queueNda`, `escalate`).
+- Wired `client/src/pages/DealFlow.tsx` to real tRPC mutations: `match.expressInterest`, `match.createDealRoom`, `match.queueNda`, `match.escalate`.
+- Added UI disabling while pending, error toasts, and query invalidation.
+- Extended integration tests in `server/test/integration/funnel.test.ts` to verify NDA queue (status=nda_pending + notification) and escalation (status=declined + audit).
+- Validation: `pnpm check` and `pnpm test` both pass.

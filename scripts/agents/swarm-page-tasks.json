@@ -1,0 +1,30 @@
+[
+  {
+    "name": "intents",
+    "task": "Read the full task brief at /home/ariel/Documents/anavi-main/scripts/agents/page-agent1-intents.txt — it contains the complete source file and all instructions. Then apply the changes directly to /home/ariel/Documents/anavi-main/anavi/client/src/pages/Intents.tsx using write_file. The output format in the brief says JSON — ignore that, use write_file to write the upgraded TSX content directly. After writing, run: cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1 | grep -E 'Intents|error' | head -20"
+  },
+  {
+    "name": "matches",
+    "task": "Read the full task brief at /home/ariel/Documents/anavi-main/scripts/agents/page-agent2-matches.txt — it contains the complete source file and all instructions. Then apply the changes directly to /home/ariel/Documents/anavi-main/anavi/client/src/pages/Matches.tsx using write_file. The output format in the brief says JSON — ignore that, use write_file to write the upgraded TSX content directly. After writing, run: cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1 | grep -E 'Matches|error' | head -20"
+  },
+  {
+    "name": "relationships",
+    "task": "Read the full task brief at /home/ariel/Documents/anavi-main/scripts/agents/page-agent3-relationships.txt — it contains the complete source file and all instructions. Then apply the changes directly to /home/ariel/Documents/anavi-main/anavi/client/src/pages/Relationships.tsx using write_file. The output format in the brief says JSON — ignore that, use write_file to write the upgraded TSX content directly. After writing, run: cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1 | grep -E 'Relationships|error' | head -20"
+  },
+  {
+    "name": "verification",
+    "task": "Read the full task brief at /home/ariel/Documents/anavi-main/scripts/agents/page-agent4-verification.txt — it contains the complete source file and all instructions. Then apply the changes directly to /home/ariel/Documents/anavi-main/anavi/client/src/pages/Verification.tsx using write_file. The output format in the brief says JSON — ignore that, use write_file to write the upgraded TSX content directly. After writing, run: cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1 | grep -E 'Verification|error' | head -20"
+  },
+  {
+    "name": "payouts",
+    "task": "Read the full task brief at /home/ariel/Documents/anavi-main/scripts/agents/page-agent5-payouts.txt — it contains the complete source file and all instructions. Then apply the changes directly to /home/ariel/Documents/anavi-main/anavi/client/src/pages/Payouts.tsx using write_file. The output format in the brief says JSON — ignore that, use write_file to write the upgraded TSX content directly. After writing, run: cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1 | grep -E 'Payouts|error' | head -20"
+  },
+  {
+    "name": "dealrooms",
+    "task": "Read the full task brief at /home/ariel/Documents/anavi-main/scripts/agents/page-agent6-dealrooms.txt — it contains the complete source file and all instructions. Then apply the changes directly to /home/ariel/Documents/anavi-main/anavi/client/src/pages/DealRooms.tsx using write_file. The output format in the brief says JSON — ignore that, use write_file to write the upgraded TSX content directly. After writing, run: cd /home/ariel/Documents/anavi-main/anavi && pnpm check 2>&1 | grep -E 'DealRooms|error' | head -20"
+  },
+  {
+    "name": "synthesis",
+    "task": "Read the full task brief at /home/ariel/Documents/anavi-main/scripts/agents/page-agent7-synthesis.txt — it contains a cross-page consistency audit task. Execute the audit: read each relevant source file, identify copy/terminology inconsistencies, and write a synthesis report to /tmp/ds-swarm-synthesis-report.txt. If you find any fixable inconsistencies in copy.ts or shared files (NOT in individual page files), fix them."
+  }
+]

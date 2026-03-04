@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { toast } from "sonner";
 import {
   ActionCards,
   KpiRibbon,
@@ -18,6 +19,7 @@ export default function DealFlow() {
   const [location] = useLocation();
   const industry = useActiveIndustry() ?? "Infrastructure";
   const { data: liveMatches } = trpc.match.list.useQuery(undefined, { enabled: !demo });
+  const utils = trpc.useUtils();
   const rawMatches = (demo?.matches ?? liveMatches ?? []) as unknown as Array<Record<string, unknown>>;
   const matches: Array<{
     id: number;
@@ -60,6 +62,75 @@ export default function DealFlow() {
     return byScore && byStatus && byAsset;
   });
   const [outcomes, setOutcomes] = useState<Record<number, string>>({});
+
+  const expressInterestMutation = trpc.match.expressInterest.useMutation({
+    onSuccess: async () => {
+      await utils.match.list.invalidate();
+    },
+  });
+  const createDealRoomMutation = trpc.match.createDealRoom.useMutation({
+    onSuccess: async () => {
+      await utils.match.list.invalidate();
+    },
+  });
+  const queueNdaMutation = trpc.match.queueNda.useMutation({
+    onSuccess: async () => {
+      await utils.match.list.invalidate();
+    },
+  });
+  const escalateMutation = trpc.match.escalate.useMutation({
+    onSuccess: async () => {
+      await utils.match.list.invalidate();
+    },
+  });
+
+  const anyPending =
+    expressInterestMutation.isPending ||
+    createDealRoomMutation.isPending ||
+    queueNdaMutation.isPending ||
+    escalateMutation.isPending;
+
+  async function handlePrimary(matchId: number, isExpressAndMaybeOpen: boolean) {
+    if (demo) {
+      setOutcome(matchId, isExpressAndMaybeOpen ? "Opened room" : "Queued NDA");
+      return;
+    }
+    try {
+      if (isExpressAndMaybeOpen) {
+        const res = await expressInterestMutation.mutateAsync({ matchId });
+        if (res.mutualInterest) {
+          await createDealRoomMutation.mutateAsync({ matchId });
+          setOutcome(matchId, "Opened room");
+          toast.success("Deal room created");
+        } else {
+          // No mutual interest yet; queue NDA as the next action to signal pipeline intent
+          await queueNdaMutation.mutateAsync({ matchId });
+          setOutcome(matchId, "Queued NDA");
+          toast.success("Interest expressed. NDA queued");
+        }
+      } else {
+        await queueNdaMutation.mutateAsync({ matchId });
+        setOutcome(matchId, "Queued NDA");
+        toast.success("NDA queued");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Action failed");
+    }
+  }
+
+  async function handleEscalate(matchId: number) {
+    if (demo) {
+      setOutcome(matchId, "Escalated");
+      return;
+    }
+    try {
+      await escalateMutation.mutateAsync({ matchId });
+      setOutcome(matchId, "Escalated");
+      toast.success("Escalated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Escalation failed");
+    }
+  }
 
   const setOutcome = (id: number, message: string) => {
     setOutcomes((prev) => ({ ...prev, [id]: message }));
@@ -170,14 +241,16 @@ export default function DealFlow() {
                   className="flex-1 py-2 bg-[#2563EB] text-white text-xs font-semibold uppercase tracking-wider rounded"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setOutcome(match.id, idx === 0 ? "Opened room" : "Queued NDA")}
+                  disabled={anyPending}
+                  onClick={() => handlePrimary(match.id, idx === 0)}
                 >
                   {idx === 0 ? "Express Interest - NDA" : "Queue Interest"}
                 </motion.button>
                 <motion.button
                   className="px-4 py-2 border border-[#1E3A5F]/20 text-[#1E3A5F]/50 text-xs font-semibold uppercase tracking-wider rounded"
                   whileHover={{ scale: 1.02 }}
-                  onClick={() => setOutcome(match.id, "Escalated")}
+                  disabled={anyPending}
+                  onClick={() => handleEscalate(match.id)}
                 >
                   Pass
                 </motion.button>

@@ -2,6 +2,13 @@
 
 Operating guide for AI/code agents in this repository.
 
+## Ralph Loop Mode
+
+If a session is running via `scripts/ralph-loop*.sh`, read `.specify/memory/constitution.md` first.
+
+- Use the constitution for loop behavior (spec selection, completion signal, autonomy expectations).
+- Keep this `AGENTS.md` as the source of truth for repository structure, terminology, and implementation conventions.
+
 ## Scope and Canonical Paths
 
 - Product application code lives in `anavi/`.

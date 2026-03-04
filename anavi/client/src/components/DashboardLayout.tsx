@@ -45,8 +45,16 @@ import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 
-interface NavItem { icon: LucideIcon; label: string; path: string; tourId?: string }
-interface NavSection { label: string; items: NavItem[] }
+interface NavItem {
+  icon: LucideIcon;
+  label: string;
+  path: string;
+  tourId?: string;
+}
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
 type WorkflowBeat = {
   key: string;
   label: string;
@@ -62,7 +70,11 @@ const personaPrimaryNav: Record<PersonaKey, NavItem[]> = {
   investor: [
     { icon: Target, label: "Deal Flow", path: "/deal-flow" },
     { icon: PieChart, label: "Portfolio", path: "/portfolio" },
-    { icon: Users, label: "Counterparty Intelligence", path: "/counterparty-intelligence" },
+    {
+      icon: Users,
+      label: "Counterparty Intelligence",
+      path: "/counterparty-intelligence",
+    },
   ],
   principal: [
     { icon: Briefcase, label: "Asset Register", path: "/assets" },
@@ -77,21 +89,50 @@ const personaPrimaryNav: Record<PersonaKey, NavItem[]> = {
 };
 
 const coreNavSections: NavSection[] = [
-  { label: "CORE", items: [
-    { icon: Home, label: "Dashboard", path: "/dashboard" },
-    { icon: FolderOpen, label: "Deal Rooms", path: "/deal-rooms", tourId: "nav-deal-rooms" },
-    { icon: Target, label: "Blind Matching", path: "/deal-matching", tourId: "nav-deal-matching" },
-  ]},
-  { label: "TRUST", items: [
-    { icon: Shield, label: "Verification", path: "/verification" },
-    { icon: CheckCircle, label: "Compliance", path: "/compliance" },
-    { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
-  ]},
-  { label: "NETWORK", items: [
-    { icon: Users, label: "Relationships", path: "/relationships", tourId: "nav-relationships" },
-    { icon: Wallet, label: "Payouts", path: "/payouts", tourId: "nav-payouts" },
-    { icon: Settings, label: "Settings", path: "/settings" },
-  ]},
+  {
+    label: "CORE",
+    items: [
+      { icon: Home, label: "Dashboard", path: "/dashboard" },
+      {
+        icon: FolderOpen,
+        label: "Deal Rooms",
+        path: "/deal-rooms",
+        tourId: "nav-deal-rooms",
+      },
+      {
+        icon: Target,
+        label: "Blind Matching",
+        path: "/deal-matching",
+        tourId: "nav-deal-matching",
+      },
+    ],
+  },
+  {
+    label: "TRUST",
+    items: [
+      { icon: Shield, label: "Verification", path: "/verification" },
+      { icon: CheckCircle, label: "Compliance", path: "/compliance" },
+      { icon: FileSearch, label: "Audit Logs", path: "/audit-logs" },
+    ],
+  },
+  {
+    label: "NETWORK",
+    items: [
+      {
+        icon: Users,
+        label: "Relationships",
+        path: "/relationships",
+        tourId: "nav-relationships",
+      },
+      {
+        icon: Wallet,
+        label: "Payouts",
+        path: "/payouts",
+        tourId: "nav-payouts",
+      },
+      { icon: Settings, label: "Settings", path: "/settings" },
+    ],
+  },
 ];
 
 const exploreNavSection: NavSection = {
@@ -115,19 +156,19 @@ const exploreNavSection: NavSection = {
 
 const allNavItems = [
   ...Object.values(personaPrimaryNav).flat(),
-  ...coreNavSections.flatMap((s) => s.items),
+  ...coreNavSections.flatMap(s => s.items),
   ...exploreNavSection.items,
 ];
 
 const pageTitles: Record<string, string> = Object.fromEntries(
-  allNavItems.map((item) => [item.path, item.label])
+  allNavItems.map(item => [item.path, item.label])
 );
 
 function getInitials(name: string | null | undefined): string {
   if (!name) return "?";
   return name
     .split(" ")
-    .map((w) => w[0])
+    .map(w => w[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
@@ -161,7 +202,10 @@ const defaultMobileNavItems = [
   { icon: User, label: "Profile", path: "/settings" },
 ] as const;
 
-const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: string }> = {
+const NOTIFICATION_ICONS: Record<
+  string,
+  { Icon: typeof CheckCircle2; color: string }
+> = {
   match_found: { Icon: Target, color: "#22D4F5" },
   deal_update: { Icon: FolderOpen, color: "#2563EB" },
   document_shared: { Icon: Info, color: "#059669" },
@@ -173,7 +217,13 @@ const NOTIFICATION_ICONS: Record<string, { Icon: typeof CheckCircle2; color: str
 };
 
 const TOUR_BANNER_DISMISSED_KEY = "anavi_tour_banner_dismissed";
-const INDUSTRY_OPTIONS = ["Infrastructure", "Commodities", "Real Estate", "Private Equity", "Energy"] as const;
+const INDUSTRY_OPTIONS = [
+  "Infrastructure",
+  "Commodities",
+  "Real Estate",
+  "Private Equity",
+  "Energy",
+] as const;
 const PERSONA_TABS: Array<{ key: PersonaKey; short: string }> = [
   { key: "originator", short: "ORI" },
   { key: "investor", short: "INV" },
@@ -183,25 +233,53 @@ const PERSONA_TABS: Array<{ key: PersonaKey; short: string }> = [
 const workflowByPersona: Record<PersonaKey, WorkflowBeat[]> = {
   originator: [
     { key: "custody", label: "Custody", paths: ["/dashboard", "/custody"] },
-    { key: "match", label: "Match", paths: ["/pipeline", "/deal-matching", "/matches"] },
+    {
+      key: "match",
+      label: "Match",
+      paths: ["/pipeline", "/deal-matching", "/matches"],
+    },
     { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
-    { key: "economics", label: "Economics", paths: ["/attribution", "/payouts"] },
+    {
+      key: "economics",
+      label: "Economics",
+      paths: ["/attribution", "/payouts"],
+    },
   ],
   investor: [
-    { key: "intelligence", label: "Intelligence", paths: ["/dashboard", "/counterparty-intelligence"] },
-    { key: "match", label: "Match", paths: ["/deal-flow", "/deal-matching", "/matches"] },
+    {
+      key: "intelligence",
+      label: "Intelligence",
+      paths: ["/dashboard", "/counterparty-intelligence"],
+    },
+    {
+      key: "match",
+      label: "Match",
+      paths: ["/deal-flow", "/deal-matching", "/matches"],
+    },
     { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
-    { key: "deployment", label: "Deployment", paths: ["/portfolio", "/payouts"] },
+    {
+      key: "deployment",
+      label: "Deployment",
+      paths: ["/portfolio", "/payouts"],
+    },
   ],
   principal: [
     { key: "assets", label: "Assets", paths: ["/dashboard", "/assets"] },
-    { key: "demand", label: "Demand", paths: ["/demand", "/deal-matching", "/matches"] },
+    {
+      key: "demand",
+      label: "Demand",
+      paths: ["/demand", "/deal-matching", "/matches"],
+    },
     { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
     { key: "close", label: "Close", paths: ["/close", "/payouts"] },
   ],
   developer: [
     { key: "assets", label: "Assets", paths: ["/dashboard", "/assets"] },
-    { key: "demand", label: "Demand", paths: ["/demand", "/deal-matching", "/matches"] },
+    {
+      key: "demand",
+      label: "Demand",
+      paths: ["/demand", "/deal-matching", "/matches"],
+    },
     { key: "room", label: "Deal Room", paths: ["/deal-rooms"] },
     { key: "close", label: "Close", paths: ["/close", "/payouts"] },
   ],
@@ -241,15 +319,21 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }
     setBannerDismissed(true);
   }, []);
-  const { data: notificationsData, refetch: refetchNotifications } = trpc.notification.list.useQuery(
-    { limit: 20 },
-    { enabled: !!user }
-  );
-  const markAllReadMutation = trpc.notification.markAllRead.useMutation({ onSuccess: () => refetchNotifications() });
-  const markReadMutation = trpc.notification.markRead.useMutation({ onSuccess: () => refetchNotifications() });
+  const { data: meData } = trpc.user.getProfile.useQuery(undefined, {
+    enabled: !!user && !isDemo,
+  });
+  const { data: notificationsData, refetch: refetchNotifications } =
+    trpc.notification.list.useQuery({ limit: 20 }, { enabled: !!user });
+  const markAllReadMutation = trpc.notification.markAllRead.useMutation({
+    onSuccess: () => refetchNotifications(),
+  });
+  const markReadMutation = trpc.notification.markRead.useMutation({
+    onSuccess: () => refetchNotifications(),
+  });
 
-  const notifications = (notificationsData ?? []).map((n) => {
-    const { Icon, color } = NOTIFICATION_ICONS[n.type] ?? NOTIFICATION_ICONS.system;
+  const notifications = (notificationsData ?? []).map(n => {
+    const { Icon, color } =
+      NOTIFICATION_ICONS[n.type] ?? NOTIFICATION_ICONS.system;
     return {
       id: n.id,
       icon: Icon,
@@ -263,7 +347,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   });
 
   const pageTitle = isDemo ? "Dashboard" : (pageTitles[location] ?? "ANAVI");
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     const title = pageTitles[location];
@@ -295,7 +379,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       e.preventDefault();
-      setSearchOpen((o) => !o);
+      setSearchOpen(o => !o);
     }
     if (e.key === "Escape") {
       setNotifOpen(false);
@@ -311,13 +395,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const markAllRead = () => markAllReadMutation.mutate();
 
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<string, boolean>
+  >({
     EXPLORE: true,
   });
   const [livePersona, setLivePersona] = useState<PersonaKey>(() => {
     if (typeof window === "undefined") return "originator";
     const stored = localStorage.getItem("anavi_active_persona");
-    if (stored === "investor" || stored === "principal" || stored === "originator") return stored;
+    if (
+      stored === "investor" ||
+      stored === "principal" ||
+      stored === "originator"
+    )
+      return stored;
     return "originator";
   });
   const [liveIndustry, setLiveIndustry] = useState<string>(() => {
@@ -327,13 +418,19 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const resolvedPersona: PersonaKey = activePersona ?? "originator";
   const sidebarPersona = isDemo ? resolvedPersona : livePersona;
   const sidebarIndustry = isDemo ? activeIndustry : liveIndustry;
-  const flow = workflowByPersona[sidebarPersona] ?? workflowByPersona.originator;
-  const nowIndex = Math.max(0, flow.findIndex((beat) => beat.paths.some((path) => location.startsWith(path))));
+  const flow =
+    workflowByPersona[sidebarPersona] ?? workflowByPersona.originator;
+  const nowIndex = Math.max(
+    0,
+    flow.findIndex(beat => beat.paths.some(path => location.startsWith(path)))
+  );
   const nextBeat = flow[nowIndex + 1]?.label ?? "Complete";
-  const mobilePersonaItems = (personaPrimaryNav[sidebarPersona] ?? personaPrimaryNav.originator).slice(0, 2);
+  const mobilePersonaItems = (
+    personaPrimaryNav[sidebarPersona] ?? personaPrimaryNav.originator
+  ).slice(0, 2);
   const mobileNavItems = [
     { icon: Home, label: "Home", path: "/dashboard" },
-    ...mobilePersonaItems.map((item) => ({
+    ...mobilePersonaItems.map(item => ({
       icon: item.icon,
       label: item.label.split(" ")[0],
       path: item.path,
@@ -358,14 +455,22 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     <>
       <div className="px-3 pt-3 pb-2 border-b border-white/10">
         <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-white/45">Active Flow</p>
-          <p className="mt-1 text-sm font-semibold text-white">{PERSONAS[sidebarPersona].label}</p>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-white/45">
+            Active Flow
+          </p>
+          <p className="mt-1 text-sm font-semibold text-white">
+            {PERSONAS[sidebarPersona].label}
+          </p>
           <div className="mt-2 flex items-center gap-2 text-[10px] text-white/65">
-            <span className="rounded-full bg-[#22D4F5]/20 px-2 py-0.5 text-[#7EE8FF]">Now: {flow[nowIndex]?.label}</span>
-            <span className="rounded-full bg-white/10 px-2 py-0.5">Next: {nextBeat}</span>
+            <span className="rounded-full bg-[#22D4F5]/20 px-2 py-0.5 text-[#7EE8FF]">
+              Now: {flow[nowIndex]?.label}
+            </span>
+            <span className="rounded-full bg-white/10 px-2 py-0.5">
+              Next: {nextBeat}
+            </span>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-1.5">
-            {PERSONA_TABS.map((tab) => {
+            {PERSONA_TABS.map(tab => {
               const active = tab.key === sidebarPersona;
               return (
                 <button
@@ -378,7 +483,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     }
                   }}
                   className={`h-7 rounded text-[10px] font-semibold tracking-wider transition-colors ${
-                    active ? "bg-[#C4972A] text-white" : "bg-white/8 text-white/65 hover:bg-white/14"
+                    active
+                      ? "bg-[#C4972A] text-white"
+                      : "bg-white/8 text-white/65 hover:bg-white/14"
                   }`}
                 >
                   {tab.short}
@@ -387,7 +494,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             })}
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {INDUSTRY_OPTIONS.map((industry) => {
+            {INDUSTRY_OPTIONS.map(industry => {
               const active = industry === sidebarIndustry;
               return (
                 <button
@@ -400,7 +507,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     }
                   }}
                   className={`rounded px-2 py-0.5 text-[10px] transition-colors ${
-                    active ? "bg-[#2563EB]/25 text-[#9BC3FF]" : "bg-white/8 text-white/55 hover:bg-white/14"
+                    active
+                      ? "bg-[#2563EB]/25 text-[#9BC3FF]"
+                      : "bg-white/8 text-white/55 hover:bg-white/14"
                   }`}
                 >
                   {industry}
@@ -410,8 +519,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </div>
-      <nav data-tour="demo-nav" aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-        {navSections.map((section) => {
+      <nav
+        data-tour="demo-nav"
+        aria-label="Main navigation"
+        className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+      >
+        {navSections.map(section => {
           const isCollapsed = collapsedSections[section.label];
           const hasActive = section.items.some(item => location === item.path);
           return (
@@ -421,29 +534,34 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 className="flex w-full items-center justify-between px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/30 hover:text-white/50 transition-colors"
               >
                 <span>{section.label}</span>
-                <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+                <ChevronDown
+                  className={`h-3 w-3 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
+                />
               </button>
-              {!isCollapsed && section.items.map((item) => {
-                const isActive = location === item.path;
-                return (
-                  <Link key={item.path} href={item.path}>
-                    <a
-                      data-tour-id={item.tourId}
-                      className={`group flex min-h-[38px] cursor-pointer items-center gap-2.5 rounded-r-md px-3 text-[13px] transition-all duration-200 ${
-                        isActive
-                          ? "bg-white/8 text-white"
-                          : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
-                      }`}
-                      style={isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}}
-                      aria-current={isActive ? "page" : undefined}
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <item.icon className="h-[18px] w-[18px] shrink-0" />
-                      <span className="flex-1">{item.label}</span>
-                    </a>
-                  </Link>
-                );
-              })}
+              {!isCollapsed &&
+                section.items.map(item => {
+                  const isActive = location === item.path;
+                  return (
+                    <Link key={item.path} href={item.path}>
+                      <a
+                        data-tour-id={item.tourId}
+                        className={`group flex min-h-[38px] cursor-pointer items-center gap-2.5 rounded-r-md px-3 text-[13px] transition-all duration-200 ${
+                          isActive
+                            ? "bg-white/8 text-white"
+                            : "border-l-[3px] border-l-transparent text-white/60 hover:bg-white/5 hover:text-white/80"
+                        }`}
+                        style={
+                          isActive ? { boxShadow: "inset 3px 0 0 #C4972A" } : {}
+                        }
+                        aria-current={isActive ? "page" : undefined}
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <item.icon className="h-[18px] w-[18px] shrink-0" />
+                        <span className="flex-1">{item.label}</span>
+                      </a>
+                    </Link>
+                  );
+                })}
             </div>
           );
         })}
@@ -455,7 +573,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-white">
-              {isDemo ? (demoFixtures?.user.name ?? "Demo User") : (user?.name ?? "User")}
+              {isDemo
+                ? (demoFixtures?.user.name ?? "Demo User")
+                : (user?.name ?? "User")}
             </p>
           </div>
           <button
@@ -471,14 +591,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar — hidden on mobile, visible lg+ */}
       <aside
-        className="hidden w-[240px] shrink-0 flex-col lg:flex"
+        className="hidden w-[240px] shrink-0 flex-col min-h-0 lg:flex"
         style={{ backgroundColor: "#060A12" }}
       >
-        <div className="flex h-14 items-center px-5">
-          <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
+        <div className="flex h-14 shrink-0 items-center px-5">
+          <span className="text-lg font-bold tracking-wide text-white">
+            ANAVI
+          </span>
         </div>
         <SidebarNav />
       </aside>
@@ -497,7 +619,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             aria-label="Navigation menu"
           >
             <div className="flex h-14 shrink-0 items-center justify-between px-5">
-              <span className="text-lg font-bold tracking-wide text-white">ANAVI</span>
+              <span className="text-lg font-bold tracking-wide text-white">
+                ANAVI
+              </span>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-white/60 hover:bg-white/10 hover:text-white"
@@ -512,7 +636,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Right side */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-h-0 min-w-0">
         {/* Top bar */}
         <header
           role="banner"
@@ -527,7 +651,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </button>
 
-            <h1 className="text-base font-semibold" style={{ color: "#1E3A5F" }}>
+            <h1
+              className="text-base font-semibold"
+              style={{ color: "#1E3A5F" }}
+            >
               {pageTitle}
             </h1>
           </div>
@@ -546,7 +673,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Search className="h-5 w-5" />
             </button>
             <div className="hidden md:block" data-tour-id="trust-score">
-              <TrustScoreChip score={isDemo ? (demoFixtures?.user.trustScore ?? 84) : 84} />
+              <TrustScoreChip
+                score={
+                  isDemo
+                    ? (demoFixtures?.user.trustScore ?? 84)
+                    : Number(meData?.trustScore ?? 84)
+                }
+              />
             </div>
 
             {/* E43: Notification bell with drawer */}
@@ -577,14 +710,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <main
           role="main"
           data-tour-id="welcome"
-          className="flex-1 overflow-y-auto pb-20 scrollbar-premium lg:pb-0 relative"
+          className="flex-1 min-h-0 overflow-y-auto pb-20 scrollbar-premium lg:pb-0 relative"
           style={{ backgroundColor: "#F3F7FC" }}
         >
           {/* Subtle ambient depth — very faint, non-animated for performance */}
           <div
             className="pointer-events-none absolute top-0 right-0 w-[600px] h-[400px]"
             style={{
-              background: "radial-gradient(ellipse at top right, rgb(196 151 42 / 0.04) 0%, transparent 60%)",
+              background:
+                "radial-gradient(ellipse at top right, rgb(196 151 42 / 0.04) 0%, transparent 60%)",
             }}
             aria-hidden="true"
           />
@@ -595,7 +729,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 onDismiss={handleDismissBanner}
               />
             )}
-            <div className={!tour.hasCompletedTour() && !bannerDismissed ? "mt-4" : ""}>
+            <div
+              className={
+                !tour.hasCompletedTour() && !bannerDismissed ? "mt-4" : ""
+              }
+            >
               {children}
             </div>
           </div>
@@ -615,13 +753,21 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* E43: Notification Drawer */}
       {notifOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setNotifOpen(false)} />
+          <div
+            className="fixed inset-0 z-40 bg-black/20"
+            onClick={() => setNotifOpen(false)}
+          />
           <div className="fixed right-0 top-0 z-50 h-full w-full max-w-sm bg-[#0A1628] shadow-2xl animate-in slide-in-from-right duration-200">
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-              <h2 className="text-lg font-semibold text-white">Notifications</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Notifications
+              </h2>
               <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
-                  <button onClick={markAllRead} className="text-xs font-medium text-[#2563EB] hover:underline">
+                  <button
+                    onClick={markAllRead}
+                    className="text-xs font-medium text-[#2563EB] hover:underline"
+                  >
                     Mark All Read
                   </button>
                 )}
@@ -634,30 +780,50 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
             </div>
-            <div className="overflow-y-auto scrollbar-premium" style={{ height: "calc(100% - 65px)" }}>
+            <div
+              className="overflow-y-auto scrollbar-premium"
+              style={{ height: "calc(100% - 65px)" }}
+            >
               {notifications.length === 0 ? (
-                <div className="px-5 py-12 text-center text-white/50 text-sm">No new notifications.</div>
-              ) : (
-              notifications.map((n) => (
-                <div
-                  key={n.id}
-                  className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors cursor-pointer hover:bg-white/5 ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
-                  onClick={() => {
-                    if (!n.read) markReadMutation.mutate({ id: n.id });
-                    if (n.actionUrl) { setNotifOpen(false); setLocation(n.actionUrl); }
-                  }}
-                >
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${n.iconColor}15` }}>
-                    <n.icon className="h-4 w-4" style={{ color: n.iconColor }} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-white">{n.title}</p>
-                    <p className="mt-0.5 text-xs text-white/60">{n.message}</p>
-                    <p className="mt-1 text-[10px] text-white/40">{n.time}</p>
-                  </div>
-                  {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2563EB]" />}
+                <div className="px-5 py-12 text-center text-white/50 text-sm">
+                  No new notifications.
                 </div>
-              ))
+              ) : (
+                notifications.map(n => (
+                  <div
+                    key={n.id}
+                    className={`flex gap-3 border-b border-white/10 px-5 py-4 transition-colors cursor-pointer hover:bg-white/5 ${n.read ? "bg-[#0A1628]" : "bg-[#0D1628]"}`}
+                    onClick={() => {
+                      if (!n.read) markReadMutation.mutate({ id: n.id });
+                      if (n.actionUrl) {
+                        setNotifOpen(false);
+                        setLocation(n.actionUrl);
+                      }
+                    }}
+                  >
+                    <div
+                      className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                      style={{ backgroundColor: `${n.iconColor}15` }}
+                    >
+                      <n.icon
+                        className="h-4 w-4"
+                        style={{ color: n.iconColor }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-white">
+                        {n.title}
+                      </p>
+                      <p className="mt-0.5 text-xs text-white/60">
+                        {n.message}
+                      </p>
+                      <p className="mt-1 text-[10px] text-white/40">{n.time}</p>
+                    </div>
+                    {!n.read && (
+                      <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#2563EB]" />
+                    )}
+                  </div>
+                ))
               )}
             </div>
           </div>
@@ -669,10 +835,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile flow strip */}
       <div
         className="fixed inset-x-0 bottom-16 z-40 border-t border-white/10 bg-[#060A12]/95 px-3 py-2 backdrop-blur lg:hidden"
-        style={{ paddingBottom: "max(0px, calc(env(safe-area-inset-bottom) - 8px))" }}
+        style={{
+          paddingBottom: "max(0px, calc(env(safe-area-inset-bottom) - 8px))",
+        }}
       >
         <div className="mx-auto flex w-full max-w-[680px] items-center justify-between rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] text-white/75">
-          <span className="truncate">Now: {flow[nowIndex]?.label ?? "Flow"}</span>
+          <span className="truncate">
+            Now: {flow[nowIndex]?.label ?? "Flow"}
+          </span>
           <span className="truncate text-white/55">Next: {nextBeat}</span>
         </div>
       </div>
@@ -683,7 +853,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         className="fixed inset-x-0 bottom-0 z-50 flex h-16 min-h-[56px] items-center justify-around border-t border-white/10 bg-[#060A12] lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        {(mobileNavItems.length > 0 ? mobileNavItems : defaultMobileNavItems).map((item) => {
+        {(mobileNavItems.length > 0
+          ? mobileNavItems
+          : defaultMobileNavItems
+        ).map(item => {
           const isActive = location === item.path;
           return (
             <Link key={item.path} href={item.path}>

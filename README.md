@@ -85,6 +85,22 @@ This repo is configured for Vercel static frontend output from the app directory
 - Config file: `anavi/vercel.json`
 - Output directory: `dist/public`
 
+## Ralph Wiggum (Autonomous Spec Loop)
+
+This repository is set up for Ralph Wiggum loop execution at the repo root.
+
+- Constitution: `.specify/memory/constitution.md`
+- Specs folder: `specs/`
+- Loop scripts: `scripts/ralph-loop.sh`, `scripts/ralph-loop-codex.sh`, `scripts/ralph-loop-gemini.sh`, `scripts/ralph-loop-copilot.sh`
+- Command helpers: `.claude/commands/ralph-loop.md`, `.cursor/commands/speckit.specify.md`, `.cursor/commands/speckit.implement.md`
+
+Run from repository root:
+
+```bash
+./scripts/ralph-loop-codex.sh
+./scripts/ralph-loop.sh
+```
+
 ## Known Gaps
 - Several advanced pages currently rely on static/demo data
 - Compliance checks are not yet integrated with external providers

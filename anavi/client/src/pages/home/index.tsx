@@ -27,7 +27,7 @@ export default function Home() {
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
 
   return (
-    <div className="min-h-screen bg-canvas-void text-white overflow-hidden">
+    <div className="min-h-screen bg-canvas-void text-white overflow-x-hidden">
       {/* Navigation */}
       <motion.nav
         className="fixed top-0 left-0 right-0 z-50 glass-dark border-b border-hairline"

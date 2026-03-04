@@ -7,6 +7,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { appRouter } from "../../routers";
 import { createTestCaller } from "../setup";
 import type { User } from "../../drizzle/schema";
+import * as db from "../../db";
 
 // In-memory state for mock behavior
 const store = {
@@ -221,5 +222,61 @@ describe("F20: Integration Funnel", () => {
     });
 
     await expect(caller.match.createDealRoom({ matchId: 99 })).rejects.toThrow();
+  });
+
+  it("DealFlow action: queueNda persists state and notifies", async () => {
+    const caller = createTestCaller(appRouter, 1);
+    // seed a match
+    store.matches.push({
+      id: 100,
+      intent1Id: 1,
+      intent2Id: 2,
+      user1Id: 1,
+      user2Id: 2,
+      status: "pending",
+      user1Consent: false,
+      user2Consent: false,
+    });
+
+    const res = await caller.match.queueNda({ matchId: 100 });
+    expect(res).toEqual({ success: true });
+    const m = store.matches.find(m => m.id === 100)!;
+    expect(m.status).toBe("nda_pending");
+
+    // Notification emitted
+    const notifyCalls = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls;
+    expect(notifyCalls.length).toBeGreaterThan(0);
+    const lastArgs = notifyCalls[notifyCalls.length - 1][0];
+    expect(lastArgs.type).toBe("deal_update");
+    expect(lastArgs.relatedEntityType).toBe("match");
+    expect(lastArgs.relatedEntityId).toBe(100);
+  });
+
+  it("DealFlow action: escalate writes declined + audit", async () => {
+    const caller = createTestCaller(appRouter, 1);
+    // seed a match
+    store.matches.push({
+      id: 101,
+      intent1Id: 1,
+      intent2Id: 2,
+      user1Id: 1,
+      user2Id: 2,
+      status: "pending",
+      user1Consent: false,
+      user2Consent: false,
+    });
+
+    const res = await caller.match.escalate({ matchId: 101, reason: "Low fit" });
+    expect(res).toEqual({ success: true });
+    const m = store.matches.find(m => m.id === 101)!;
+    expect(m.status).toBe("declined");
+
+    // Audit emitted
+    const auditCalls = (db.logAuditEvent as unknown as { mock: { calls: any[] } }).mock.calls;
+    expect(auditCalls.length).toBeGreaterThan(0);
+    const lastAudit = auditCalls[auditCalls.length - 1][0];
+    expect(lastAudit.action).toBe("escalation_requested");
+    expect(lastAudit.entityType).toBe("match");
+    expect(lastAudit.entityId).toBe(101);
   });
 });

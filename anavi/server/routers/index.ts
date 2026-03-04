@@ -31,7 +31,7 @@ import { operatorIntakeRouter } from "./operatorIntake";
 import { commodityRouter } from "./commodity";
 import { transactionMatchRouter } from "./transactionMatch";
 import { knowledgeGraphRouter } from "./knowledgeGraph";
-import { stubsRouter } from "./stubs";
+
 import { spvRouter } from "./spv";
 import { capitalRouter } from "./capital";
 import { tradingRouter } from "./trading";
@@ -73,7 +73,7 @@ export const appRouter = router({
   commodity: commodityRouter,
   transactionMatch: transactionMatchRouter,
   knowledgeGraph: knowledgeGraphRouter,
-  stubs: stubsRouter,
+
   spv: spvRouter,
   capital: capitalRouter,
   trading: tradingRouter,

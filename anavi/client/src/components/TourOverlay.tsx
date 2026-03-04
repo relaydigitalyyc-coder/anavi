@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import type { TourStep } from "@/tour/definitions";
 
 interface TourOverlayProps {
@@ -9,8 +9,15 @@ interface TourOverlayProps {
   onSkip: () => void;
 }
 
-export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: TourOverlayProps) {
+export function TourOverlay({
+  step,
+  currentStep,
+  totalSteps,
+  onNext,
+  onSkip,
+}: TourOverlayProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -25,9 +32,68 @@ export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: T
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const target = step.target && typeof document !== "undefined" ? document.querySelector(step.target) : null;
-  const targetRect = target?.getBoundingClientRect();
-  const useTarget = targetRect && targetRect.width > 0 && targetRect.height > 0 && step.placement !== "center";
+  useEffect(() => {
+    if (!step.target) {
+      setTargetRect(null);
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 20;
+    let raf: number;
+
+    function tryFind() {
+      const el = document.querySelector(step.target!);
+      if (el) {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+        setTimeout(() => {
+          const rect = el.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            setTargetRect(rect);
+          } else {
+            setTargetRect(null);
+          }
+        }, 350);
+        return;
+      }
+      attempts++;
+      if (attempts < maxAttempts) {
+        raf = requestAnimationFrame(tryFind);
+      } else {
+        setTargetRect(null);
+      }
+    }
+
+    tryFind();
+
+    const scrollParent = document.querySelector("main[role='main']");
+    function onScroll() {
+      const el = document.querySelector(step.target!);
+      if (el) {
+        setTargetRect(el.getBoundingClientRect());
+      }
+    }
+    scrollParent?.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      scrollParent?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [step.target, currentStep]);
+
+  const useTarget =
+    targetRect &&
+    targetRect.width > 0 &&
+    targetRect.height > 0 &&
+    step.placement !== "center";
   const isLast = currentStep >= totalSteps - 1;
 
   return (
@@ -39,8 +105,10 @@ export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: T
       aria-describedby="tour-body"
       aria-live="polite"
     >
-      {/* Backdrop with cutout */}
-      <svg className="absolute inset-0 h-full w-full" style={{ pointerEvents: "none" }}>
+      <svg
+        className="absolute inset-0 h-full w-full"
+        style={{ pointerEvents: "none" }}
+      >
         <defs>
           <mask id="tour-mask">
             <rect width="100%" height="100%" fill="white" />
@@ -56,7 +124,12 @@ export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: T
             )}
           </mask>
         </defs>
-        <rect width="100%" height="100%" fill="rgba(0,0,0,0.6)" mask="url(#tour-mask)" />
+        <rect
+          width="100%"
+          height="100%"
+          fill="rgba(0,0,0,0.6)"
+          mask="url(#tour-mask)"
+        />
         {useTarget && (
           <rect
             x={targetRect.left - 8}
@@ -71,7 +144,6 @@ export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: T
         )}
       </svg>
 
-      {/* Clickable backdrop to allow clicking outside */}
       <div
         className="absolute inset-0"
         onClick={onSkip}
@@ -79,28 +151,50 @@ export function TourOverlay({ step, currentStep, totalSteps, onNext, onSkip }: T
         aria-hidden="true"
       />
 
-      {/* Popover */}
       <div
         ref={popoverRef}
         className={`absolute z-[9999] rounded-xl border bg-white shadow-xl ${
-          isLast ? "min-w-[340px] max-w-[420px] border-[#C4972A]/30 p-8 text-center" : "min-w-[280px] max-w-[360px] border-[#0A1628]/10 p-5"
+          isLast
+            ? "min-w-[340px] max-w-[420px] border-[#C4972A]/30 p-8 text-center"
+            : "min-w-[280px] max-w-[360px] border-[#0A1628]/10 p-5"
         }`}
-        style={getPopoverPosition(useTarget ? targetRect! : null, step.placement)}
+        style={getPopoverPosition(
+          useTarget ? targetRect! : null,
+          step.placement
+        )}
       >
         {isLast && (
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#C4972A]/10">
-            <svg className="h-7 w-7 text-[#C4972A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            <svg
+              className="h-7 w-7 text-[#C4972A]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
         )}
-        <p id="tour-title" className={`dash-heading font-semibold text-[#0A1628] ${isLast ? "text-xl" : "text-lg"}`}>
+        <p
+          id="tour-title"
+          className={`dash-heading font-semibold text-[#0A1628] ${isLast ? "text-xl" : "text-lg"}`}
+        >
           {step.title}
         </p>
-        <p id="tour-body" className={`mt-2 text-sm text-[#1E3A5F]/80 ${isLast ? "mx-auto max-w-[280px]" : ""}`}>
+        <p
+          id="tour-body"
+          className={`mt-2 text-sm text-[#1E3A5F]/80 ${isLast ? "mx-auto max-w-[280px]" : ""}`}
+        >
           {step.body}
         </p>
-        <div className={`mt-4 flex items-center gap-3 ${isLast ? "justify-center" : "justify-between"}`}>
+        <div
+          className={`mt-4 flex items-center gap-3 ${isLast ? "justify-center" : "justify-between"}`}
+        >
           {!isLast && (
             <span className="text-xs text-[#1E3A5F]/50" data-label>
               Step {currentStep + 1} of {totalSteps}
@@ -133,45 +227,39 @@ function getPopoverPosition(
   placement: string
 ): React.CSSProperties {
   const padding = 16;
+  const popW = 360;
+  const popH = 200;
+
   if (!targetRect) {
-    return {
-      left: "50%",
-      top: "50%",
-      transform: "translate(-50%, -50%)",
-    };
+    return { left: "50%", top: "50%", transform: "translate(-50%, -50%)" };
   }
+
+  let left: number;
+  let top: number;
+
   switch (placement) {
     case "right":
-      return {
-        left: targetRect.right + padding,
-        top: targetRect.top + targetRect.height / 2,
-        transform: "translateY(-50%)",
-      };
+      left = targetRect.right + padding;
+      top = targetRect.top + targetRect.height / 2 - popH / 2;
+      break;
     case "left":
-      return {
-        left: Math.max(padding, targetRect.left - 320 - padding),
-        top: targetRect.top + targetRect.height / 2,
-        transform: "translateY(-50%)",
-      };
+      left = targetRect.left - popW - padding;
+      top = targetRect.top + targetRect.height / 2 - popH / 2;
+      break;
     case "bottom":
-      return {
-        left: targetRect.left + targetRect.width / 2,
-        top: targetRect.bottom + padding,
-        transform: "translateX(-50%)",
-      };
+      left = targetRect.left + targetRect.width / 2 - popW / 2;
+      top = targetRect.bottom + padding;
+      break;
     case "top":
-      return {
-        left: targetRect.left + targetRect.width / 2,
-        bottom: window.innerHeight - targetRect.top + padding,
-        top: "auto",
-        transform: "translateX(-50%)",
-      };
-    case "center":
+      left = targetRect.left + targetRect.width / 2 - popW / 2;
+      top = targetRect.top - popH - padding;
+      break;
     default:
-      return {
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-      };
+      return { left: "50%", top: "50%", transform: "translate(-50%, -50%)" };
   }
+
+  left = Math.max(padding, Math.min(left, window.innerWidth - popW - padding));
+  top = Math.max(padding, Math.min(top, window.innerHeight - popH - padding));
+
+  return { left, top };
 }

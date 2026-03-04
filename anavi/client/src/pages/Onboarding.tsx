@@ -1,10 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Link } from 'wouter';
-import { 
-  ArrowRight, 
-  Shield, 
-  Network, 
+import { useState, useEffect, useRef } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { Link } from "wouter";
+import {
+  ArrowRight,
+  Shield,
+  Network,
   TrendingUp,
   Users,
   Building2,
@@ -18,9 +23,9 @@ import {
   Target,
   Briefcase,
   Crown,
-  Star
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+  Star,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   LiquidGradient,
   Card3D,
@@ -29,20 +34,17 @@ import {
   MorphingBlob,
   SmoothCounter,
   StaggeredList,
-} from '@/components/PremiumAnimations';
-import {
-  Magnetic,
-  AnimatedCounter,
-} from '@/components/AwwwardsAnimations';
+} from "@/components/PremiumAnimations";
+import { Magnetic, AnimatedCounter } from "@/components/AwwwardsAnimations";
 
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const [showWelcome, setShowWelcome] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start start", "end end"]
+    offset: ["start start", "end end"],
   });
 
   const backgroundY = useTransform(scrollYProgress, [0, 1], [0, 300]);
@@ -58,30 +60,33 @@ export default function Onboarding() {
     {
       icon: Building2,
       title: "Family Office Network",
-      description: "Access 500+ verified family offices with $2.4T+ in combined AUM",
+      description:
+        "Access 500+ verified family offices with $2.4T+ in combined AUM",
       stat: "500+",
-      statLabel: "Family Offices"
+      statLabel: "Family Offices",
     },
     {
       icon: Target,
       title: "Deal Flow Intelligence",
       description: "AI-powered matching connects you to curated opportunities",
       stat: "$47M",
-      statLabel: "Active Pipeline"
+      statLabel: "Active Pipeline",
     },
     {
       icon: Shield,
       title: "Trust & Verification",
-      description: "Every relationship cryptographically timestamped and verified",
+      description:
+        "Every relationship cryptographically timestamped and verified",
       stat: "100%",
-      statLabel: "Verified"
+      statLabel: "Verified",
     },
     {
       icon: Brain,
       title: "AI Deal Partner",
-      description: "Claude-powered intelligence for market analysis and introductions",
+      description:
+        "Claude-powered intelligence for market analysis and introductions",
       stat: "24/7",
-      statLabel: "Intelligence"
+      statLabel: "Intelligence",
     },
   ];
 
@@ -91,15 +96,24 @@ export default function Onboarding() {
     "AI-generated introduction recommendations",
     "Real-time market intelligence across commodities & real estate",
     "Cryptographic relationship custody & attribution",
-    "Automated commission tracking & payout management"
+    "Automated commission tracking & payout management",
   ];
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-background text-foreground overflow-hidden relative">
+    <div
+      ref={containerRef}
+      className="min-h-screen bg-background text-foreground overflow-x-hidden relative"
+    >
       {/* Animated Background */}
       <LiquidGradient className="opacity-30" />
-      <MorphingBlob className="w-[600px] h-[600px] -top-[200px] -right-[200px] opacity-20" color="oklch(0.65 0.19 230 / 0.15)" />
-      <MorphingBlob className="w-[500px] h-[500px] -bottom-[150px] -left-[150px] opacity-15" color="oklch(0.55 0.15 160 / 0.1)" />
+      <MorphingBlob
+        className="w-[600px] h-[600px] -top-[200px] -right-[200px] opacity-20"
+        color="oklch(0.65 0.19 230 / 0.15)"
+      />
+      <MorphingBlob
+        className="w-[500px] h-[500px] -bottom-[150px] -left-[150px] opacity-15"
+        color="oklch(0.55 0.15 160 / 0.1)"
+      />
 
       {/* Welcome Splash Screen */}
       <AnimatePresence>
@@ -118,19 +132,23 @@ export default function Onboarding() {
                 className="mb-8"
               >
                 <div className="flex items-center justify-center gap-2 mb-6">
-                  <span className="text-6xl md:text-8xl font-medium text-white">@</span>
-                  <span className="text-6xl md:text-8xl font-medium text-white">navi</span>
-                  <motion.span 
+                  <span className="text-6xl md:text-8xl font-medium text-white">
+                    @
+                  </span>
+                  <span className="text-6xl md:text-8xl font-medium text-white">
+                    navi
+                  </span>
+                  <motion.span
                     className="w-4 h-4 rounded-full bg-sky-500 mb-12"
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.5, 1],
-                      opacity: [1, 0.7, 1]
+                      opacity: [1, 0.7, 1],
                     }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   />
                 </div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -139,7 +157,7 @@ export default function Onboarding() {
                 <p className="text-2xl md:text-4xl font-serif text-white/90 mb-4">
                   Welcome, <span className="text-sky-400">Avraham</span>
                 </p>
-                <motion.p 
+                <motion.p
                   className="text-lg text-white/60"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -156,18 +174,18 @@ export default function Onboarding() {
                 transition={{ delay: 1.5 }}
               >
                 <div className="flex gap-2">
-                  {[0, 1, 2].map((i) => (
+                  {[0, 1, 2].map(i => (
                     <motion.div
                       key={i}
                       className="w-2 h-2 bg-sky-500 rounded-full"
-                      animate={{ 
+                      animate={{
                         scale: [1, 1.5, 1],
-                        opacity: [0.5, 1, 0.5]
+                        opacity: [0.5, 1, 0.5],
                       }}
-                      transition={{ 
+                      transition={{
                         duration: 1,
                         repeat: Infinity,
-                        delay: i * 0.2
+                        delay: i * 0.2,
                       }}
                     />
                   ))}
@@ -195,7 +213,9 @@ export default function Onboarding() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-sky-500/10 border border-sky-500/30 mb-8"
             >
               <Crown className="w-4 h-4 text-sky-500" />
-              <span className="text-xs uppercase tracking-[0.2em] text-sky-500">Founding Member Access</span>
+              <span className="text-xs uppercase tracking-[0.2em] text-sky-500">
+                Founding Member Access
+              </span>
             </motion.div>
 
             {/* Main Headline */}
@@ -218,8 +238,10 @@ export default function Onboarding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.8 }}
             >
-              <span className="text-foreground font-medium">Avraham</span>, you've been granted exclusive access to 
-              the private market operating system trusted by elite family offices and institutional investors.
+              <span className="text-foreground font-medium">Avraham</span>,
+              you've been granted exclusive access to the private market
+              operating system trusted by elite family offices and institutional
+              investors.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -282,8 +304,12 @@ export default function Onboarding() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.4 + i * 0.1 }}
                 >
-                  <div className="text-3xl md:text-4xl font-light text-foreground">{stat.value}</div>
-                  <div className="text-xs uppercase tracking-[0.15em] text-muted-foreground mt-1">{stat.label}</div>
+                  <div className="text-3xl md:text-4xl font-light text-foreground">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs uppercase tracking-[0.15em] text-muted-foreground mt-1">
+                    {stat.label}
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
@@ -301,7 +327,9 @@ export default function Onboarding() {
               transition={{ duration: 2, repeat: Infinity }}
               className="flex flex-col items-center gap-2"
             >
-              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Explore</span>
+              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Explore
+              </span>
               <div className="w-px h-12 bg-gradient-to-b from-sky-500 to-transparent" />
             </motion.div>
           </motion.div>
@@ -316,7 +344,9 @@ export default function Onboarding() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <p className="text-xs uppercase tracking-[0.2em] text-sky-500 mb-4">Your Unfair Advantage</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-sky-500 mb-4">
+                Your Unfair Advantage
+              </p>
               <h2 className="text-4xl md:text-5xl font-serif">
                 Everything You Need to <GradientText>Win</GradientText>
               </h2>
@@ -339,11 +369,15 @@ export default function Onboarding() {
                         </div>
                         <div className="text-right">
                           <div className="text-3xl font-light">{cap.stat}</div>
-                          <div className="text-xs uppercase tracking-wider text-muted-foreground">{cap.statLabel}</div>
+                          <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                            {cap.statLabel}
+                          </div>
                         </div>
                       </div>
                       <h3 className="text-xl font-medium mb-3">{cap.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{cap.description}</p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {cap.description}
+                      </p>
                     </div>
                   </Card3D>
                 </motion.div>
@@ -354,8 +388,11 @@ export default function Onboarding() {
 
         {/* Exclusive Features */}
         <section className="py-24 px-4 bg-[#2D3748] text-white relative overflow-hidden">
-          <MorphingBlob className="w-[400px] h-[400px] top-0 right-0 opacity-10" color="oklch(0.65 0.19 230 / 0.3)" />
-          
+          <MorphingBlob
+            className="w-[400px] h-[400px] top-0 right-0 opacity-10"
+            color="oklch(0.65 0.19 230 / 0.3)"
+          />
+
           <div className="max-w-4xl mx-auto relative z-10">
             <motion.div
               className="text-center mb-16"
@@ -365,7 +402,9 @@ export default function Onboarding() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 mb-6">
                 <Star className="w-4 h-4 text-sky-400" />
-                <span className="text-xs uppercase tracking-[0.2em]">Founding Member Benefits</span>
+                <span className="text-xs uppercase tracking-[0.2em]">
+                  Founding Member Benefits
+                </span>
               </div>
               <h2 className="text-4xl md:text-5xl font-serif">
                 Your Exclusive Access
@@ -424,7 +463,8 @@ export default function Onboarding() {
                 Ready to Transform Your <GradientText>Deal Flow</GradientText>?
               </h2>
               <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-                Join the elite network of family offices and institutional investors who trust @navi for their private market operations.
+                Join the elite network of family offices and institutional
+                investors who trust @navi for their private market operations.
               </p>
               <Link href="/dashboard">
                 <Magnetic strength={0.2}>
@@ -463,7 +503,9 @@ export default function Onboarding() {
             </p>
             <div className="flex items-center gap-6">
               <Lock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Bank-Grade Security</span>
+              <span className="text-xs text-muted-foreground">
+                Bank-Grade Security
+              </span>
             </div>
           </div>
         </footer>

@@ -19,9 +19,22 @@ build/
 __pycache__/
 *.pyc
 
+# DeepSeek agent — key files (NEVER commit these)
+.deepseek
+scripts/outputs/
+scripts/*.enc
+
 # IDE
 .vscode/
 .idea/
 
 .playwright-cli/
 .vercel
+
+# Sensitive data
+.claude/settings.local.json
+
+# Ralph Wiggum artifacts
+logs/
+PROMPT_build.md
+PROMPT_plan.md

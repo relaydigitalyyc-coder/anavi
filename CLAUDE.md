@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Ralph Loop Mode
+
+When launched through `scripts/ralph-loop*.sh`, read `.specify/memory/constitution.md` first.
+
+- Constitution governs Ralph loop behavior.
+- This file still governs repository architecture, commands, and terminology.
+
 ## Commands
 
 All commands run from `anavi/`:
@@ -11,7 +18,7 @@ pnpm dev          # Dev server (Express + Vite HMR)
 pnpm build        # Client (Vite) + server (esbuild) production build
 pnpm start        # Run production build
 pnpm check        # TypeScript type-check (tsc --noEmit)
-pnpm test         # 37 tests: unit + integration (no DB required, uses mocks)
+pnpm test         # 60 tests: unit + integration (no DB required, uses mocks)
 pnpm db:push      # Generate + run Drizzle migrations
 pnpm db:seed      # Seed demo user
 ```
@@ -36,15 +43,16 @@ Types: drizzle/schema → shared/types → client + server
 | Concern | Path |
 |---------|------|
 | API entry | `anavi/api/index.ts` |
-| Router modules | `server/routers/*.ts` (25 files) → merged in `routers/index.ts` |
+| API entry (Vercel) | `anavi/api/index.ts` — serverless function for production |
+| Router modules | `server/routers/*.ts` (39 files) → merged in `routers/index.ts` |
 | Router re-export | `server/routers.ts` (thin barrel) |
-| DB modules | `server/db/*.ts` (16 domain files) → re-exported via `db/index.ts` |
+| DB modules | `server/db/*.ts` (31 domain files) → re-exported via `db/index.ts` |
 | DB re-export | `server/db.ts` (thin barrel) |
-| Schema (48 tables) | `anavi/drizzle/schema.ts` |
+| Schema (~63 tables) | `anavi/drizzle/schema/*.ts` (6 modules: users, matching, deals, compliance, assets, docusign) |
 | Relations | `anavi/drizzle/relations.ts` |
 | Shared types | `anavi/shared/types.ts` |
 | tRPC client | `client/src/lib/trpc.ts` |
-| Routes (39) | `client/src/App.tsx` |
+| Routes (~47) | `client/src/App.tsx` |
 | Sidebar nav | `DashboardLayout.tsx` → `navSections` array |
 | UI primitives | `client/src/components/ui/*` (53 shadcn components) |
 
@@ -105,9 +113,10 @@ See `docs/white-paper-alignment.md` for concept → code mapping.
 
 ## PRDs & Plans
 
-- Feature PRDs: `docs/plans/2026-02-24-f*-*.md` (F1–F24 improvements)
-- Platform PRDs: `docs/plans/2026-02-24-prd*-*.md`
-- Master index: `docs/plans/2026-02-24-23-improvements-index.md`
+- **Active plans**: `anavi/docs/plans/README.md` — canonical registry
+- **Active board**: `anavi/docs/ops/TODO_BOARD.md`
+- **Execution log**: `anavi/docs/ops/ENGINEERING_MEMORY.md`
+- Historical plans (reference only): `docs/plans/2026-02-24-*`
 - PRD paths are relative to `anavi/` (e.g., `server/routers/foo.ts` = `anavi/server/routers/foo.ts`)
 
 ## Pages: tRPC-backed vs Demo
@@ -119,14 +128,19 @@ See `docs/white-paper-alignment.md` for concept → code mapping.
 ## Environment Variables
 
 ```
-DATABASE_URL          # Required for DB-backed features
+DATABASE_URL              # Required for DB-backed features
 JWT_SECRET
 VITE_APP_ID
 OAUTH_SERVER_URL
 OWNER_OPEN_ID
-BUILT_IN_FORGE_API_URL  # Storage proxy
-BUILT_IN_FORGE_API_KEY  # Storage proxy
-ANTHROPIC_API_KEY       # Claude AI endpoints
+BUILT_IN_FORGE_API_URL    # Storage proxy
+BUILT_IN_FORGE_API_KEY    # Storage proxy
+ANTHROPIC_API_KEY         # Claude AI endpoints
+APP_RUNTIME_MODE          # demo | hybrid | live (server)
+VITE_APP_RUNTIME_MODE     # demo | hybrid | live (client)
+DOCUSIGN_INTEGRATION_KEY  # DocuSign OAuth (optional)
+DOCUSIGN_SECRET_KEY
+DOCUSIGN_ACCOUNT_ID
 ```
 
 ## Deployment

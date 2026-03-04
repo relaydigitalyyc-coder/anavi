@@ -13,27 +13,8 @@ model_provider = "openai"
 [permissions]
 # "untrusted" = no writes, "on-request" = ask per action, "never" = full auto
 approval_policy = "on-request"
-# "off", "workspace-read", "workspace-write", "danger-full-access"
+# "read-only", "workspace-write", "danger-full-access"
 sandbox_mode = "workspace-write"
-
-# Notifications (macOS)
-[notify]
-command = "terminal-notifier -title 'Codex ECC' -message 'Task completed!' -sound default"
-on_complete = true
-
-# History - persistent instructions applied to every session
-[history]
-# These are prepended to every conversation
-persistent_instructions = """
-Follow ECC principles:
-1. Test-Driven Development (TDD) - write tests first, 80%+ coverage required
-2. Immutability - always create new objects, never mutate
-3. Security-First - validate all inputs, no hardcoded secrets
-4. Conventional commits: feat|fix|refactor|docs|test|chore|perf|ci: description
-5. File organization: many small files (200-400 lines, 800 max)
-6. Error handling: handle at every level, never swallow errors
-7. Input validation: schema-based validation at system boundaries
-"""
 
 # MCP Servers
 # Codex supports command-based MCP servers
@@ -66,14 +47,13 @@ args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
 # command = "npx"
 # args = ["-y", "@anthropic/railway-mcp"]
 
-# Features
-[features]
-web_search_request = true
+# Web search behavior
+web_search = "live"
 
 # Profiles — switch with CODEX_PROFILE=<name>
 [profiles.strict]
 approval_policy = "on-request"
-sandbox_mode = "workspace-read"
+sandbox_mode = "read-only"
 
 [profiles.yolo]
 approval_policy = "never"

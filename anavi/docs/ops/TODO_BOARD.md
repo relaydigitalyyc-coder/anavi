@@ -1,10 +1,10 @@
 # TODO Board
 
-Last updated: 2026-03-02
+Last updated: 2026-03-04
 
 ## Next Up
 
-- Wire optimistic UI action outcomes (`opened room`, `queued NDA`, `escalated`) to real backend mutations.
+- (Done via Spec 001) Wire optimistic UI action outcomes (`opened room`, `queued NDA`, `escalated`) to real backend mutations.
 - Add principal `what changed in 24h` events from real activity/audit APIs.
 - Add investor export/publish actions to real endpoints.
 - Add DocuSign UI actions in Deal Room pages to call new endpoints (`createNdaEnvelope`, `sendNdaEnvelope`, `getNdaSignUrl`).
@@ -18,6 +18,7 @@ Last updated: 2026-03-02
 
 ## Done
 
+- Ralph Wiggum autonomous loop setup completed (scripts, constitution, templates, Claude/Cursor command helpers).
 - Persona-specific dashboard and page upgrades for Originator, Investor, Principal.
 - Shared `PersonaSurface` institutional component system (KPI ribbon, story beats, live proof, action cards).
 - Dashboard drill-through filtering and freshness metadata across persona flows.
@@ -39,3 +40,4 @@ Last updated: 2026-03-02
 ## Legacy
 
 - Historical checklist retained at `../todo_legacy_2026-02-15.md`.
+- Deal Flow action outcomes now backed by persisted mutations (Spec 001): NDA queue, escalation, and open room flows wired end-to-end with tests.

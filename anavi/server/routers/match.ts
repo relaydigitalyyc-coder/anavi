@@ -167,4 +167,75 @@ export const matchRouter = router({
 
       return { dealRoomId };
     }),
+
+  // Mark a match as queued for NDA processing
+  queueNda: protectedProcedure
+    .input(z.object({ matchId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const matches = await db.getMatchesByUser(ctx.user.id);
+      const match = matches.find(m => m.id === input.matchId);
+      if (!match) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      await db.updateMatch(input.matchId, { status: 'nda_pending' as const });
+
+      // Audit + notify counterparties
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: 'nda_queue',
+        entityType: 'match',
+        entityId: input.matchId,
+        previousState: { status: match.status },
+        newState: { status: 'nda_pending' },
+        metadata: { reason: 'User queued NDA from Deal Flow' },
+      });
+
+      const otherUserId = match.user1Id === ctx.user.id ? match.user2Id : match.user1Id;
+      await db.createNotification({
+        userId: otherUserId,
+        type: 'deal_update',
+        title: 'NDA Requested',
+        message: 'Your match has been queued for NDA execution.',
+        relatedEntityType: 'match',
+        relatedEntityId: input.matchId,
+      });
+
+      return { success: true };
+    }),
+
+  // Persist an escalation/pass intent with audit + notification
+  escalate: protectedProcedure
+    .input(z.object({ matchId: z.number(), reason: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const matches = await db.getMatchesByUser(ctx.user.id);
+      const match = matches.find(m => m.id === input.matchId);
+      if (!match) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      await db.updateMatch(input.matchId, { status: 'declined' as const });
+
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: 'escalation_requested',
+        entityType: 'match',
+        entityId: input.matchId,
+        previousState: { status: match.status },
+        newState: { status: 'declined' },
+        metadata: input.reason ? { reason: input.reason } : undefined,
+      });
+
+      const otherUserId = match.user1Id === ctx.user.id ? match.user2Id : match.user1Id;
+      await db.createNotification({
+        userId: otherUserId,
+        type: 'system',
+        title: 'Match Escalated',
+        message: 'Counterparty has escalated/declined this match.',
+        relatedEntityType: 'match',
+        relatedEntityId: input.matchId,
+      });
+
+      return { success: true };
+    }),
 });

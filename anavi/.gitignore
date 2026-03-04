@@ -106,3 +106,5 @@ temp/
 *.sqlite
 *.sqlite3
 .vercel
+testsprite_tests/tmp/
+fireflies_data.txt

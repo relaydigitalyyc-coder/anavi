@@ -125,8 +125,8 @@ export function HeroSection({
               </span>
             </motion.div>
 
-            <h1 className="font-display text-6xl md:text-7xl lg:text-[120px] font-serif leading-[0.85] mb-8 md:mb-10 text-white">
-              <span className="block overflow-hidden">
+            <h1 className="font-display text-6xl md:text-7xl lg:text-[96px] xl:text-[120px] font-serif leading-[0.85] mb-8 md:mb-10 text-white">
+              <span className="block overflow-y-hidden overflow-x-visible">
                 <motion.span
                   className="block"
                   initial={{ y: "120%", rotateX: -40 }}
@@ -140,7 +140,7 @@ export function HeroSection({
                   Custody
                 </motion.span>
               </span>
-              <span className="block overflow-hidden">
+              <span className="block overflow-y-hidden overflow-x-visible">
                 <motion.span
                   className="block"
                   initial={{ y: "120%", rotateX: -40 }}
@@ -154,7 +154,7 @@ export function HeroSection({
                   Your
                 </motion.span>
               </span>
-              <span className="block overflow-hidden">
+              <span className="block overflow-y-hidden overflow-x-visible">
                 <motion.span
                   className="block"
                   initial={{ y: "120%", rotateX: -40 }}
