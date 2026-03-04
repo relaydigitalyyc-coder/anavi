@@ -173,7 +173,6 @@ Do not prematurely claim all done. Continue sweeping for edge-case drift until n
 **Acceptance Criteria**
 - [x] anavi/docs/plans/README.md references active consistency work.
 - [x] anavi/docs/ops/ENGINEERING_MEMORY.md and TODO_BOARD.md reflect true execution status.
-- [x]  and  reflect true execution status.
 ### FR-6: Advanced Flow Integrity
 
 - Advanced and exception flows must be explicit, deterministic, and auditable.
