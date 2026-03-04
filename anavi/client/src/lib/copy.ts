@@ -31,22 +31,27 @@ export const PERSONAS = {
     label: "Deal Originator / Broker",
     role: "Relationship Holder",
     problem: "My introductions close deals I never get credit for.",
-    answer: "Custody your relationships. Timestamp your introductions. Collect your attribution.",
-    tourPitch: "You made 847 introductions last year. ANAVI would have attributed every one.",
+    answer:
+      "Custody your relationships. Timestamp your introductions. Collect your attribution.",
+    tourPitch:
+      "You made 847 introductions last year. ANAVI would have attributed every one.",
   },
   investor: {
     label: "Investor / Family Office",
     role: "Capital Deployer",
     problem: "I can't tell which deals are real or who's already seen them.",
-    answer: "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
-    tourPitch: "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
+    answer:
+      "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
+    tourPitch:
+      "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
   },
   principal: {
     label: "Principal / Asset Owner",
     role: "Supply Side",
     problem: "Raising capital means exposing my thesis before anyone commits.",
     answer: "Seal your asset. Match anonymously. Disclose only on consent.",
-    tourPitch: "You raised $30M. ANAVI protected your thesis until the moment you chose to disclose it.",
+    tourPitch:
+      "You raised $30M. ANAVI protected your thesis until the moment you chose to disclose it.",
   },
 } as const;
 
@@ -99,7 +104,8 @@ export const TOUR = {
   },
   close: {
     headline: "The Private Market Operating System.",
-    subhead: "Every relationship custodied. Every introduction attributed. Every deal closed on infrastructure purpose-built for the $13 trillion private market.",
+    subhead:
+      "Every relationship custodied. Every introduction attributed. Every deal closed on infrastructure purpose-built for the $13 trillion private market.",
     cta: {
       title: "Apply for Access",
       body: "You have seen the full picture: relationships protected, matches found, deal rooms secured, payouts automated. What would your relationships be worth if they were protected like this?",
@@ -126,7 +132,11 @@ export const MODULES = {
 
 export const PERSONA_NAV = {
   originator: {
-    exclusive: ["Custody Register", "Attribution Ledger", "Introduction Pipeline"],
+    exclusive: [
+      "Custody Register",
+      "Attribution Ledger",
+      "Introduction Pipeline",
+    ],
     routes: ["/custody", "/attribution", "/pipeline"],
   },
   investor: {
@@ -141,24 +151,155 @@ export const PERSONA_NAV = {
 
 /** Notification type labels shown on activity feed badges. */
 export const NOTIFICATIONS = {
-  matchFound:      { label: "MATCH" },
-  dealUpdate:      { label: "DEAL ROOM" },
-  payoutReceived:  { label: "ATTRIBUTION" },
+  matchFound: { label: "MATCH" },
+  dealUpdate: { label: "DEAL ROOM" },
+  payoutReceived: { label: "ATTRIBUTION" },
   complianceAlert: { label: "VERIFICATION" },
-  system:          { label: "SYSTEM" },
+  system: { label: "SYSTEM" },
 } as const;
 
 /** Toast messages triggered by dashboard CTA clicks. */
 export const TOASTS = {
   navigatingRelationships: "Opening Relationship Custody",
-  navigatingDealMatching:  "Opening Blind Matching",
+  navigatingDealMatching: "Opening Blind Matching",
+} as const;
+
+/**
+ * KYB / Compliance market data — sourced stats for UI copy.
+ * Sources: PwC, LSEG Risk Intelligence, PYMNTS, BrightDefense, Gitnux, ComplyCube, FigsFlow (2025–2026).
+ */
+export const COMPLIANCE_MARKET = {
+  globalComplianceSpend: {
+    value: "$271B",
+    label: "Global Compliance Spend",
+    detail: "Annual compliance costs across financial institutions worldwide",
+    source: "Gitnux Compliance Statistics 2026",
+  },
+  identityVerificationLoss: {
+    value: "$34B",
+    label: "Lost to Inefficient KYC/KYB",
+    detail:
+      "Annual losses from legacy identity verification — friction, false positives, and missed conversions",
+    source: "PYMNTS 2026",
+  },
+  duplicatedDueDiligence: {
+    value: "$500K",
+    label: "Duplicated Per Deal",
+    detail:
+      "Every investor in the chain runs the same KYC, OFAC, and accreditation checks — independently and without coordination",
+    source: "ANAVI White Paper",
+  },
+  costPerCheck: {
+    value: "$3–$19",
+    label: "Per Compliance Check",
+    detail: "Range per KYC/KYB check depending on provider and service tier",
+    source: "FigsFlow 2026",
+  },
+  budgetIncreasing: {
+    value: "87%",
+    label: "Expect Budget Increases",
+    detail:
+      "Of organizations anticipate enhanced due diligence budget increases, averaging 5.2% YoY growth",
+    source: "LSEG Risk Intelligence",
+  },
+  techSpendGrowing: {
+    value: "82%",
+    label: "Increasing Compliance Tech Spend",
+    detail:
+      "Of financial firms plan to increase investment in compliance technology",
+    source: "BrightDefense 2026",
+  },
+  processComplexity: {
+    value: "85%",
+    label: "Say Compliance Is More Complex",
+    detail:
+      "Of compliance teams report processes have become more complex over the past three years",
+    source: "PwC via ComplyCube",
+  },
+  subscriptionWaste: {
+    value: "30–60%",
+    label: "Subscription Capacity Wasted",
+    detail:
+      "Of paid compliance capacity wasted when onboarding volume fluctuates",
+    source: "FigsFlow 2026",
+  },
+} as const;
+
+/** Duna-inspired KYB value propositions mapped to ANAVI's Compliance Passport. */
+export const KYB_VALUE = {
+  headline: "Compliance that compounds, not duplicates.",
+  subhead:
+    "Every counterparty on ANAVI carries a Compliance Passport — KYB verified, sanctions screened, accredited. You access the result. You don't repeat the work.",
+  pillars: [
+    {
+      metric: "10x",
+      label: "Faster Onboarding",
+      detail:
+        "Pre-verified counterparties eliminate weeks of back-and-forth. Match, verify once, transact repeatedly.",
+    },
+    {
+      metric: "87%",
+      label: "Cost Reduction",
+      detail:
+        "Shared compliance passports eliminate $50K–$500K in duplicated due diligence per deal.",
+    },
+    {
+      metric: "100%",
+      label: "Audit Trail Coverage",
+      detail:
+        "Every check, every decision, every policy change — cryptographically logged and immutable.",
+    },
+  ],
+  modules: [
+    {
+      id: "kyb",
+      label: "KYB Verification",
+      desc: "Entity verification, UBO discovery, corporate structure mapping",
+    },
+    {
+      id: "sanctions",
+      label: "Sanctions Screening",
+      desc: "OFAC, EU, UN — daily perpetual monitoring",
+    },
+    {
+      id: "pep",
+      label: "PEP & Adverse Media",
+      desc: "Politically exposed persons and negative news monitoring",
+    },
+    {
+      id: "aml",
+      label: "AML Screening",
+      desc: "Anti-money laundering transaction pattern analysis",
+    },
+    {
+      id: "accreditation",
+      label: "Accreditation",
+      desc: "Investor accreditation status and qualified purchaser confirmation",
+    },
+    {
+      id: "jurisdiction",
+      label: "Jurisdiction Check",
+      desc: "Regulatory compliance by region and cross-border eligibility",
+    },
+    {
+      id: "idv",
+      label: "ID Verification",
+      desc: "Document verification and biometric confirmation for representatives",
+    },
+    {
+      id: "legal",
+      label: "Legal & Contracting",
+      desc: "NDA execution, terms acceptance, electronic signature",
+    },
+  ],
 } as const;
 
 /** Dashboard widget titles, labels, and CTAs. */
 export const DASHBOARD = {
   trustScore: {
     title: "Trust Score",
-    scoreChange: (delta: number) => `${delta > 0 ? "+" : ""}${delta} this month`,
+    scoreChange: (delta: number) =>
+      `${delta > 0 ? "+" : ""}${delta} this month`,
     whitelistStatus: "Whitelist",
     compoundNature:
       "Your score compounds with every verified transaction and peer attestation.",

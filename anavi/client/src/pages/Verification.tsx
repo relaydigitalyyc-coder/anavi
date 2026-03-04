@@ -947,12 +947,48 @@ export default function Verification() {
   }, []);
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in bg-slate-50 min-h-screen">
+    <div className="space-y-8 animate-fade-in bg-slate-50 min-h-screen">
       {upgradeOpen && <UpgradeModal onClose={() => setUpgradeOpen(false)} />}
+
+      {/* KYB Value Proposition Banner — market research backed */}
+      <FadeInView>
+        <div className="rounded-2xl bg-gradient-to-br from-[#0A1628] via-[#132035] to-[#0A1628] p-6 md:p-8 relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#C4972A]/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-[#2563EB]/5 rounded-full blur-3xl" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="max-w-lg">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#C4972A] mb-2">
+                Compliance Passport
+              </p>
+              <h1 className="dash-heading text-2xl md:text-3xl text-white mb-2">
+                Verify once, transact forever.
+              </h1>
+              <p className="text-sm text-white/50 leading-relaxed">
+                Your Compliance Passport travels with every deal on ANAVI.
+                Counterparties access your verified status — they don't
+                duplicate your $50K–$500K in due diligence.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              {[
+                { val: "$271B", sub: "Global compliance spend" },
+                { val: "$34B", sub: "Lost to inefficiency" },
+              ].map(s => (
+                <div key={s.val} className="text-center">
+                  <p className="font-serif text-2xl text-[#C4972A]">{s.val}</p>
+                  <p className="text-[9px] text-white/40 uppercase tracking-wider mt-1">
+                    {s.sub}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </FadeInView>
 
       {/* ── Page Header ── */}
       <FadeInView>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 px-2">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-slate-900/10">
             <ShieldCheck className="w-6 h-6 text-slate-900" />
           </div>

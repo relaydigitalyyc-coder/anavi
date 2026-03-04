@@ -17,8 +17,18 @@ import {
   Globe,
   RefreshCw,
   AlertCircle,
+  TrendingDown,
+  Zap,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { COMPLIANCE_MARKET, KYB_VALUE } from "@/lib/copy";
+import {
+  FadeInView,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/PageTransition";
+import { SmoothCounter } from "@/components/PremiumAnimations";
 
 const COMPLIANCE_CHECKS = [
   {
@@ -162,38 +172,110 @@ export default function Compliance() {
         : "border-border";
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-teal-600" />
+    <div className="space-y-8 animate-fade-in">
+      {/* Hero Header — Duna-inspired value prop */}
+      <FadeInView>
+        <div className="rounded-2xl border border-[#1E3A5F]/10 bg-gradient-to-br from-[#0A1628] to-[#162040] p-6 md:p-10 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#C4972A]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+              <div className="max-w-2xl">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[#22D4F5]/70 mb-3">
+                  Compliance Passport
+                </p>
+                <h1 className="dash-heading text-3xl md:text-4xl text-white mb-3">
+                  {KYB_VALUE.headline}
+                </h1>
+                <p className="text-sm md:text-base text-white/60 leading-relaxed max-w-xl">
+                  {KYB_VALUE.subhead}
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  if (user?.id) {
+                    runCheckMutation.mutate({
+                      entityType: "user",
+                      entityId: user.id,
+                      checkType: "sanctions",
+                    });
+                  }
+                }}
+                disabled={runCheckMutation.isPending}
+                className="btn-gold shrink-0"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 mr-2 ${runCheckMutation.isPending ? "animate-spin" : ""}`}
+                />
+                Run All Checks
+              </Button>
             </div>
-            Compliance Center
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Real-time sanctions screening and regulatory compliance
-          </p>
+
+            {/* Animated stat counters — sourced market data */}
+            <StaggerContainer className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                {
+                  icon: TrendingDown,
+                  metric: "$34B",
+                  label: "Lost annually to inefficient KYC/KYB",
+                  source: COMPLIANCE_MARKET.identityVerificationLoss.source,
+                },
+                {
+                  icon: Zap,
+                  metric: "10x",
+                  label: "Faster onboarding with shared passports",
+                  source: "ANAVI Platform",
+                },
+                {
+                  icon: Shield,
+                  metric: "87%",
+                  label: "Cost reduction per deal",
+                  source: COMPLIANCE_MARKET.budgetIncreasing.source,
+                },
+                {
+                  icon: Lock,
+                  metric: "100%",
+                  label: "Immutable audit trail coverage",
+                  source: "ANAVI Platform",
+                },
+              ].map(stat => (
+                <StaggerItem key={stat.label}>
+                  <div className="rounded-xl border border-white/8 bg-white/[0.04] px-4 py-4 group hover:border-[#C4972A]/20 transition-colors">
+                    <stat.icon className="w-4 h-4 text-[#C4972A] mb-2" />
+                    <p className="font-serif text-2xl md:text-3xl text-white">
+                      {stat.metric}
+                    </p>
+                    <p className="text-[10px] text-white/45 mt-1 leading-snug">
+                      {stat.label}
+                    </p>
+                  </div>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
         </div>
-        <Button
-          onClick={() => {
-            if (user?.id) {
-              runCheckMutation.mutate({
-                entityType: "user",
-                entityId: user.id,
-                checkType: "sanctions",
-              });
-            }
-          }}
-          disabled={runCheckMutation.isPending}
-        >
-          <RefreshCw
-            className={`w-4 h-4 mr-2 ${runCheckMutation.isPending ? "animate-spin" : ""}`}
-          />
-          Run All Checks
-        </Button>
-      </div>
+      </FadeInView>
+
+      {/* KYB Modules Matrix — Duna-inspired */}
+      <FadeInView delay={0.1}>
+        <div className="card-elevated p-6">
+          <h2 className="data-label mb-4">Compliance Modules</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {KYB_VALUE.modules.map(mod => (
+              <div
+                key={mod.id}
+                className="rounded-xl border border-[#D1DCF0]/60 bg-[#F3F7FC]/50 p-4 hover:border-[#C4972A]/30 hover:bg-white transition-all duration-200"
+              >
+                <p className="text-sm font-semibold text-[#0A1628] mb-1">
+                  {mod.label}
+                </p>
+                <p className="text-xs text-[#1E3A5F]/60 leading-relaxed">
+                  {mod.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeInView>
 
       {/* Overall Status */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

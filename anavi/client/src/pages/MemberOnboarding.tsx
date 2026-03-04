@@ -290,16 +290,51 @@ export default function MemberOnboarding() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+    <div className="space-y-4 md:space-y-6">
+      {/* Duna-inspired Onboard Hero */}
+      <div className="rounded-2xl bg-gradient-to-br from-[#0A1628] via-[#132035] to-[#0A1628] p-6 md:p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-[#C4972A]/5 rounded-full -translate-y-1/3 translate-x-1/3 blur-3xl" />
+        <div className="relative z-10">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#22D4F5]/70 mb-3">
             Member Onboarding
+          </p>
+          <h1 className="dash-heading text-2xl md:text-3xl text-white mb-2">
+            Designed to convert. Built to scale.
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Onboard members with $300K capital allocation and track
-            contributions
+          <p className="text-sm text-white/50 max-w-lg leading-relaxed mb-6">
+            High-converting onboarding journeys, no code required. Pre-verified
+            counterparties, adaptive data collection, and first-time-right
+            compliance.
+          </p>
+          <div className="grid grid-cols-3 gap-4 max-w-md">
+            {[
+              { val: "10x", label: "Faster onboarding" },
+              { val: "40%", label: "Conversion increase" },
+              { val: "3x", label: "Analyst efficiency" },
+            ].map(s => (
+              <div
+                key={s.label}
+                className="rounded-lg border border-white/8 bg-white/[0.04] p-3 text-center"
+              >
+                <p className="font-serif text-xl text-[#C4972A]">{s.val}</p>
+                <p className="text-[9px] text-white/40 uppercase tracking-wider mt-1">
+                  {s.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Action Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Active Members
+          </h2>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            {activeOnboardingStats.totalMembers.toLocaleString()} members
+            &middot; {activeOnboardingStats.pendingApproval} pending review
           </p>
         </div>
         <Dialog open={showOnboardDialog} onOpenChange={setShowOnboardDialog}>
@@ -608,6 +643,38 @@ export default function MemberOnboarding() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Duna-inspired Module Strip */}
+      <div className="card-elevated p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-[#0A1628]">
+            Onboarding Modules
+          </h3>
+          <span className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/40">
+            Duna Onboard
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            "Business Details",
+            "Legal Representatives",
+            "Ownership & UBO",
+            "AML Screening",
+            "Bank Account",
+            "Proof of Address",
+            "Terms & Conditions",
+            "ID Verification",
+            "Accreditation",
+          ].map(mod => (
+            <span
+              key={mod}
+              className="px-3 py-1.5 text-xs font-medium rounded-full border border-[#D1DCF0]/60 bg-[#F3F7FC]/50 text-[#1E3A5F] hover:border-[#C4972A]/30 hover:bg-[#C4972A]/5 transition-colors cursor-default"
+            >
+              {mod}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Liquidity Calculation */}
