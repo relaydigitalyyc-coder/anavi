@@ -114,7 +114,7 @@ export default function DealMatching() {
   ];
 
   useEffect(() => {
-    document.title = "Deal Matching | ANAVI";
+    document.title = "Blind Matching | ANAVI";
   }, []);
 
   return (
@@ -124,7 +124,7 @@ export default function DealMatching() {
         <FadeInView>
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="dash-heading text-3xl">Deal Matching</h1>
+              <h1 className="dash-heading text-3xl">Blind Matching</h1>
               <p className="mt-1 text-sm text-gray-500">
                 Post intents and discover high-quality counterparties
               </p>
