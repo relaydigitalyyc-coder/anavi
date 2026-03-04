@@ -111,7 +111,7 @@
       "Bash(grep -n \"as any\\\\|as unknown\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/CustodyRegister.tsx 2>/dev/null | head -10\ngrep -n \"as any\\\\|as unknown\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/CounterpartyIntelligence.tsx 2>/dev/null | head -10\ngrep -n \"as any\\\\|as unknown\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/IntroductionPipeline.tsx 2>/dev/null | head -10)",
       "Bash(pnpm check 2>&1 | grep -E \"error TS\" | head -20)",
       "Bash(pnpm check 2>&1)",
-      "Bash(grep -n \"^function \\\\|^const \\\\|^export \\\\|\\\\/\\\\/ \u2500\u2500\\\\|\\\\/\\\\/ ==\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/DealMatching.tsx | head -40\ngrep -n \"^function \\\\|^const \\\\|^export \\\\|\\\\/\\\\/ \u2500\u2500\\\\|\\\\/\\\\/ ==\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Home.tsx | head -40)",
+      "Bash(grep -n \"^function \\\\|^const \\\\|^export \\\\|\\\\/\\\\/ ──\\\\|\\\\/\\\\/ ==\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/DealMatching.tsx | head -40\ngrep -n \"^function \\\\|^const \\\\|^export \\\\|\\\\/\\\\/ ──\\\\|\\\\/\\\\/ ==\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Home.tsx | head -40)",
       "Bash(grep -n \"^function \\\\|^const [A-Z]\\\\|^export \" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Home.tsx | head -35\ngrep -n \"^function \\\\|^const [A-Z]\\\\|^export \" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Demo.tsx | head -35)",
       "Bash(grep -n \"^function \\\\|^export \" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Home.tsx | head -30\ngrep -n \"^function \\\\|^export \" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Demo.tsx | head -30)",
       "Bash(grep -n \"^function \\\\|^export \\\\|^const [A-Z]\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Demo.tsx 2>/dev/null | head -30\ngrep -n \"id=\\\\\"\\\\|section\\\\|// \" /home/ariel/Documents/anavi-main/anavi/client/src/pages/Home.tsx 2>/dev/null | grep -v \"  //\" | head -30)",
@@ -121,7 +121,8 @@
       "Bash(ls -la /tmp/ds-swarm-split-*.txt 2>/dev/null; ps aux | grep \"[d]s-swarm\" | head -3)",
       "Bash(grep -n \"SmoothReveal\\\\|SmoothCounter\\\\|Spotlight\\\\|StaggeredList\\\\|Magnetic\" /home/ariel/Documents/anavi-main/anavi/client/src/pages/home/*.tsx | head -30)",
       "mcp__plugin_context-mode_context-mode__batch_execute",
-      "Bash(wc -l /home/ariel/Documents/anavi-main/anavi/client/src/pages/Demo.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.ts 2>/dev/null && echo \"---\" && pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -5)"
+      "Bash(wc -l /home/ariel/Documents/anavi-main/anavi/client/src/pages/Demo.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.tsx /home/ariel/Documents/anavi-main/anavi/client/src/pages/demo/*.ts 2>/dev/null && echo \"---\" && pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -5)",
+      "Bash(pnpm --prefix /home/ariel/Documents/anavi-main/anavi check 2>&1 | tail -10)"
     ]
   }
 }

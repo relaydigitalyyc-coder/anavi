@@ -163,6 +163,7 @@ export function PrincipalDashboardContent() {
           </DashCard>
         </StaggerItem>
 
+        <StaggerItem>
           <DashCard title="Compliance Passport" dataTour="verification" className="mb-4">
             {isDemo ? (
               <>

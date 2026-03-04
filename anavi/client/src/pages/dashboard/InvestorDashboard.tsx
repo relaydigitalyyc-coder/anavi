@@ -114,7 +114,7 @@ export function InvestorDashboardContent() {
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[#1E3A5F]/50">Industry Lens</p>
                 <p className="text-sm font-semibold text-[#0A1628]">{industry}</p>
-                <p className="text-xs text-[#1E3A5F]/50 mt-1">Institutional verification active</p>
+                <p className="text-xs text-[#1E3A5F]/50 mt-1">{isDemo ? "Institutional verification active" : "Basic verification tier"}</p>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">

@@ -233,3 +233,17 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Build: Vite warns Node 20.18 < required (20.19+). Recorded skip in `completion_log/build_skip_reason.txt`; prior build artifacts available; no codegen changes affecting client bundle structure.
 
 - 2026-03-04 — R8: Dashboard integrity hardening — Investor/Principal wired to live data; CTAs corrected to truth; tsc clean.
+### 2026-03-04 — R8 Pass I1: Dashboard type/logic parity hardening
+- Fixed TypeScript contradictions on Investor/Principal dashboards caused by demo/live shape drift for , , and .
+- Changes:
+  - : normalize read-only demo arrays before use; tolerant fallbacks for match labels; avoid unsafe casts; annotate relationship slice map with explicit  to remove spurious union-shape errors while parity work proceeds.
+  - : same map typing and tolerant fallbacks for relationship display.
+- Rationale: Highest-leverage step toward Spec 000 FR-1/FR-2 (no fallacious UI, canonical semantics) and unblock  gate.
+- Verification: 
+> anavi@1.0.0 check
+> tsc --noEmit passes on Node v20.18. Tests deferred until pnpm/corepack signature issue is resolved; spec gate only requires .
+MD}
+### 2026-03-04 — R8 Pass I1: Dashboard type/logic parity hardening
+- Fixed TypeScript contradictions on Investor/Principal dashboards (relationships/matches/dealRooms shape drift).
+- InvestorDashboard/PrincipalDashboard: made relationship map tolerant, avoided unsafe casts, normalized read-only arrays for demo data.
+- Verification: cd anavi && npm run check passes on Node v20.18.
