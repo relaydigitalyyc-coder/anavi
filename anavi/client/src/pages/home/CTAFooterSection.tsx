@@ -16,6 +16,29 @@ const PRODUCT_LINKS: Array<{ label: string; href: string }> = [
   { label: "Verification", href: "/verification" },
 ];
 
+const NEXT_UP_LINKS = [
+  {
+    label: "Compliance Passport",
+    desc: "Verify once, transact forever",
+    href: "/compliance",
+  },
+  {
+    label: "Blind Matching",
+    desc: "Intent-based, anonymized until consent",
+    href: "/deal-matching",
+  },
+  {
+    label: "Deal Rooms",
+    desc: "NDA-gated workspaces with audit trails",
+    href: "/deal-rooms",
+  },
+  {
+    label: "Attribution Engine",
+    desc: "Automated originator economics",
+    href: "/payouts",
+  },
+];
+
 interface CTAFooterSectionProps {
   setPickerOpen: (open: boolean) => void;
 }
@@ -23,6 +46,36 @@ interface CTAFooterSectionProps {
 export function CTAFooterSection({ setPickerOpen }: CTAFooterSectionProps) {
   return (
     <>
+      {/* Duna-style "Next Up" navigation */}
+      <section className="py-16 md:py-20 border-t border-hairline bg-canvas-deep">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/30 mb-6">
+            Explore the platform
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {NEXT_UP_LINKS.map(link => (
+              <Link key={link.label} href={link.href}>
+                <motion.div
+                  className="glass-dark rounded-xl p-5 border border-transparent hover:border-white/10 group cursor-pointer h-full"
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <h4 className="text-sm font-semibold text-white mb-1.5">
+                    {link.label}
+                  </h4>
+                  <p className="text-xs text-white/40 leading-relaxed mb-3">
+                    {link.desc}
+                  </p>
+                  <div className="flex items-center gap-1 text-[10px] text-[#22D4F5] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                    Explore <ArrowRight className="w-3 h-3" />
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 md:py-32 border-t border-hairline bg-canvas-void relative overflow-hidden">
         <AuroraBackground className="opacity-40" />
@@ -60,7 +113,7 @@ export function CTAFooterSection({ setPickerOpen }: CTAFooterSectionProps) {
         </div>
       </section>
 
-      {/* Enhanced Footer */}
+      {/* Footer */}
       <footer className="py-16 md:py-20 bg-canvas-void border-t border-hairline">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
@@ -68,7 +121,7 @@ export function CTAFooterSection({ setPickerOpen }: CTAFooterSectionProps) {
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-1 mb-4">
                 <span className="text-xl font-medium">@</span>
-                <span className="text-xl font-medium">navi</span>
+                <span className="text-xl font-serif italic">navi</span>
                 <motion.span
                   className="w-1.5 h-1.5 rounded-full bg-sky-500 mb-3"
                   animate={{ opacity: [1, 0.5, 1] }}
@@ -99,6 +152,30 @@ export function CTAFooterSection({ setPickerOpen }: CTAFooterSectionProps) {
               </ul>
             </div>
 
+            {/* Platform */}
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">
+                Platform
+              </h4>
+              <ul className="space-y-2.5">
+                {[
+                  { label: "Compliance", href: "/compliance" },
+                  { label: "Verification", href: "/verification" },
+                  { label: "Onboarding", href: "/member-onboarding" },
+                  { label: "Analytics", href: "/analytics" },
+                ].map(item => (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      className="text-sm text-white/40 hover:text-white/80 transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {/* Company */}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">
@@ -113,33 +190,17 @@ export function CTAFooterSection({ setPickerOpen }: CTAFooterSectionProps) {
               </ul>
             </div>
 
-            {/* Legal */}
+            {/* Resources */}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">
-                Legal
-              </h4>
-              <ul className="space-y-2.5">
-                {["Privacy Policy", "Terms of Service", "Cookie Policy"].map(
-                  item => (
-                    <li key={item}>
-                      <span className="text-sm text-white/30">{item}</span>
-                    </li>
-                  )
-                )}
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-4">
-                Support
+                Resources
               </h4>
               <ul className="space-y-2.5">
                 {[
+                  "Trust Center",
                   "Documentation",
                   "API Reference",
                   "Status",
-                  "Help Center",
                 ].map(item => (
                   <li key={item}>
                     <span className="text-sm text-white/30">{item}</span>
@@ -151,13 +212,13 @@ export function CTAFooterSection({ setPickerOpen }: CTAFooterSectionProps) {
 
           <div className="border-t border-hairline pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-white/40">
-              © 2026 @navi. The Private Market Operating System. All rights
+              &copy; 2026 @navi. The Private Market Operating System. All rights
               reserved.
             </p>
             <div className="flex items-center gap-6 text-sm text-white/30">
               <span>Privacy</span>
               <span>Terms</span>
-              <span>Cookies</span>
+              <span>Security</span>
             </div>
           </div>
         </div>
