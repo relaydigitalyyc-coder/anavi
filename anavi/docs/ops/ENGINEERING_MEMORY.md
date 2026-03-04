@@ -179,3 +179,11 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Added audit + notification on `match.decline` (action: `match_declined`).
 - Extended `server/test/integration/funnel.test.ts` to enforce audit + notification on interest→deal_room path.
 - Validation: `npx tsc --noEmit` clean; `npx vitest run` 63/63 passing. Corepack/pnpm signature issue observed; used direct npx runners.
+
+### 2026-03-04 — R7 FR-1 Guard/Wrapper Coherence + Naming
+
+- Added explicit runtime guard matrix + wrapper policy to R7 plan (demo/hybrid/live).
+- Verified route wrappers: only 'ShellRoute' for shell pages and 'ProtectedPage' for full-screen flows; no page mounts 'DashboardLayout'.
+- Fixed page copy drift: renamed Deal Matching page heading/title to Blind Matching to match nav + whitepaper language.
+- Validated in code: 'ProtectedRoute' enforces auth only in live via AppMode capabilities; demo/hybrid non-redirect behavior intentional.
+- Docs/ops synced; spec 002 FR-1/FR-5 acceptance satisfied for this pass.
