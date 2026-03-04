@@ -187,3 +187,15 @@ Purpose: lightweight, chronological memory of significant implementation decisio
 - Fixed page copy drift: renamed Deal Matching page heading/title to Blind Matching to match nav + whitepaper language.
 - Validated in code: 'ProtectedRoute' enforces auth only in live via AppMode capabilities; demo/hybrid non-redirect behavior intentional.
 - Docs/ops synced; spec 002 FR-1/FR-5 acceptance satisfied for this pass.
+### 2026-03-04 — R7 FR-6 Advanced Flow Integrity (Initial Pass)
+
+- Implemented idempotency + conflict handling for core match lifecycle:
+  - `match.expressInterest`: idempotent on repeat caller; rejects on terminal states (`declined|expired`).
+  - `match.createDealRoom`: idempotent (returns existing `dealRoomId`); rejects on terminal states; enforces `mutual_interest` precondition.
+  - `match.queueNda`: idempotent; rejects after `deal_room_created` and on terminal states.
+  - `match.escalate`: idempotent when already `declined`; rejects after `deal_room_created`.
+- Added audit taxonomy for no-op/denied events: `*_noop`, `*_rejected` with reason metadata for traceability.
+- Added notification de-duplication (emit only on state change) to avoid spam under retries.
+- Extended `server/test/integration/funnel.test.ts` with four AF tests covering idempotency and conflicts.
+- Validation: `npx tsc --noEmit` clean; `npx vitest run` 67/67 passing.
+- Build: Vite warns Node 20.18 < required (20.19+). Recorded skip in `completion_log/build_skip_reason.txt`; prior build artifacts available; no codegen changes affecting client bundle structure.

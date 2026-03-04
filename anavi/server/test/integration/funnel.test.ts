@@ -224,6 +224,142 @@ describe("F20: Integration Funnel", () => {
     await expect(caller.match.createDealRoom({ matchId: 99 })).rejects.toThrow();
   });
 
+  it("expressInterest is idempotent and rejects on terminal states", async () => {
+    const caller = createTestCaller(appRouter, 5);
+    // seed a match
+    store.matches.push({
+      id: 300,
+      intent1Id: 1,
+      intent2Id: 2,
+      user1Id: 5,
+      user2Id: 6,
+      status: "pending",
+      user1Consent: false,
+      user2Consent: false,
+    });
+
+    // first interest → user1_interested
+    const nBefore = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    const notifyBefore = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    await caller.match.expressInterest({ matchId: 300 });
+    const m1 = store.matches.find((m) => m.id === 300)!;
+    expect(m1.status).toBe("user1_interested");
+    const nAfter = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(nAfter).toBeGreaterThan(nBefore);
+    const notifyAfter = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(notifyAfter).toBeGreaterThan(notifyBefore);
+
+    // second interest from same user → noop
+    const nBefore2 = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    const notifyBefore2 = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    await caller.match.expressInterest({ matchId: 300 });
+    const nAfter2 = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(nAfter2).toBe(nBefore2); // no extra update on noop
+    const notifyAfter2 = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(notifyAfter2).toBe(notifyBefore2); // no duplicate notify
+
+    // set to declined and ensure reject
+    m1.status = "declined";
+    await expect(caller.match.expressInterest({ matchId: 300 })).rejects.toThrow();
+  });
+
+  it("createDealRoom is idempotent and conflicts on terminal states", async () => {
+    const caller = createTestCaller(appRouter, 7);
+    // mutual interest and room created
+    store.matches.push({
+      id: 301,
+      intent1Id: 1,
+      intent2Id: 2,
+      user1Id: 7,
+      user2Id: 8,
+      status: "mutual_interest",
+      user1Consent: true,
+      user2Consent: true,
+      dealRoomId: undefined,
+    } as any);
+
+    const room = await caller.match.createDealRoom({ matchId: 301 });
+    expect(room.dealRoomId).toBeGreaterThan(0);
+    const createCalls = (db.createDealRoom as unknown as { mock: { calls: any[] } }).mock.calls.length;
+
+    // Call again → should return same id without creating a new room
+    const room2 = await caller.match.createDealRoom({ matchId: 301 });
+    expect(room2.dealRoomId).toBe(room.dealRoomId);
+    const createCalls2 = (db.createDealRoom as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(createCalls2).toBe(createCalls); // no additional create
+
+    // Terminal state conflict
+    const m = store.matches.find((x) => x.id === 301)!;
+    m.status = "declined";
+    await expect(caller.match.createDealRoom({ matchId: 301 })).rejects.toThrow();
+  });
+
+  it("queueNda idempotent and rejects after deal room created", async () => {
+    const caller = createTestCaller(appRouter, 9);
+    store.matches.push({
+      id: 302,
+      intent1Id: 1,
+      intent2Id: 2,
+      user1Id: 9,
+      user2Id: 10,
+      status: "pending",
+      user1Consent: false,
+      user2Consent: false,
+    });
+
+    const notifyBefore = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    await caller.match.queueNda({ matchId: 302 });
+    const m = store.matches.find((x) => x.id === 302)!;
+    expect(m.status).toBe("nda_pending");
+    const notifyAfter = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(notifyAfter).toBeGreaterThan(notifyBefore);
+
+    // idempotent second call
+    const updateBefore = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    const notifyBefore2 = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    await caller.match.queueNda({ matchId: 302 });
+    const updateAfter = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    const notifyAfter2 = (db.createNotification as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(updateAfter).toBe(updateBefore); // no-op update
+    expect(notifyAfter2).toBe(notifyBefore2); // no duplicate notify
+
+    // room created → reject
+    m.status = "deal_room_created";
+    await expect(caller.match.queueNda({ matchId: 302 })).rejects.toThrow();
+  });
+
+  it("escalate rejects after room created and is idempotent on declined", async () => {
+    const caller = createTestCaller(appRouter, 13);
+    store.matches.push({
+      id: 303,
+      intent1Id: 1,
+      intent2Id: 2,
+      user1Id: 13,
+      user2Id: 14,
+      status: "pending",
+      user1Consent: false,
+      user2Consent: false,
+    });
+
+    // First escalate
+    const updateBefore = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    await caller.match.escalate({ matchId: 303, reason: "No fit" });
+    const updateAfter = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(updateAfter).toBeGreaterThan(updateBefore);
+    let m = store.matches.find((x) => x.id === 303)!;
+    expect(m.status).toBe("declined");
+
+    // Second escalate (already declined) → idempotent
+    const updateBefore2 = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    await caller.match.escalate({ matchId: 303, reason: "Still no" });
+    const updateAfter2 = (db.updateMatch as unknown as { mock: { calls: any[] } }).mock.calls.length;
+    expect(updateAfter2).toBe(updateBefore2);
+
+    // Now simulate room created state and ensure conflict
+    m.status = "deal_room_created";
+    await expect(caller.match.escalate({ matchId: 303, reason: "late" })).rejects.toThrow();
+  });
+
   it("DealFlow action: queueNda persists state and notifies", async () => {
     const caller = createTestCaller(appRouter, 1);
     // seed a match

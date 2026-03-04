@@ -1,6 +1,6 @@
 # TODO Board
 
-Last updated: 2026-03-04
+Last updated: 2026-03-04 (late)
 
 ## Next Up
 
@@ -8,6 +8,7 @@ Last updated: 2026-03-04
 - Execute 50-pass Ralph hardening loop in agent mode with contradiction-first triage and strict verification gates.
 - Expand R7 execution to advanced flows: exception, retry, reversal, multi-actor conflict, governance hold/release, and recovery semantics.
 - Execute exhaustive `AF-*` advanced-flow catalog and keep unresolved critical items as closeout blockers (`anavi/docs/plans/2026-03-04-prd-r7-advanced-flow-catalog.md`).
+  - Initial AF pass complete for match lifecycle idempotency/conflicts (interest/deal-room/NDA/escalate) with tests.
 - (Done via Spec 001) Wire optimistic UI action outcomes (`opened room`, `queued NDA`, `escalated`) to real backend mutations.
 - (Done 2026-03-04) R7 FR-4: Ensure audit + notifications consistency for interest, deal-room creation, and decline paths.
 - Add principal `what changed in 24h` events from real activity/audit APIs.
@@ -22,6 +23,7 @@ Last updated: 2026-03-04
 - DocuSign backend integration wiring (provider + webhook + deal room endpoint integration).
 - Platform-wide logic consistency and flow synchronization hardening (R7).
   - FR-4 lifecycle audit/notification consistency — COMPLETE.
+  - FR-6 advanced flow integrity — lifecycle idempotency/conflict subset COMPLETE; compliance/payout governance pending.
 - Demo system unification complete — removed duplicate client/src/lib/DemoContext.tsx; demo route now uses canonical contexts/DemoContext + fixtures adapter. Persona canonicalization wired (developer→principal, allocator→investor).
 - R7 50-pass Ralph agent-mode run active (`logs/ralph_agent50_20260303_214206.meta`).
 

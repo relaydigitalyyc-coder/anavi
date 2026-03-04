@@ -55,40 +55,70 @@ export const matchRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
-      const isUser1 = match.user1Id === ctx.user.id;
-      const updateData = isUser1
-        ? { user1Consent: true, user1ConsentAt: new Date() }
-        : { user2Consent: true, user2ConsentAt: new Date() };
-
-      const otherConsent = isUser1 ? match.user2Consent : match.user1Consent;
-      if (otherConsent) {
-        Object.assign(updateData, { status: 'mutual_interest' as const });
-      } else {
-        Object.assign(updateData, { status: isUser1 ? 'user1_interested' as const : 'user2_interested' as const });
+      // Reject interest on terminal states
+      if (match.status === 'declined' || match.status === 'expired') {
+        await db.logAuditEvent({
+          userId: ctx.user.id,
+          action: 'interest_rejected',
+          entityType: 'match',
+          entityId: input.matchId,
+          previousState: { status: match.status },
+          newState: { status: match.status },
+          metadata: { reason: 'terminal_status' },
+        });
+        throw new TRPCError({ code: 'CONFLICT', message: 'Cannot express interest on a declined or expired match.' });
       }
 
-      await db.updateMatch(input.matchId, updateData);
+      const isUser1 = match.user1Id === ctx.user.id;
+      const userAlreadyConsented = isUser1 ? !!match.user1Consent : !!match.user2Consent;
+      const otherConsent = isUser1 ? match.user2Consent : match.user1Consent;
+
+      // Compute next status without forcing change on idempotent calls
+      const nextStatus = otherConsent
+        ? ('mutual_interest' as const)
+        : (!userAlreadyConsented
+            ? (isUser1 ? ('user1_interested' as const) : ('user2_interested' as const))
+            : (match.status as typeof match.status));
+
+      const updateData: Record<string, unknown> = isUser1
+        ? { user1Consent: true }
+        : { user2Consent: true };
+      if (!userAlreadyConsented) {
+        // Only stamp consentAt on first consent from this actor
+        if (isUser1) Object.assign(updateData, { user1ConsentAt: new Date() });
+        else Object.assign(updateData, { user2ConsentAt: new Date() });
+      }
+      if (nextStatus !== match.status) Object.assign(updateData, { status: nextStatus });
+
+      // Idempotency: no DB write if nothing actually changes
+      const willChange = !userAlreadyConsented || nextStatus !== match.status;
+      if (willChange) {
+        await db.updateMatch(input.matchId, updateData);
+      }
 
       // Audit interest expression for lifecycle traceability
       await db.logAuditEvent({
         userId: ctx.user.id,
-        action: 'interest_expressed',
+        action: willChange ? 'interest_expressed' : 'interest_expressed_noop',
         entityType: 'match',
         entityId: input.matchId,
         previousState: { status: match.status },
-        newState: { status: (updateData as any).status },
+        newState: { status: nextStatus },
         metadata: { actor: isUser1 ? 'user1' : 'user2' },
       });
 
       const otherUserId = isUser1 ? match.user2Id : match.user1Id;
-      await db.createNotification({
-        userId: otherUserId,
-        type: 'match_found',
-        title: 'New Match Interest',
-        message: 'Someone has expressed interest in your intent match.',
-        relatedEntityType: 'match',
-        relatedEntityId: input.matchId,
-      });
+      // Only notify on actual change to avoid duplicate spam from retries
+      if (willChange) {
+        await db.createNotification({
+          userId: otherUserId,
+          type: 'match_found',
+          title: 'New Match Interest',
+          message: 'Someone has expressed interest in your intent match.',
+          relatedEntityType: 'match',
+          relatedEntityId: input.matchId,
+        });
+      }
 
       return { success: true, mutualInterest: otherConsent };
     }),
@@ -129,7 +159,37 @@ export const matchRouter = router({
     .mutation(async ({ ctx, input }) => {
       const matches = await db.getMatchesByUser(ctx.user.id);
       const match = matches.find(m => m.id === input.matchId);
-      if (!match || match.status !== 'mutual_interest') {
+      if (!match) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      if (match.status === 'declined' || match.status === 'expired') {
+        await db.logAuditEvent({
+          userId: ctx.user.id,
+          action: 'deal_room_rejected',
+          entityType: 'match',
+          entityId: input.matchId,
+          previousState: { status: match.status },
+          newState: { status: match.status },
+          metadata: { reason: 'terminal_status' },
+        });
+        throw new TRPCError({ code: 'CONFLICT', message: 'Cannot create a deal room for a declined/expired match.' });
+      }
+
+      if (match.dealRoomId) {
+        // Idempotent: return existing room id
+        await db.logAuditEvent({
+          userId: ctx.user.id,
+          action: 'deal_room_created_noop',
+          entityType: 'match',
+          entityId: input.matchId,
+          previousState: { status: match.status, dealRoomId: match.dealRoomId },
+          newState: { status: match.status, dealRoomId: match.dealRoomId },
+        });
+        return { dealRoomId: match.dealRoomId };
+      }
+
+      if (match.status !== 'mutual_interest') {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Mutual interest required' });
       }
 
@@ -236,12 +296,42 @@ export const matchRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
-      await db.updateMatch(input.matchId, { status: 'nda_pending' as const });
+      if (match.status === 'declined' || match.status === 'expired') {
+        await db.logAuditEvent({
+          userId: ctx.user.id,
+          action: 'nda_queue_rejected',
+          entityType: 'match',
+          entityId: input.matchId,
+          previousState: { status: match.status },
+          newState: { status: match.status },
+          metadata: { reason: 'terminal_status' },
+        });
+        throw new TRPCError({ code: 'CONFLICT', message: 'Cannot queue NDA for declined/expired match.' });
+      }
+
+      if (match.status === 'deal_room_created') {
+        // Conflict: NDA queue after room creation is not allowed in this pass
+        await db.logAuditEvent({
+          userId: ctx.user.id,
+          action: 'nda_queue_rejected',
+          entityType: 'match',
+          entityId: input.matchId,
+          previousState: { status: match.status },
+          newState: { status: match.status },
+          metadata: { reason: 'room_already_created' },
+        });
+        throw new TRPCError({ code: 'CONFLICT', message: 'NDA queue not allowed after deal room creation.' });
+      }
+
+      const willChange = match.status !== 'nda_pending';
+      if (willChange) {
+        await db.updateMatch(input.matchId, { status: 'nda_pending' as const });
+      }
 
       // Audit + notify counterparties
       await db.logAuditEvent({
         userId: ctx.user.id,
-        action: 'nda_queue',
+        action: willChange ? 'nda_queue' : 'nda_queue_noop',
         entityType: 'match',
         entityId: input.matchId,
         previousState: { status: match.status },
@@ -250,14 +340,16 @@ export const matchRouter = router({
       });
 
       const otherUserId = match.user1Id === ctx.user.id ? match.user2Id : match.user1Id;
-      await db.createNotification({
-        userId: otherUserId,
-        type: 'deal_update',
-        title: 'NDA Requested',
-        message: 'Your match has been queued for NDA execution.',
-        relatedEntityType: 'match',
-        relatedEntityId: input.matchId,
-      });
+      if (willChange) {
+        await db.createNotification({
+          userId: otherUserId,
+          type: 'deal_update',
+          title: 'NDA Requested',
+          message: 'Your match has been queued for NDA execution.',
+          relatedEntityType: 'match',
+          relatedEntityId: input.matchId,
+        });
+      }
 
       return { success: true };
     }),
@@ -272,11 +364,27 @@ export const matchRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
-      await db.updateMatch(input.matchId, { status: 'declined' as const });
+      if (match.status === 'deal_room_created') {
+        await db.logAuditEvent({
+          userId: ctx.user.id,
+          action: 'escalation_rejected',
+          entityType: 'match',
+          entityId: input.matchId,
+          previousState: { status: match.status },
+          newState: { status: match.status },
+          metadata: { reason: 'room_already_created' },
+        });
+        throw new TRPCError({ code: 'CONFLICT', message: 'Cannot escalate after a deal room is created.' });
+      }
+
+      const willChange = match.status !== 'declined';
+      if (willChange) {
+        await db.updateMatch(input.matchId, { status: 'declined' as const });
+      }
 
       await db.logAuditEvent({
         userId: ctx.user.id,
-        action: 'escalation_requested',
+        action: willChange ? 'escalation_requested' : 'escalation_requested_noop',
         entityType: 'match',
         entityId: input.matchId,
         previousState: { status: match.status },
@@ -285,14 +393,16 @@ export const matchRouter = router({
       });
 
       const otherUserId = match.user1Id === ctx.user.id ? match.user2Id : match.user1Id;
-      await db.createNotification({
-        userId: otherUserId,
-        type: 'system',
-        title: 'Match Escalated',
-        message: 'Counterparty has escalated/declined this match.',
-        relatedEntityType: 'match',
-        relatedEntityId: input.matchId,
-      });
+      if (willChange) {
+        await db.createNotification({
+          userId: otherUserId,
+          type: 'system',
+          title: 'Match Escalated',
+          message: 'Counterparty has escalated/declined this match.',
+          relatedEntityType: 'match',
+          relatedEntityId: input.matchId,
+        });
+      }
 
       return { success: true };
     }),
