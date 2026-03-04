@@ -31,16 +31,20 @@ Canonical advanced-flow checklist source:
 
 ### 1) Public Entry + Access Control
 
-1. User lands on `/` and receives platform framing.
-2. User selects one of:
-   - `/login`
-   - `/register`
-   - `/forgot-password`
-   - `/demo` (if demo runtime capability enabled)
-3. If unauthenticated and route is protected:
-   - In `live`: redirect path is enforced.
-   - In `demo`/`hybrid`: synthetic/demo behavior must match capability flags only.
+#### Runtime Guard Matrix (Canonical)
 
+
+- Wrapper policy:
+  - 'ShellRoute' for standard authenticated app pages (wraps 'ProtectedRoute' + 'DashboardLayout').
+  - 'ProtectedPage' for full-screen gated flows (wraps 'ProtectedRoute' only).
+  - Do not mount 'DashboardLayout' inside page components.
+- Guard behavior by runtime mode (source of truth: 'shared/appMode.ts', 'client/components/ProtectedRoute.tsx', 'server/_core/env.ts', 'server/_core/context.ts'):
+  - demo: allowSyntheticUser=true; allowDemoFixtures=true; requireAuthRedirect=false → 'ProtectedRoute' does NOT redirect; demo surfaces enabled.
+  - hybrid: allowSyntheticUser=true; allowDemoFixtures=true; requireAuthRedirect=false → same as demo; server allows synthetic user in non-prod.
+  - live: allowSyntheticUser=false; allowDemoFixtures=false; requireAuthRedirect=true → 'ProtectedRoute' enforces auth; demo surfaces disabled; server synthetic user disabled.
+- Redirect expectations:
+  - In live, unauthenticated access to shell pages redirects via 'AuthGate' (see 'ProtectedRoute').
+  - In demo/hybrid, shell pages render without redirect, but demo-only surfaces are gated by allowDemoFixtures.
 ### 2) Onboarding Entry
 
 1. `/welcome` and `/onboarding` are full-screen gated flows.
@@ -372,3 +376,14 @@ R7 is successful when:
 3. ANAVI domain terms are consistently represented in UX and backend semantics.
 4. Testing/build gates pass and docs/ops memory reflect reality.
 5. Advanced flow paths are deterministic, auditable, and synchronized across UI/server/docs.
+- Wrapper policy:
+  - 'ShellRoute' for standard authenticated app pages (wraps 'ProtectedRoute' + 'DashboardLayout').
+  - 'ProtectedPage' for full-screen gated flows (wraps 'ProtectedRoute' only).
+  - Do not mount 'DashboardLayout' inside page components.
+- Guard behavior by runtime mode (source of truth: 'shared/appMode.ts', 'client/components/ProtectedRoute.tsx', 'server/_core/env.ts', 'server/_core/context.ts'):
+  - demo: allowSyntheticUser=true; allowDemoFixtures=true; requireAuthRedirect=false → 'ProtectedRoute' does NOT redirect; demo surfaces enabled.
+  - hybrid: allowSyntheticUser=true; allowDemoFixtures=true; requireAuthRedirect=false → same as demo; server allows synthetic user in non-prod.
+  - live: allowSyntheticUser=false; allowDemoFixtures=false; requireAuthRedirect=true → 'ProtectedRoute' enforces auth; demo surfaces disabled; server synthetic user disabled.
+- Redirect expectations:
+  - In live, unauthenticated access to shell pages redirects via 'AuthGate' (see 'ProtectedRoute').
+  - In demo/hybrid, shell pages render without redirect, but demo-only surfaces are gated by allowDemoFixtures.
