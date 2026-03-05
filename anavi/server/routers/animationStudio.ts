@@ -20,6 +20,9 @@ const animationStudioSettingsSchema = z.object({
   overrideGate: z.boolean(),
   intentTag: z.string().min(1).max(120),
 });
+const renderJobIdSchema = z.object({
+  jobId: z.string().min(1).max(120),
+});
 
 export const animationStudioRouter = router({
   getPlanSummary: protectedProcedure.query(async () => {
@@ -57,6 +60,95 @@ export const animationStudioRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to run animation studio render",
+          cause: error,
+        });
+      }
+    }),
+
+  queueRenderJob: protectedProcedure
+    .input(
+      z.object({
+        settings: animationStudioSettingsSchema,
+        simulateFailure: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        return db.queueAnimationStudioRenderJob(input);
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to queue animation studio render job",
+          cause: error,
+        });
+      }
+    }),
+
+  startRenderJob: protectedProcedure
+    .input(renderJobIdSchema)
+    .mutation(async ({ input }) => {
+      try {
+        return db.startAnimationStudioRenderJob(input.jobId);
+      } catch (error) {
+        if (error instanceof Error && error.message.startsWith("Unknown render job:")) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: error.message,
+            cause: error,
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to start animation studio render job",
+          cause: error,
+        });
+      }
+    }),
+
+  cancelRenderJob: protectedProcedure
+    .input(renderJobIdSchema)
+    .mutation(async ({ input }) => {
+      try {
+        return db.cancelAnimationStudioRenderJob(input.jobId);
+      } catch (error) {
+        if (error instanceof Error && error.message.startsWith("Unknown render job:")) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: error.message,
+            cause: error,
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to cancel animation studio render job",
+          cause: error,
+        });
+      }
+    }),
+
+  getRenderJob: protectedProcedure
+    .input(renderJobIdSchema)
+    .query(async ({ input }) => {
+      try {
+        return db.getAnimationStudioRenderJob(input.jobId);
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to load animation studio render job",
+          cause: error,
+        });
+      }
+    }),
+
+  listRenderJobs: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(100).optional() }).optional())
+    .query(async ({ input }) => {
+      try {
+        return db.listAnimationStudioRenderJobs(input?.limit ?? 10);
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to list animation studio render jobs",
           cause: error,
         });
       }

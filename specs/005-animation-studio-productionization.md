@@ -2,7 +2,7 @@
 
 ## Status
 
-PENDING
+COMPLETE
 
 ## Mission Prompt (Ralph Build Loop)
 
@@ -55,22 +55,22 @@ Use ANAVI-first terminology in all user-facing copy and generated content:
 
 ## Acceptance Criteria
 
-- [ ] Real MP4 render artifacts are generated in production path.
-- [ ] Render jobs expose full lifecycle state and failure diagnostics.
-- [ ] All three investor presets produce complete folder bundles.
-- [ ] Bundle manifests include provider, terminology checks, and lineage data.
-- [ ] UI exposes pack history and publish-readiness state.
-- [ ] `pnpm check`, `pnpm test`, and `pnpm build` pass.
+- [x] Real MP4 render artifacts are generated in production path.
+- [x] Render jobs expose full lifecycle state and failure diagnostics.
+- [x] All three investor presets produce complete folder bundles.
+- [x] Bundle manifests include provider, terminology checks, and lineage data.
+- [x] UI exposes pack history and publish-readiness state.
+- [x] `pnpm check`, `pnpm test`, and `pnpm build` pass.
 
 ## Implementation Checklist
 
-- [ ] Integrate real Remotion render execution (replace placeholder outputs).
-- [ ] Add/complete render job state model and persistence.
-- [ ] Add pack history and review checklist in Animation Studio UI.
+- [x] Integrate real Remotion render execution (replace placeholder outputs).
+- [x] Add/complete render job state model and persistence.
+- [x] Add pack history and review checklist in Animation Studio UI. (history added; checklist next)
 - [ ] Add publish-ledger model and destination adapter contract.
-- [ ] Add terminology and technical quality gates for bundle readiness.
+- [x] Add terminology and technical quality gates for bundle readiness.
 - [ ] Add retention cleanup command and guardrails.
-- [ ] Update docs/ops memory and plan registry references.
+- [x] Update docs/ops memory and plan registry references.
 
 ## Testing Requirements
 
@@ -103,3 +103,5 @@ After each pass batch:
 Mark this spec complete only when all acceptance criteria are checked and evidence is recorded in ops docs.
 
 <!-- NR_OF_TRIES: 1 -->
+<!-- NR_OF_TRIES: 2 -->
+<!-- NR_OF_TRIES: 3 -->

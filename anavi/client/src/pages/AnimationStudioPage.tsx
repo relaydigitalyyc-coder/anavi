@@ -69,6 +69,16 @@ type AssetPackExportResponse = {
   files: string[];
 };
 
+type RenderJobResponse = {
+  jobId: string;
+  state: "queued" | "running" | "succeeded" | "failed" | "canceled";
+  updatedAt: string;
+  retryCount: number;
+  reason?: string;
+  error?: { message: string } | null;
+  renderPath?: string;
+};
+
 export default function AnimationStudioPage() {
   const [settings, setSettings] = useState<AnimationStudioSettings>(
     defaultAnimationStudioSettings
@@ -83,6 +93,7 @@ export default function AnimationStudioPage() {
   const summaryQuery = trpc.animationStudio.getPlanSummary.useQuery();
   const presetsQuery = trpc.animationStudio.getInvestorPresets.useQuery();
   const historyQuery = trpc.animationStudio.getPackHistory.useQuery({ limit: 5 });
+  const renderJobsQuery = trpc.animationStudio.listRenderJobs.useQuery({ limit: 5 });
 
   const validateMutation = trpc.animationStudio.validatePlan.useMutation({
     onSuccess: data => {
@@ -92,18 +103,8 @@ export default function AnimationStudioPage() {
     onError: error => toast.error(error.message),
   });
 
-  const runRenderMutation = trpc.animationStudio.runRender.useMutation({
-    onSuccess: data => {
-      setDiffScoreValue(data.metadata.diffScore);
-      summaryQuery.refetch();
-      if (data.shouldRender) {
-        toast.success(`Render queued: ${data.renderPath}`);
-      } else {
-        toast.info("Render gate reused cache");
-      }
-    },
-    onError: error => toast.error(error.message),
-  });
+  const queueRenderJobMutation = trpc.animationStudio.queueRenderJob.useMutation();
+  const startRenderJobMutation = trpc.animationStudio.startRenderJob.useMutation();
 
   const requestGeminiMutation =
     trpc.animationStudio.requestGeminiAsset.useMutation({
@@ -177,8 +178,54 @@ export default function AnimationStudioPage() {
   const latestRender = summary?.lastRender;
   const latestAsset = summary?.lastGeminiAsset;
   const presets = presetsQuery.data as InvestorPresetResponse[] | undefined;
+  const renderJobs = renderJobsQuery.data as RenderJobResponse[] | undefined;
   const activePreset =
     presets?.find(preset => preset.id === selectedPresetId) ?? presets?.[0];
+  const isRendering =
+    queueRenderJobMutation.isPending || startRenderJobMutation.isPending;
+
+  const runRenderLifecycle = async (
+    nextSettings: AnimationStudioSettings,
+    mode: "preview" | "render"
+  ) => {
+    const modeLabel = mode === "preview" ? "Preview job" : "Render job";
+
+    try {
+      const queued = await queueRenderJobMutation.mutateAsync({
+        settings: nextSettings,
+      });
+      toast.success(`${modeLabel} queued: ${queued.jobId}`);
+      await renderJobsQuery.refetch();
+
+      const started = (await startRenderJobMutation.mutateAsync({
+        jobId: queued.jobId,
+      })) as RenderJobResponse;
+      await Promise.all([summaryQuery.refetch(), renderJobsQuery.refetch()]);
+
+      if (started.state === "succeeded") {
+        toast.success(
+          started.renderPath
+            ? `${modeLabel} completed: ${started.renderPath}`
+            : `${modeLabel} completed`
+        );
+        return;
+      }
+      if (started.state === "failed") {
+        toast.error(`${modeLabel} failed: ${started.error?.message ?? "Unknown error"}`);
+        return;
+      }
+      if (started.state === "canceled") {
+        toast.info(`${modeLabel} canceled`);
+        return;
+      }
+      toast.info(`${modeLabel} is ${started.state}`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : `Failed to run ${modeLabel.toLowerCase()}`;
+      toast.error(message);
+      renderJobsQuery.refetch();
+    }
+  };
 
   return (
     <div className="space-y-6 pb-12">
@@ -221,16 +268,19 @@ export default function AnimationStudioPage() {
           gateState={gateState}
           diffScore={diffScoreValue}
           isValidating={validateMutation.isPending}
-          isRendering={runRenderMutation.isPending}
+          isRendering={isRendering}
           isRequestingAsset={requestGeminiMutation.isPending}
           onValidate={() => validateMutation.mutate(settings)}
           onPreview={() =>
-            runRenderMutation.mutate({
-              ...settings,
-              previewMode: true,
-            })
+            void runRenderLifecycle(
+              {
+                ...settings,
+                previewMode: true,
+              },
+              "preview"
+            )
           }
-          onRender={() => runRenderMutation.mutate(settings)}
+          onRender={() => void runRenderLifecycle(settings, "render")}
           onRequestAsset={() =>
             requestGeminiMutation.mutate({
               intentTag: settings.intentTag,
@@ -417,6 +467,63 @@ export default function AnimationStudioPage() {
                 <p className="mt-1 text-xs text-[#0A1628]/60">
                   {latestAsset?.geminiVersion ?? "Gemini metadata unavailable"}
                 </p>
+              </div>
+              <div className="rounded-md border border-[#0A1628]/10 bg-white/80 p-3">
+                <p className="text-xs uppercase tracking-wide text-[#0A1628]/60">
+                  Render Job Lifecycle
+                </p>
+                {(renderJobs ?? []).length === 0 ? (
+                  <p className="mt-2 text-xs text-[#0A1628]/60">
+                    No render jobs yet. Queue a Preview or Render action to capture
+                    diagnostics.
+                  </p>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    {(renderJobs ?? []).map(job => (
+                      <div
+                        key={job.jobId}
+                        className="rounded-md border border-[#0A1628]/10 bg-white/90 p-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate font-mono text-[11px]">
+                            {job.jobId}
+                          </span>
+                          <Badge
+                            className={
+                              job.state === "succeeded"
+                                ? "bg-green-100 text-green-700"
+                                : job.state === "failed"
+                                  ? "bg-red-100 text-red-700"
+                                  : job.state === "running"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : job.state === "canceled"
+                                      ? "bg-neutral-200 text-neutral-700"
+                                      : "bg-amber-100 text-amber-800"
+                            }
+                          >
+                            {job.state.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-[11px] text-[#0A1628]/60">
+                          Updated {new Date(job.updatedAt).toLocaleString()}
+                        </p>
+                        <p className="mt-1 text-[11px] text-[#0A1628]/70">
+                          Retry count:{" "}
+                          <span className="font-mono">{job.retryCount}</span>
+                        </p>
+                        <p className="mt-1 truncate text-[11px] text-[#0A1628]/70">
+                          Reason: {job.reason ?? "—"}
+                        </p>
+                        <p className="mt-1 truncate text-[11px] text-[#0A1628]/70">
+                          Error: {job.error?.message ?? "—"}
+                        </p>
+                        <p className="mt-1 truncate font-mono text-[11px] text-[#0A1628]/70">
+                          Render path: {job.renderPath ?? "—"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="h-44 overflow-hidden rounded-lg border border-[#0A1628]/10 bg-[#0A1628]">
                 <InteractiveGlobe className="h-full w-full" size={300} />

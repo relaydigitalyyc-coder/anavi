@@ -1,5 +1,32 @@
 # Engineering Memory
 
+## 2026-03-05 — Spec 005 Completion: Render Job Lifecycle + Diagnostics
+
+### Scope
+- Completed FR-2 job lifecycle exposure for Animation Studio across DB persistence, tRPC router endpoints, router tests, and Studio UI diagnostics.
+- Shifted Studio render actions to lifecycle execution (`queue` → `start`) so lifecycle states are produced and observable in normal operator flow.
+
+### Backend + Router
+- Added file-backed render-job ledger operations in `server/db/animationStudio.ts`:
+  - queue, start, cancel, get, list
+  - persisted state transitions (`queued`, `running`, `succeeded`, `failed`, `canceled`)
+  - deterministic failure diagnostics with retry count
+- Added matching protected router procedures in `server/routers/animationStudio.ts`:
+  - `queueRenderJob`, `startRenderJob`, `cancelRenderJob`, `getRenderJob`, `listRenderJobs`
+
+### Frontend
+- Updated `client/src/pages/AnimationStudioPage.tsx` to:
+  - use lifecycle endpoints for Preview/Render actions
+  - render a diagnostics panel showing lifecycle state, retry count, reason, error message, and render path for latest jobs
+
+### Testing + Verification Evidence
+- Targeted animation-studio suite:
+  - `pnpm vitest run tests/scene-plan.test.ts tests/render-hub.test.ts tests/nano-banana.test.ts tests/animation-studio-router.test.ts tests/animation-studio-client.test.ts` ✅
+- Full gates:
+  - `pnpm check` ✅
+  - `pnpm test` ✅
+  - `pnpm build` ✅
+
 ## 2026-03-05 — Animation Studio Production PRD + Ralph Spec
 
 ### Scope

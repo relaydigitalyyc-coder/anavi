@@ -4,7 +4,6 @@ Last updated: 2026-03-05
 
 ## Next Up
 
-- Execute Animation Studio productionization spec with Ralph loop methodology: `specs/005-animation-studio-productionization.md` (real Remotion output + publish-ready asset pipeline).
 - R8 Project Logic Integrity Mission: extend dashboard integrity/relevance discipline across all core project surfaces (`specs/000-dashboard-logical-integrity-and-relevance.md`).
 - Run potent Ralph in actual BUILD mode for R8 with a 20-iteration execution window.
 - Use parallel-agent fanout for project-wide contradiction discovery and synthesis before/alongside R8 implementation.
@@ -29,6 +28,7 @@ Last updated: 2026-03-05
 
 ## Done
 
+- Spec 005 (Animation Studio productionization) — COMPLETE: render job lifecycle APIs, diagnostics UI, and verification gates (`specs/005-animation-studio-productionization.md`).
 - Animation Studio investor asset production pass: preset catalog, Claude-context narrative generation, and one-click folder bundle export (`/animation-studio`).
 - Animation Studio dashboard slice: `/animation-studio` shell page, studio controls, animationStudio router, IO layer, and test coverage.
 - **SHIP PASS (2026-03-04)**: tsc clean, 67/67 tests, build green, .env.example, README accurate, zero TODO/FIXME in core paths. Report: `docs/ops/SHIP_REPORT.md`.

@@ -60,6 +60,8 @@ export type RenderJob = {
   error?: { message: string; stack?: string } | null;
 };
 
+type RenderJobLedger = Record<string, RenderJob>;
+
 export const ANIMATION_STUDIO_INVESTOR_PRESET_IDS = [
   "teaser_30s",
   "walkthrough_90s",
@@ -189,6 +191,10 @@ const DEFAULT_GEMINI_LEDGER_PATH = process.env.ANAVI_GEMINI_LEDGER_PATH
 const DEFAULT_ASSET_PACKS_DIR = process.env.ANAVI_ASSET_PACKS_DIR
   ? path.resolve(process.env.ANAVI_ASSET_PACKS_DIR)
   : path.resolve(MODULE_DIR, "..", "..", "data", "asset-packs");
+
+const DEFAULT_RENDER_JOBS_PATH = process.env.ANAVI_RENDER_JOBS_PATH
+  ? path.resolve(process.env.ANAVI_RENDER_JOBS_PATH)
+  : path.resolve(MODULE_DIR, "..", "..", "data", "render-jobs.json");
 
 const INVESTOR_PRESETS: AnimationStudioInvestorPreset[] = [
   {
@@ -321,6 +327,14 @@ function loadPlanLedger(metadataPath = DEFAULT_PLAN_METADATA_PATH) {
 
 function loadGeminiLedger(metadataPath = DEFAULT_GEMINI_LEDGER_PATH) {
   return readJson<GeminiAssetLedger>(metadataPath, {});
+}
+
+function loadRenderJobs(pathOverride = DEFAULT_RENDER_JOBS_PATH) {
+  return readJson<RenderJobLedger>(pathOverride, {});
+}
+
+function writeRenderJobs(ledger: RenderJobLedger, pathOverride = DEFAULT_RENDER_JOBS_PATH) {
+  writeJson(pathOverride, ledger);
 }
 
 function getLatestPlanMetadataEntry(ledger: PlanMetadataLedger) {
@@ -859,6 +873,92 @@ export function runAnimationStudioRender(settingsInput: AnimationStudioSettings)
     ...renderResult,
     reason: Array.from(reasonParts).join(", "),
   };
+}
+
+export function queueAnimationStudioRenderJob(input: {
+  settings: AnimationStudioSettings;
+  simulateFailure?: boolean;
+}) {
+  const jobId = `job_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const now = new Date().toISOString();
+  const job: RenderJob = {
+    jobId,
+    state: "queued",
+    createdAt: now,
+    updatedAt: now,
+    retryCount: 0,
+    settings: resolveSettings(input.settings),
+    error: null,
+  };
+
+  const ledger = loadRenderJobs();
+  ledger[jobId] = job as RenderJob & { simulateFailure?: boolean };
+  // Store simulateFailure as a transient hint (won't persist on read)
+  (ledger as any)[jobId].simulateFailure = !!input.simulateFailure;
+  writeRenderJobs(ledger);
+  return job;
+}
+
+export function startAnimationStudioRenderJob(jobId: string) {
+  const ledger = loadRenderJobs();
+  const job = ledger[jobId];
+  if (!job) {
+    throw new Error(`Unknown render job: ${jobId}`);
+  }
+  if (job.state === "canceled") {
+    return job;
+  }
+
+  job.state = "running";
+  job.updatedAt = new Date().toISOString();
+  writeRenderJobs(ledger);
+
+  try {
+    const simulateFailure = !!(ledger as any)[jobId]?.simulateFailure;
+    if (simulateFailure) {
+      throw new Error("Simulated render failure for test");
+    }
+
+    const result = runAnimationStudioRender(job.settings);
+    job.state = "succeeded";
+    job.updatedAt = new Date().toISOString();
+    job.reason = result.reason;
+    job.renderPath = result.renderPath;
+    job.planHash = (result as any).metadata?.planHash ?? null;
+    job.error = null;
+    writeRenderJobs(ledger);
+    return job;
+  } catch (error: any) {
+    job.state = "failed";
+    job.updatedAt = new Date().toISOString();
+    job.retryCount += 1;
+    job.error = { message: String(error?.message ?? error), stack: String(error?.stack ?? "") };
+    writeRenderJobs(ledger);
+    return job;
+  }
+}
+
+export function cancelAnimationStudioRenderJob(jobId: string) {
+  const ledger = loadRenderJobs();
+  const job = ledger[jobId];
+  if (!job) throw new Error(`Unknown render job: ${jobId}`);
+  if (job.state === "succeeded" || job.state === "failed") return job;
+  job.state = "canceled";
+  job.updatedAt = new Date().toISOString();
+  writeRenderJobs(ledger);
+  return job;
+}
+
+export function getAnimationStudioRenderJob(jobId: string) {
+  const ledger = loadRenderJobs();
+  return ledger[jobId] ?? null;
+}
+
+export function listAnimationStudioRenderJobs(limit = 10) {
+  const ledger = loadRenderJobs();
+  return Object.values(ledger)
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
+    .slice(0, Math.max(0, limit));
 }
 
 export function requestAnimationStudioGeminiAsset(input: {
