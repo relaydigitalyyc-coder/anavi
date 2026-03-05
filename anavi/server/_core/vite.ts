@@ -1,10 +1,24 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import { type Server } from "http";
-import { nanoid } from "nanoid";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+import { createServer as createViteServer, type ViteDevServer } from "vite";
 import viteConfig from "../../vite.config";
+
+const SSR_ENTRY = path.resolve(
+  import.meta.dirname,
+  "../..",
+  "client",
+  "src",
+  "entry-server.tsx"
+);
+
+const CLIENT_TEMPLATE = path.resolve(
+  import.meta.dirname,
+  "../..",
+  "client",
+  "index.html"
+);
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -25,21 +39,17 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
-      const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "../..",
-        "client",
-        "index.html"
-      );
+      let template = await fs.promises.readFile(CLIENT_TEMPLATE, "utf-8");
+      template = await vite.transformIndexHtml(url, template);
 
-      // always reload the index.html file from disk incase it changes
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`
-      );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      const { render } = (await vite.ssrLoadModule(SSR_ENTRY)) as {
+        render: (url: string) => { html: string };
+      };
+
+      const { html: appHtml } = render(url);
+      const html = template.replace("<!--app-html-->", appHtml);
+
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
@@ -52,16 +62,51 @@ export function serveStatic(app: Express) {
     process.env.NODE_ENV === "development"
       ? path.resolve(import.meta.dirname, "../..", "dist", "public")
       : path.resolve(import.meta.dirname, "public");
+
+  const ssrManifestPath =
+    process.env.NODE_ENV === "development"
+      ? path.resolve(
+          import.meta.dirname,
+          "../..",
+          "dist",
+          "server",
+          "entry-server.js"
+        )
+      : path.resolve(import.meta.dirname, "server", "entry-server.js");
+
   if (!fs.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
 
-  app.use(express.static(distPath));
+  let templateHtml = "";
+  const indexPath = path.resolve(distPath, "index.html");
+  if (fs.existsSync(indexPath)) {
+    templateHtml = fs.readFileSync(indexPath, "utf-8");
+  }
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  let ssrRender: ((url: string) => { html: string }) | null = null;
+
+  app.use(express.static(distPath, { index: false }));
+
+  app.use("*", async (_req, res) => {
+    try {
+      if (!ssrRender) {
+        const mod = await import(ssrManifestPath);
+        ssrRender = mod.render;
+      }
+
+      if (ssrRender && templateHtml) {
+        const { html: appHtml } = ssrRender(_req.originalUrl);
+        const html = templateHtml.replace("<!--app-html-->", appHtml);
+        res.status(200).set({ "Content-Type": "text/html" }).end(html);
+      } else {
+        res.sendFile(indexPath);
+      }
+    } catch (e) {
+      console.error("SSR render error:", e);
+      res.sendFile(indexPath);
+    }
   });
 }

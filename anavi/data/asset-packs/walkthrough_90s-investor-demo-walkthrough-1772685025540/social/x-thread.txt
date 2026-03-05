@@ -1,0 +1,5 @@
+1/ Private markets still run on fragmented diligence and unverifiable intros.
+2/ ANAVI starts with Relationship Custody so counterparties are verified once, not repeatedly.
+3/ Trust Score + Blind Matching route only qualified Intent overlap to operators and allocators.
+4/ Deal Room + Attribution keep execution and economics auditable through close.
+5/ Result: faster diligence, cleaner pipeline, better investor confidence.

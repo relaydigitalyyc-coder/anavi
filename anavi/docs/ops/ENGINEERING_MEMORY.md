@@ -1,5 +1,147 @@
 # Engineering Memory
 
+## 2026-03-05 — Spec 005 Completion: Render Job Lifecycle + Diagnostics
+
+### Scope
+- Completed FR-2 job lifecycle exposure for Animation Studio across DB persistence, tRPC router endpoints, router tests, and Studio UI diagnostics.
+- Shifted Studio render actions to lifecycle execution (`queue` → `start`) so lifecycle states are produced and observable in normal operator flow.
+
+### Backend + Router
+- Added file-backed render-job ledger operations in `server/db/animationStudio.ts`:
+  - queue, start, cancel, get, list
+  - persisted state transitions (`queued`, `running`, `succeeded`, `failed`, `canceled`)
+  - deterministic failure diagnostics with retry count
+- Added matching protected router procedures in `server/routers/animationStudio.ts`:
+  - `queueRenderJob`, `startRenderJob`, `cancelRenderJob`, `getRenderJob`, `listRenderJobs`
+
+### Frontend
+- Updated `client/src/pages/AnimationStudioPage.tsx` to:
+  - use lifecycle endpoints for Preview/Render actions
+  - render a diagnostics panel showing lifecycle state, retry count, reason, error message, and render path for latest jobs
+
+### Testing + Verification Evidence
+- Targeted animation-studio suite:
+  - `pnpm vitest run tests/scene-plan.test.ts tests/render-hub.test.ts tests/nano-banana.test.ts tests/animation-studio-router.test.ts tests/animation-studio-client.test.ts` ✅
+- Full gates:
+  - `pnpm check` ✅
+  - `pnpm test` ✅
+  - `pnpm build` ✅
+
+## 2026-03-05 — Animation Studio Production PRD + Ralph Spec
+
+### Scope
+- Added a production-readiness PRD that defines everything needed to move Animation Studio from demo-grade orchestration to real animation output and publish-ready investor asset workflows.
+- Added a dedicated Ralph execution spec for iterative completion.
+
+### New Planning Artifacts
+- Added PRD:
+  - `anavi/docs/plans/2026-03-05-platform-animation-studio-production-prd.md`
+- Added Ralph spec:
+  - `specs/005-animation-studio-productionization.md`
+
+### Operational Alignment
+- Updated plan registry and TODO board to prioritize Animation Studio productionization with Ralph methodology.
+- Extended `scripts/ralph-loop-codex.sh` to accept `--spec <path>` for targeted spec execution instead of defaulting to highest-priority pending spec.
+
+## 2026-03-05 — Animation Studio Investor Asset Pack Export + Claude Context
+
+### Scope
+- Extended the Animation Studio from control surface + render execution into investor-facing content production for sales and fundraising workflows.
+
+### Backend Additions
+- Rebuilt `server/db/animationStudio.ts` with:
+  - investor narrative presets (`teaser_30s`, `walkthrough_90s`, `ic_5min`)
+  - preset application service (`applyAnimationStudioInvestorPreset`)
+  - one-call folder bundle export (`exportAnimationStudioAssetPack`)
+  - Claude-context payload generation for investor narrative drafting
+  - Claude-first narrative generation with deterministic fallback when API key is unavailable
+- Added folder bundle output root with env override:
+  - `ANAVI_ASSET_PACKS_DIR`
+- Asset packs now include:
+  - `manifest.json`
+  - `scene-plan.json`
+  - `claude-context.json`
+  - `narrative.md`
+  - `storyboard.md`
+  - `captions.srt`
+  - `social/*` platform-specific copy files
+  - render media copy and sidecar metadata when available
+
+### Router + Frontend
+- Added new animation studio router procedures:
+  - `getInvestorPresets`
+  - `applyInvestorPreset`
+  - `exportAssetPack`
+- Updated `AnimationStudioPage` to support:
+  - preset selection/apply flow
+  - one-click folder bundle export
+  - export telemetry (provider + bundle path + file count)
+- Added additional premium UI polish via spotlighted preset cards and grouped action controls.
+
+### Validation Evidence
+- `pnpm check` clean.
+- `pnpm vitest run tests/scene-plan.test.ts tests/render-hub.test.ts tests/nano-banana.test.ts tests/animation-studio-client.test.ts tests/animation-studio-router.test.ts` passing.
+- `pnpm test` passing (81/81).
+- `pnpm build` passing.
+
+## 2026-03-05 — Spec 005 Pass A: Quality Gates, Lineage, History
+
+### Scope
+- Upgraded Render Hub sidecar to include technical metadata (fps, width/height, durationSeconds, sizeBytes, compositionId heuristic) while keeping deterministic file outputs.
+- Exported asset-pack manifest now includes readiness status with automated quality gates:
+  - required ANAVI terminology presence across narrative/storyboard/social
+  - CTA presence
+  - captions file integrity
+  - render artifact existence + technical sidecar import
+  - Trust Score floor policy check and override logging
+- Added pack lineage entries linking `planHash`, `geminiAssetId`, and `claudeContext` path.
+- Implemented `getAnimationStudioPackHistory(limit)` service and `getPackHistory` tRPC procedure.
+- Animation Studio UI now shows recent pack history (provider + READY/REVIEW state, timestamp, path).
+
+### Evidence
+- `tests/animation-studio-router.test.ts` extended to assert manifest readiness structure.
+- `tests/animation-studio-client.test.ts` extended with threshold normalization case.
+
+### Next
+- Phase B targets: review checklist interactions in UI and publish adapters per PRD.
+
+## 2026-03-05 — Animation Studio Dashboard + Router Integration
+
+### Scope
+- Completed the high-IQ animation studio slice with a new shell page, control surface, server router, IO module, validation/render workflows, and test coverage.
+
+### Product Surfaces
+- Added `/animation-studio` shell page via `ShellRoute`.
+- Added sidebar navigation entry for Animation Studio in dashboard navigation.
+- Built balanced-hybrid studio UI with render controls, safety gates, telemetry, and intent editing.
+- Integrated existing premium visual components that fit the studio use case:
+  - `InteractiveGlobe` for render/network activity context.
+  - `EvervaultCard` for sealed output visual language aligned to Blind Matching.
+
+### Backend + Script Wiring
+- Added `animationStudio` tRPC router with protected procedures:
+  - `getPlanSummary`
+  - `validatePlan`
+  - `runRender`
+  - `requestGeminiAsset`
+- Added `server/db/animationStudio.ts` as the ledger-backed IO/service layer.
+- Fixed script default path drift by using module-relative defaults and env overrides:
+  - `ANAVI_PLAN_METADATA_PATH`
+  - `ANAVI_GEMINI_LEDGER_PATH`
+- Added CLI-friendly script entries:
+  - `pnpm scene-plan`
+  - `pnpm animation-studio:render`
+  - `pnpm nano-banana`
+
+### Tests + Validation
+- Added tests:
+  - `tests/animation-studio-router.test.ts`
+  - `tests/animation-studio-client.test.ts`
+- Validation evidence:
+  - `pnpm check` clean
+  - `pnpm vitest run tests/animation-studio-router.test.ts tests/animation-studio-client.test.ts` passing
+  - `pnpm vitest run tests/scene-plan.test.ts tests/render-hub.test.ts tests/nano-banana.test.ts tests/animation-studio-router.test.ts tests/animation-studio-client.test.ts` passing
+
 ## 2026-03-04 — Landing Page Visual Component Integration
 
 ### Scope

@@ -1,0 +1,10 @@
+{
+  "d6ce99ab1dbc6695af48266eefd5604a6ec628e02a9a2eb3d47ed50869397364": {
+    "planHash": "d6ce99ab1dbc6695af48266eefd5604a6ec628e02a9a2eb3d47ed50869397364",
+    "planSnapshot": "{\"scenes\":[{\"id\":\"relationship-custody\",\"description\":\"Relationship Custody opener with presentation fidelity.\"},{\"id\":\"trust-score\",\"description\":\"Trust Score gate reveal with balanced cadence.\"},{\"id\":\"blind-matching\",\"description\":\"Blind Matching sequence showing qualified Intent overlap.\"},{\"id\":\"deal-room-attribution\",\"description\":\"Deal Room close featuring Attribution trace and investor CTA.\"},{\"id\":\"investor-close\",\"description\":\"Investor close with quantified outcomes and next-step ask.\"}],\"metadata\":{\"trustScore\":0.82,\"intent\":\"investor-demo-walkthrough\"}}",
+    "trustScore": 0.82,
+    "diffScore": 1,
+    "lastRenderPath": "/home/ariel/Documents/anavi-main/anavi/data/renders/d6ce99ab1dbc6695af48266eefd5604a6ec628e02a9a2eb3d47ed50869397364-1772685025539.mp4",
+    "lastUpdated": "2026-03-05T04:30:25.539Z"
+  }
+}

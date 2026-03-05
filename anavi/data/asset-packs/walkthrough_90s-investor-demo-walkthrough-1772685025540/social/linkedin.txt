@@ -1,0 +1,12 @@
+Most private-market workflows still break between sourcing and diligence.
+
+ANAVI fixes this by linking:
+• Relationship Custody
+• Trust Score policy gates
+• Blind Matching qualification
+• Deal Room execution
+• Attribution accountability
+
+The outcome is simple: investor teams spend less time validating context and more time allocating capital.
+
+If you’re evaluating infrastructure that can scale your private-market pipeline with fewer false positives, this is worth a closer look.

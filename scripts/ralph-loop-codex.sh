@@ -27,6 +27,7 @@ CODEX_CMD="${CODEX_CMD:-codex}"
 CODEX_MODEL="${CODEX_MODEL:-gpt-5}"
 CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-high}"
 CODEX_COLLAB_MODE="${CODEX_COLLAB_MODE:-plan}"
+SPEC_TARGET=""
 TAIL_LINES=5
 TAIL_RENDERED_LINES=0
 ROLLING_OUTPUT_LINES=5
@@ -61,6 +62,7 @@ Usage:
   ./scripts/ralph-loop-codex.sh 20           # Build mode, max 20 iterations
   ./scripts/ralph-loop-codex.sh plan         # Planning mode (OPTIONAL)
   ./scripts/ralph-loop-codex.sh --collab-mode plan|default
+  ./scripts/ralph-loop-codex.sh --spec specs/005-animation-studio-productionization.md
 
 Modes:
   build (default)  Pick incomplete spec and implement
@@ -71,7 +73,8 @@ Codex Collaboration Mode:
   default          Run Codex in Default mode
 
 Work Source:
-  Agent reads specs/*.md and picks the highest priority incomplete spec.
+  By default: agent reads specs/*.md and picks the highest priority incomplete spec.
+  With --spec: agent focuses only on the provided spec file.
 
 YOLO Mode: Uses --dangerously-bypass-approvals-and-sandbox
 
@@ -228,6 +231,14 @@ while [[ $# -gt 0 ]]; do
             esac
             shift 2
             ;;
+        --spec)
+            if [ -z "${2:-}" ]; then
+                echo -e "${RED}Missing value for --spec${NC}"
+                exit 1
+            fi
+            SPEC_TARGET="$2"
+            shift 2
+            ;;
         --plan-mode)
             CODEX_COLLAB_MODE="plan"
             shift
@@ -254,6 +265,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 cd "$PROJECT_DIR"
+
+if [ -n "$SPEC_TARGET" ]; then
+    if [ ! -f "$SPEC_TARGET" ]; then
+        echo -e "${RED}Error: spec file not found: $SPEC_TARGET${NC}"
+        exit 1
+    fi
+fi
 
 # Session log (captures ALL output)
 SESSION_LOG="$LOG_DIR/ralph_codex_${MODE}_session_$(date '+%Y%m%d_%H%M%S').log"
@@ -292,6 +310,16 @@ implementation paths, implement root-cause fixes, verify all acceptance criteria
 commit and push, then output `<promise>DONE</promise>`.
 BUILDEOF
 
+if [ -n "$SPEC_TARGET" ]; then
+    cat >> "PROMPT_build.md" <<EOF
+
+Focus only on this spec:
+- $SPEC_TARGET
+
+Ignore other specs for this run.
+EOF
+fi
+
 cat > "PROMPT_plan.md" << 'PLANEOF'
 # Ralph Loop — Planning Mode
 
@@ -305,6 +333,16 @@ Do NOT implement anything.
 
 When the plan is complete, output `<promise>DONE</promise>`.
 PLANEOF
+
+if [ -n "$SPEC_TARGET" ]; then
+    cat >> "PROMPT_plan.md" <<EOF
+
+Focus planning only on this spec:
+- $SPEC_TARGET
+
+Ignore other specs for this run.
+EOF
+fi
 
 # Build Codex flags for exec mode
 COLLAB_INSTRUCTIONS="$(build_collaboration_instructions "$CODEX_COLLAB_MODE" || true)"
@@ -347,6 +385,7 @@ echo -e "${BLUE}Branch:${NC}   $CURRENT_BRANCH"
 echo -e "${YELLOW}YOLO:${NC}     $([ "$YOLO_ENABLED" = true ] && echo "ENABLED" || echo "DISABLED")"
 [ -n "$SESSION_LOG" ] && echo -e "${BLUE}Log:${NC}      $SESSION_LOG"
 [ $MAX_ITERATIONS -gt 0 ] && echo -e "${BLUE}Max:${NC}      $MAX_ITERATIONS iterations"
+[ -n "$SPEC_TARGET" ] && echo -e "${BLUE}Spec:${NC}     $SPEC_TARGET"
 echo ""
 echo -e "${BLUE}Work source:${NC}"
 if [ "$HAS_SPECS" = true ]; then

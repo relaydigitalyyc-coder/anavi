@@ -39,6 +39,7 @@ import { feesRouter } from "./fees";
 import { membersRouter } from "./members";
 import { cryptoRouter } from "./crypto";
 import { docusignRouter } from "./docusign";
+import { animationStudioRouter } from "./animationStudio";
 
 export const appRouter = router({
   system: systemRouter,
@@ -81,6 +82,7 @@ export const appRouter = router({
   members: membersRouter,
   crypto: cryptoRouter,
   docusign: docusignRouter,
+  animationStudio: animationStudioRouter,
 });
 
 export type AppRouter = typeof appRouter;

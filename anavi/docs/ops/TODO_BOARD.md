@@ -1,6 +1,6 @@
 # TODO Board
 
-Last updated: 2026-03-04 (late)
+Last updated: 2026-03-05
 
 ## Next Up
 
@@ -19,6 +19,7 @@ Last updated: 2026-03-04 (late)
 - Add DocuSign UI actions in Deal Room pages to call new endpoints (`createNdaEnvelope`, `sendNdaEnvelope`, `getNdaSignUrl`).
 - Add migration generation/apply for new DocuSign schema tables.
 - Set remaining DocuSign env vars (`DOCUSIGN_IMPERSONATED_USER_ID`, `DOCUSIGN_RSA_PRIVATE_KEY`, `DOCUSIGN_CONNECT_HMAC_SECRET`) and run live envelope test.
+- Add asset-pack publishing workflow from Animation Studio folder bundles to external distribution channels.
 
 ## In Progress
 
@@ -27,6 +28,9 @@ Last updated: 2026-03-04 (late)
 
 ## Done
 
+- Spec 005 (Animation Studio productionization) — COMPLETE: render job lifecycle APIs, diagnostics UI, and verification gates (`specs/005-animation-studio-productionization.md`).
+- Animation Studio investor asset production pass: preset catalog, Claude-context narrative generation, and one-click folder bundle export (`/animation-studio`).
+- Animation Studio dashboard slice: `/animation-studio` shell page, studio controls, animationStudio router, IO layer, and test coverage.
 - **SHIP PASS (2026-03-04)**: tsc clean, 67/67 tests, build green, .env.example, README accurate, zero TODO/FIXME in core paths. Report: `docs/ops/SHIP_REPORT.md`.
 - Spec 002 (Platform Logic Consistency) — COMPLETE. Compliance/payout governance deferred to `specs/003-compliance-payout-governance.md`.
 - Spec 001 (Deal Flow Action Mutations) — COMPLETE.

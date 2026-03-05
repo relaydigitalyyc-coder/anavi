@@ -1,0 +1,10 @@
+ANAVI investor demo
+
+This walkthrough shows how ANAVI links Relationship Custody, Trust Score policy, Blind Matching, Deal Room workflows, and Attribution.
+
+Who this is for:
+- Family offices
+- Institutional allocators
+- Capital formation teams
+
+Key outcome: qualified Intent moves faster with cleaner diligence.

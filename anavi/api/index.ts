@@ -268,4 +268,69 @@ app.use(
   })
 );
 
+// SSR — render pages server-side for non-API requests
+let ssrRender: ((url: string) => { html: string }) | null = null;
+let templateHtml: string | null = null;
+
+async function loadSsr() {
+  if (ssrRender) return;
+  try {
+    const path = await import("path");
+    const fs = await import("fs");
+    const distPublic = path.resolve(
+      import.meta.dirname,
+      "..",
+      "dist",
+      "public"
+    );
+    const indexPath = path.resolve(distPublic, "index.html");
+    if (fs.existsSync(indexPath)) {
+      templateHtml = fs.readFileSync(indexPath, "utf-8");
+    }
+    const ssrPath = path.resolve(
+      import.meta.dirname,
+      "..",
+      "dist",
+      "server",
+      "entry-server.js"
+    );
+    if (fs.existsSync(ssrPath)) {
+      const mod = await import(ssrPath);
+      ssrRender = mod.render;
+    }
+  } catch (e) {
+    console.error("SSR module load failed:", e);
+  }
+}
+
+app.use("*", async (req: Request, res: Response) => {
+  try {
+    await loadSsr();
+    if (ssrRender && templateHtml) {
+      const { html: appHtml } = ssrRender(req.originalUrl);
+      const html = templateHtml.replace("<!--app-html-->", appHtml);
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+    } else {
+      const path = await import("path");
+      const distPublic = path.resolve(
+        import.meta.dirname,
+        "..",
+        "dist",
+        "public"
+      );
+      res.sendFile(path.resolve(distPublic, "index.html"));
+    }
+  } catch (e) {
+    console.error("SSR render error:", e);
+    const path = await import("path");
+    const distPublic = path.resolve(
+      import.meta.dirname,
+      "..",
+      "dist",
+      "public"
+    );
+    res.sendFile(path.resolve(distPublic, "index.html"));
+  }
+});
+
 export default app;

@@ -36,6 +36,7 @@ import KnowledgeGraphPage from "./pages/KnowledgeGraphPage";
 import DealIntelligence from "./pages/DealIntelligence";
 import CryptoAssets from "./pages/CryptoAssets";
 import AIBrain from "./pages/AIBrain";
+import AnimationStudioPage from "./pages/AnimationStudioPage";
 import DealMatching from "./pages/DealMatching";
 import Verification from "./pages/Verification";
 import CustodyRegister from "./pages/CustodyRegister";
@@ -223,6 +224,9 @@ function Router() {
       </Route>
       <Route path="/ai-brain">
         <ShellRoute component={AIBrain} />
+      </Route>
+      <Route path="/animation-studio">
+        <ShellRoute component={AnimationStudioPage} />
       </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

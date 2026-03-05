@@ -22,6 +22,7 @@ Install Ralph Wiggum autonomous loop tooling in this repository so spec-driven e
    - `scripts/ralph-loop-codex.sh`
    - `scripts/ralph-loop-gemini.sh`
    - `scripts/ralph-loop-copilot.sh`
+   - `scripts/ralph-loop-codex.sh` now supports `--spec <path>` for targeted spec iteration.
 2. Added Ralph support libs under `scripts/lib/`.
 3. Added templates used by spec commands under `templates/`.
 4. Added command helpers:
