@@ -1,0 +1,57 @@
+{
+  "packId": "walkthrough_90s-investor-demo-walkthrough-1772685025540",
+  "generatedAt": "2026-03-05T04:30:25.541Z",
+  "presetId": "walkthrough_90s",
+  "objective": "Explain the complete ANAVI investor journey from Intent to Deal Room in clear sequence.",
+  "settings": {
+    "emotionDepth": 66,
+    "scenePacing": 60,
+    "renderFidelity": 84,
+    "rerenderThreshold": 34,
+    "trustScoreFloor": 82,
+    "previewMode": false,
+    "overrideGate": false,
+    "intentTag": "investor-demo-walkthrough"
+  },
+  "validation": {
+    "diffScore": 1,
+    "threshold": 0.34,
+    "shouldRender": true,
+    "blockedByGate": false,
+    "reason": "No baseline render metadata. Render is allowed."
+  },
+  "render": {
+    "shouldRender": true,
+    "reason": "no cached metadata, rendering",
+    "renderPath": "/home/ariel/Documents/anavi-main/anavi/data/renders/d6ce99ab1dbc6695af48266eefd5604a6ec628e02a9a2eb3d47ed50869397364-1772685025539.mp4"
+  },
+  "geminiAsset": {
+    "assetId": "94fe1681a00a24a3be2a7246c55b5c923aa8657e21f540700d77befeaa61b8ba",
+    "prompt": "Nano Banana 2 Gemini render for investor-demo-walkthrough",
+    "intentTag": "investor-demo-walkthrough",
+    "createdAt": "2026-03-05T04:30:25.539Z",
+    "attribution": "ANAVI Attribution · Nano Banana 2"
+  },
+  "narrativeProvider": "fallback",
+  "requiredTerminology": [
+    "Relationship Custody",
+    "Trust Score",
+    "Blind Matching",
+    "Deal Room",
+    "Attribution",
+    "Intent"
+  ],
+  "files": [
+    "scene-plan.json",
+    "claude-context.json",
+    "gemini-asset.json",
+    "narrative.md",
+    "storyboard.md",
+    "captions.srt",
+    "social/x-thread.txt",
+    "social/linkedin.txt",
+    "social/youtube-description.txt",
+    "media/d6ce99ab1dbc6695af48266eefd5604a6ec628e02a9a2eb3d47ed50869397364-1772685025539.mp4",
+    "media/d6ce99ab1dbc6695af48266eefd5604a6ec628e02a9a2eb3d47ed50869397364-1772685025539.mp4.json"
+  ]
+}

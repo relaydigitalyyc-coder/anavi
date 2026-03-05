@@ -10,7 +10,7 @@
     },
     {
       "source": "/((?!api/|assets/|favicon.ico|robots.txt|sitemap.xml).*)",
-      "destination": "/index.html"
+      "destination": "/api/index"
     }
   ],
   "functions": {

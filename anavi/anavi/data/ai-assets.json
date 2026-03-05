@@ -1,0 +1,13 @@
+{
+  "36dbfe283e84a6d97e693e36943b274abcb9112ff8b490f7ff74b19c6014aeef": {
+    "assetId": "36dbfe283e84a6d97e693e36943b274abcb9112ff8b490f7ff74b19c6014aeef",
+    "prompt": "Nano Banana 2 Gemini render for [object Object]",
+    "intentTag": {
+      "intentTag": "background-hero"
+    },
+    "geminiVersion": "Gemini Nano Banana 2",
+    "attribution": "Nano Banana 2",
+    "createdAt": "2026-03-05T00:56:16.740Z",
+    "trustScore": 0.75
+  }
+}

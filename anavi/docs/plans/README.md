@@ -31,6 +31,9 @@ Global standards:
 
 ### Workflow / Tooling
 - `2026-03-04-ralph-wiggum-autonomy-setup.md` — Install Ralph Wiggum autonomous spec loop tooling and constitution.
+- `2026-03-05-animation-studio-dashboard-design.md` — Balanced-hybrid Remotion studio dashboard design with Trust Score render gating.
+- `2026-03-05-animation-studio-dashboard-implementation-plan.md` — Execution plan for studio UI, router, tests, ops docs, skill packaging, investor presets, and asset-pack bundle export.
+- `2026-03-05-platform-animation-studio-production-prd.md` — Production-readiness PRD for real animation output, job lifecycle integrity, asset-pack publishing, and Ralph loop completion criteria.
 
 ## Superseded or Historical
 

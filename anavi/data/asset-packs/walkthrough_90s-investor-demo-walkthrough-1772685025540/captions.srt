@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:18,000
+ANAVI starts with Relationship Custody, proving counterparties before introductions
+
+2
+00:00:18,000 --> 00:00:36,000
+Trust Score policy then governs which Intent combinations reach Blind Matching
+
+3
+00:00:36,000 --> 00:00:54,000
+Only qualified opportunities enter the Deal Room, where every action is auditable
+
+4
+00:00:54,000 --> 00:01:12,000
+Attribution remains visible through close, so value creation and economics stay aligned
+
+5
+00:01:12,000 --> 00:01:30,000
+For investors, this means faster diligence, fewer dead-end meetings, and higher-confidence deployment.

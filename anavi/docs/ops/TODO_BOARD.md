@@ -1,9 +1,10 @@
 # TODO Board
 
-Last updated: 2026-03-04 (late)
+Last updated: 2026-03-05
 
 ## Next Up
 
+- Execute Animation Studio productionization spec with Ralph loop methodology: `specs/005-animation-studio-productionization.md` (real Remotion output + publish-ready asset pipeline).
 - R8 Project Logic Integrity Mission: extend dashboard integrity/relevance discipline across all core project surfaces (`specs/000-dashboard-logical-integrity-and-relevance.md`).
 - Run potent Ralph in actual BUILD mode for R8 with a 20-iteration execution window.
 - Use parallel-agent fanout for project-wide contradiction discovery and synthesis before/alongside R8 implementation.
@@ -19,6 +20,7 @@ Last updated: 2026-03-04 (late)
 - Add DocuSign UI actions in Deal Room pages to call new endpoints (`createNdaEnvelope`, `sendNdaEnvelope`, `getNdaSignUrl`).
 - Add migration generation/apply for new DocuSign schema tables.
 - Set remaining DocuSign env vars (`DOCUSIGN_IMPERSONATED_USER_ID`, `DOCUSIGN_RSA_PRIVATE_KEY`, `DOCUSIGN_CONNECT_HMAC_SECRET`) and run live envelope test.
+- Add asset-pack publishing workflow from Animation Studio folder bundles to external distribution channels.
 
 ## In Progress
 
@@ -27,6 +29,8 @@ Last updated: 2026-03-04 (late)
 
 ## Done
 
+- Animation Studio investor asset production pass: preset catalog, Claude-context narrative generation, and one-click folder bundle export (`/animation-studio`).
+- Animation Studio dashboard slice: `/animation-studio` shell page, studio controls, animationStudio router, IO layer, and test coverage.
 - **SHIP PASS (2026-03-04)**: tsc clean, 67/67 tests, build green, .env.example, README accurate, zero TODO/FIXME in core paths. Report: `docs/ops/SHIP_REPORT.md`.
 - Spec 002 (Platform Logic Consistency) — COMPLETE. Compliance/payout governance deferred to `specs/003-compliance-payout-governance.md`.
 - Spec 001 (Deal Flow Action Mutations) — COMPLETE.
