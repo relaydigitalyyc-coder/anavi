@@ -356,3 +356,19 @@ export const DASHBOARD = {
       "No custodied relationships yet. Protect your first introduction.",
   },
 } as const;
+
+/**
+ * Hero typewriter copy — cycles investor -> broker -> whitepaper language.
+ * Derived from PERSONAS, PLATFORM, and TOUR constants above.
+ */
+export const HERO_TYPEWRITER = [
+  "Prove deal flow quality. Match GPs to LPs with 94% accuracy.",
+  "Cut $34B in KYC/KYB friction. 10x faster onboarding.",
+  "Verified counterparties before you see the first deck.",
+  "Your introductions. Your attribution. Your economics.",
+  "847 intros last year — ANAVI would have attributed every one.",
+  "Custody your relationships. Timestamp. Collect.",
+  "Relationship Custody for the $13T private market.",
+  "Blind Matching: intent-based, anonymized until consent.",
+  "Trust Score-gated infrastructure from NDA to close.",
+] as const;

@@ -42,16 +42,23 @@ export async function setupVite(app: Express, server: Server) {
       let template = await fs.promises.readFile(CLIENT_TEMPLATE, "utf-8");
       template = await vite.transformIndexHtml(url, template);
 
-      const { render } = (await vite.ssrLoadModule(SSR_ENTRY)) as {
-        render: (url: string) => { html: string };
-      };
+      let appHtml = "";
+      try {
+        const { render } = (await vite.ssrLoadModule(SSR_ENTRY)) as {
+          render: (url: string) => { html: string };
+        };
+        appHtml = render(url).html;
+      } catch (ssrErr) {
+        vite.ssrFixStacktrace(ssrErr as Error);
+        console.warn(
+          "SSR render failed, falling back to client-side:",
+          (ssrErr as Error).message
+        );
+      }
 
-      const { html: appHtml } = render(url);
       const html = template.replace("<!--app-html-->", appHtml);
-
       res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (e) {
-      vite.ssrFixStacktrace(e as Error);
       next(e);
     }
   });

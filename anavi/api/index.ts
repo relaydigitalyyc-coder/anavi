@@ -259,6 +259,34 @@ app.get(
   }
 );
 
+// Render artifact download — streams MP4 to client
+app.get("/api/renders/:jobId/download", async (req: Request, res: Response) => {
+  try {
+    const { getAnimationStudioRenderJob } = await import(
+      "../server/db/animationStudio"
+    );
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const job = await getAnimationStudioRenderJob(req.params.jobId);
+    if (!job) {
+      return res.status(404).json({ error: "Render job not found" });
+    }
+    if (job.state !== "succeeded" || !job.renderPath) {
+      return res
+        .status(409)
+        .json({ error: `Job not ready for download (state: ${job.state})` });
+    }
+    if (!fs.default.existsSync(job.renderPath)) {
+      return res.status(410).json({ error: "Render artifact not on disk" });
+    }
+    const filename = path.default.basename(job.renderPath);
+    res.download(job.renderPath, filename);
+  } catch (err) {
+    console.error("[api] Render download error:", err);
+    res.status(500).json({ error: "Download failed" });
+  }
+});
+
 // tRPC
 app.use(
   "/api/trpc",

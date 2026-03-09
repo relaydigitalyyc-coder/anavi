@@ -1,5 +1,41 @@
 # Engineering Memory
 
+## 2026-03-07 — Visual Intensity Pass (Landing Motif Animation)
+
+### Scope
+- Applied a full second-pass Remotion visual upgrade using landing motifs: InteractiveGlobe-style arc network, Evervault-style encrypted matrix field, and ContainerScroll-style perspective card motion.
+- Updated `remotion-studio/AnaviInvestorComposition.tsx` scene visuals for stronger motion language across Relationship Custody, Blind Matching, Deal Room, and Attribution flows.
+- Re-rendered the VC ad pack after clearing outputs with fresh Remotion artifacts for 30s / 60s / 90s.
+
+### Outputs
+- `anavi/data/renders/anavi-vc-punch-30s.mp4`
+- `anavi/data/renders/anavi-vc-narrative-60s.mp4`
+- `anavi/data/renders/anavi-vc-mini-ic-90s.mp4`
+
+## 2026-03-07 — VC Prompt Pack Refresh (Remotion Renders)
+
+### Scope
+- Cleared `anavi/data/renders` and regenerated the VC ad pack with prompt-driven narrative structure for 30s, 60s, and 90s cuts.
+- Added `scripts/render-vc-prompt-pack.ts` to render `vc-punch-30s`, `investor-narrative-60s`, and `mini-ic-90s` in one command via `renderPlanHub`.
+- Updated `scripts/render-hub.ts` composition profile copy to align with Attention-first hook, ANAVI branding, connection, and clear direction messaging.
+
+### Outputs
+- `anavi/data/renders/anavi-vc-punch-30s.mp4`
+- `anavi/data/renders/anavi-vc-narrative-60s.mp4`
+- `anavi/data/renders/anavi-vc-mini-ic-90s.mp4`
+
+## 2026-03-07 — VC Remotion Ad Cuts (30s/60s/90s) Documentation Hygiene
+
+### Scope
+- Logged the implementation batch delivering three VC Remotion cuts for ANAVI private markets messaging: 30s punch, 60s narrative, and 90s mini IC.
+- Aligned execution log language to ANAVI-first narrative anchors: Relationship Custody, Trust Score, Blind Matching, Deal Room, Attribution, and Intent.
+- Synced planning + ops records so this delivery is captured as completed and traceable across registry/memory/board.
+
+### Files Touched
+- `anavi/docs/plans/README.md`
+- `anavi/docs/ops/ENGINEERING_MEMORY.md`
+- `anavi/docs/ops/TODO_BOARD.md`
+
 ## 2026-03-05 — Spec 005 Completion: Render Job Lifecycle + Diagnostics
 
 ### Scope

@@ -34,6 +34,9 @@ Global standards:
 - `2026-03-05-animation-studio-dashboard-design.md` — Balanced-hybrid Remotion studio dashboard design with Trust Score render gating.
 - `2026-03-05-animation-studio-dashboard-implementation-plan.md` — Execution plan for studio UI, router, tests, ops docs, skill packaging, investor presets, and asset-pack bundle export.
 - `2026-03-05-platform-animation-studio-production-prd.md` — Production-readiness PRD for real animation output, job lifecycle integrity, asset-pack publishing, and Ralph loop completion criteria.
+- `2026-03-07-vc-remotion-ad-cuts-implementation-batch` — Delivered three VC Remotion ad cuts (30s punch, 60s narrative, 90s mini IC) for ANAVI private markets messaging.
+- `2026-03-07-vc-prompt-pack-refresh` — Prompt-driven rerender pass after clearing stale outputs; regenerated 30s/60s/90s VC cuts.
+- `2026-03-07-vc-visual-intensity-pass` — Landing-motif animation pass (InteractiveGlobe + Evervault + ContainerScroll language) with rerendered VC cuts.
 
 ## Superseded or Historical
 

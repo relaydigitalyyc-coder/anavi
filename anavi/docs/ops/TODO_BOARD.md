@@ -1,6 +1,6 @@
 # TODO Board
 
-Last updated: 2026-03-05
+Last updated: 2026-03-07
 
 ## Next Up
 
@@ -12,8 +12,6 @@ Last updated: 2026-03-05
 - Expand R7 execution to advanced flows: exception, retry, reversal, multi-actor conflict, governance hold/release, and recovery semantics.
 - Execute exhaustive `AF-*` advanced-flow catalog and keep unresolved critical items as closeout blockers (`anavi/docs/plans/2026-03-04-prd-r7-advanced-flow-catalog.md`).
   - Initial AF pass complete for match lifecycle idempotency/conflicts (interest/deal-room/NDA/escalate) with tests.
-- (Done via Spec 001) Wire optimistic UI action outcomes (`opened room`, `queued NDA`, `escalated`) to real backend mutations.
-- (Done 2026-03-04) R7 FR-4: Ensure audit + notifications consistency for interest, deal-room creation, and decline paths.
 - Add principal `what changed in 24h` events from real activity/audit APIs.
 - Add investor export/publish actions to real endpoints.
 - Add DocuSign UI actions in Deal Room pages to call new endpoints (`createNdaEnvelope`, `sendNdaEnvelope`, `getNdaSignUrl`).
@@ -28,6 +26,9 @@ Last updated: 2026-03-05
 
 ## Done
 
+- Visual intensity second pass for VC ad pack — COMPLETE: integrated landing motif animations (globe arcs, encrypted matrix, perspective card motion) and rerendered 30s/60s/90s outputs.
+- VC prompt-pack rerender pass — COMPLETE: cleared `anavi/data/renders`, applied prompt-driven VC narrative structure, and regenerated 30s/60s/90s Remotion outputs.
+- VC Remotion ad cuts for ANAVI private markets messaging — COMPLETE: delivered 30s punch, 60s narrative, and 90s mini IC tracks with Trust Score, Blind Matching, Deal Room, Attribution, and Intent framing.
 - Spec 005 (Animation Studio productionization) — COMPLETE: render job lifecycle APIs, diagnostics UI, and verification gates (`specs/005-animation-studio-productionization.md`).
 - Animation Studio investor asset production pass: preset catalog, Claude-context narrative generation, and one-click folder bundle export (`/animation-studio`).
 - Animation Studio dashboard slice: `/animation-studio` shell page, studio controls, animationStudio router, IO layer, and test coverage.

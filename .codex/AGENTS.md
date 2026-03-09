@@ -21,6 +21,7 @@ Available skills:
 - tdd-workflow — Test-driven development with 80%+ coverage
 - security-review — Comprehensive security checklist
 - coding-standards — Universal coding standards
+- anavi-animation-studio — Run/debug the `/animation-studio` pipeline and asset-pack workflow
 - frontend-patterns — React/Next.js patterns
 - frontend-slides — Viewport-safe HTML presentations and PPTX-to-web conversion
 - article-writing — Long-form writing from notes and voice references

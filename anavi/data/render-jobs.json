@@ -1,0 +1,24 @@
+{
+  "job_1772726648388_yy4i2v": {
+    "jobId": "job_1772726648388_yy4i2v",
+    "state": "succeeded",
+    "createdAt": "2026-03-05T16:04:08.388Z",
+    "updatedAt": "2026-03-05T16:11:07.206Z",
+    "retryCount": 0,
+    "settings": {
+      "emotionDepth": 62,
+      "scenePacing": 58,
+      "renderFidelity": 74,
+      "rerenderThreshold": 40,
+      "trustScoreFloor": 85,
+      "previewMode": true,
+      "overrideGate": false,
+      "intentTag": "walkthrough"
+    },
+    "error": null,
+    "simulateFailure": false,
+    "reason": "preview-bypass, no cached metadata, rendering",
+    "renderPath": "/home/ariel/Documents/anavi-main/anavi/data/renders/05bf96135e4d43b21aac15aea8d11a5747bf65ab5c5926ae459707b19aa538da-1772726648458.mp4",
+    "planHash": "05bf96135e4d43b21aac15aea8d11a5747bf65ab5c5926ae459707b19aa538da"
+  }
+}

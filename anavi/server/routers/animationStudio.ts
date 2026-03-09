@@ -3,11 +3,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 
-const investorPresetIds = [
-  "teaser_30s",
-  "walkthrough_90s",
-  "ic_5min",
-] as const;
+const investorPresetIds = ["teaser_30s", "walkthrough_90s", "ic_5min"] as const;
 const investorPresetIdSchema = z.enum(investorPresetIds);
 
 const animationStudioSettingsSchema = z.object({
@@ -55,7 +51,7 @@ export const animationStudioRouter = router({
     .input(animationStudioSettingsSchema)
     .mutation(async ({ input }) => {
       try {
-        return db.runAnimationStudioRender(input);
+        return await db.runAnimationStudioRender(input);
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -88,9 +84,12 @@ export const animationStudioRouter = router({
     .input(renderJobIdSchema)
     .mutation(async ({ input }) => {
       try {
-        return db.startAnimationStudioRenderJob(input.jobId);
+        return await db.startAnimationStudioRenderJob(input.jobId);
       } catch (error) {
-        if (error instanceof Error && error.message.startsWith("Unknown render job:")) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith("Unknown render job:")
+        ) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: error.message,
@@ -111,7 +110,10 @@ export const animationStudioRouter = router({
       try {
         return db.cancelAnimationStudioRenderJob(input.jobId);
       } catch (error) {
-        if (error instanceof Error && error.message.startsWith("Unknown render job:")) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith("Unknown render job:")
+        ) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: error.message,
@@ -141,7 +143,9 @@ export const animationStudioRouter = router({
     }),
 
   listRenderJobs: protectedProcedure
-    .input(z.object({ limit: z.number().min(1).max(100).optional() }).optional())
+    .input(
+      z.object({ limit: z.number().min(1).max(100).optional() }).optional()
+    )
     .query(async ({ input }) => {
       try {
         return db.listAnimationStudioRenderJobs(input?.limit ?? 10);
@@ -174,7 +178,7 @@ export const animationStudioRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        return db.applyAnimationStudioInvestorPreset(input);
+        return await db.applyAnimationStudioInvestorPreset(input);
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -234,6 +238,38 @@ export const animationStudioRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to load animation studio pack history",
+          cause: error,
+        });
+      }
+    }),
+
+  getArtifactDownloadPath: protectedProcedure
+    .input(z.object({ jobId: z.string().min(1) }))
+    .query(async ({ input }) => {
+      try {
+        const job = await db.getAnimationStudioRenderJob(input.jobId);
+        if (!job) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Unknown render job: ${input.jobId}`,
+          });
+        }
+        if (job.state !== "succeeded" || !job.renderPath) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: `Job not ready for download (state: ${job.state})`,
+          });
+        }
+        return {
+          downloadUrl: `/api/renders/${input.jobId}/download`,
+          jobId: input.jobId,
+          state: job.state,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get artifact download path",
           cause: error,
         });
       }

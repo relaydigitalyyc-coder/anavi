@@ -8,6 +8,8 @@ import {
   MorphingBlob,
 } from "@/components/PremiumAnimations";
 import { InteractiveGlobe } from "@/components/ui/interactive-globe";
+import { Typewriter } from "@/components/ui/typewriter";
+import { HERO_TYPEWRITER } from "@/lib/copy";
 
 interface HeroSectionProps {
   heroRef: React.RefObject<HTMLDivElement | null>;
@@ -162,14 +164,20 @@ export function HeroSection({
             </h1>
 
             <motion.p
-              className="text-lg md:text-xl text-white/60 max-w-lg mb-10 md:mb-14 leading-relaxed font-light"
+              className="text-lg md:text-xl text-white/60 max-w-lg mb-10 md:mb-14 leading-relaxed font-light min-h-[3.5em]"
               initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ delay: 0.8, duration: 0.8 }}
             >
-              Built for VCs: prove deal flow quality, cut the $34B lost to
-              inefficient KYC/KYB, and match GPs to LPs with 94% accuracy. 10x
-              faster onboarding than traditional compliance.
+              <Typewriter
+                text={[...HERO_TYPEWRITER]}
+                speed={50}
+                waitTime={2000}
+                deleteSpeed={30}
+                loop
+                cursorChar="_"
+                cursorClassName="ml-1 text-[#C4972A]"
+              />
             </motion.p>
 
             <motion.div

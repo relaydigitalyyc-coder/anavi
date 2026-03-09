@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { type NanoBananaAsset, generateGeminiAsset } from "../../scripts/nano-banana";
+import {
+  type NanoBananaAsset,
+  generateGeminiAsset,
+} from "../../scripts/nano-banana";
 import {
   type PlanMetadataEntry,
   renderPlanHub,
@@ -45,7 +48,12 @@ export type AnimationStudioSummary = {
   validation: AnimationStudioValidation;
 };
 
-export type RenderJobState = "queued" | "running" | "succeeded" | "failed" | "canceled";
+export type RenderJobState =
+  | "queued"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "canceled";
 
 export type RenderJob = {
   jobId: string;
@@ -139,6 +147,46 @@ type ClaudeContextPayload = {
     attribution: string;
   };
   plan: ScenePlan;
+  designLanguage: {
+    colors: Record<string, string>;
+    typography: { heading: string; body: string; mono: string };
+    animationPatterns: string[];
+    backgroundLayers: string[];
+  };
+  landingPageSections: Array<{
+    order: number;
+    id: string;
+    name: string;
+    visual: string;
+    keyElements: string[];
+  }>;
+  demoFlow: {
+    entry: string;
+    personas: Record<string, { screens: string[]; routes: string[] }>;
+    fixtures: string;
+  };
+  availableRemotionScenes: Array<{
+    id: string;
+    label: string;
+    accentColor: string;
+    visual: string;
+  }>;
+  copyConstants: {
+    platform: { tagline: string; thesis: string; market: string };
+    problems: Record<string, { stat: string; headline: string; body: string }>;
+    personas: Record<
+      string,
+      {
+        label: string;
+        role: string;
+        problem: string;
+        answer: string;
+        tourPitch: string;
+      }
+    >;
+    heroTypewriter: string[];
+    dashboardWidgets: string[];
+  };
 };
 
 type GeneratedNarrative = {
@@ -333,7 +381,10 @@ function loadRenderJobs(pathOverride = DEFAULT_RENDER_JOBS_PATH) {
   return readJson<RenderJobLedger>(pathOverride, {});
 }
 
-function writeRenderJobs(ledger: RenderJobLedger, pathOverride = DEFAULT_RENDER_JOBS_PATH) {
+function writeRenderJobs(
+  ledger: RenderJobLedger,
+  pathOverride = DEFAULT_RENDER_JOBS_PATH
+) {
   writeJson(pathOverride, ledger);
 }
 
@@ -406,8 +457,7 @@ function buildScenePlan(settings: AnimationStudioSettings): ScenePlan {
   if (settings.renderFidelity >= 82 || settings.emotionDepth >= 75) {
     scenes.push({
       id: "investor-close",
-      description:
-        "Investor close with quantified outcomes and next-step ask.",
+      description: "Investor close with quantified outcomes and next-step ask.",
     });
   }
 
@@ -430,7 +480,8 @@ function evaluatePlan(settings: AnimationStudioSettings) {
 
   const previewBypass = settings.previewMode;
   const overrideBypass = settings.overrideGate;
-  const blockedByGate = !previewBypass && !overrideBypass && planDiff < threshold;
+  const blockedByGate =
+    !previewBypass && !overrideBypass && planDiff < threshold;
   const shouldRender =
     previewBypass || overrideBypass || !baselinePlan || planDiff >= threshold;
 
@@ -461,7 +512,7 @@ function evaluatePlan(settings: AnimationStudioSettings) {
 }
 
 function getPresetOrThrow(presetId: AnimationStudioInvestorPresetId) {
-  const preset = INVESTOR_PRESETS.find((entry) => entry.id === presetId);
+  const preset = INVESTOR_PRESETS.find(entry => entry.id === presetId);
   if (!preset) {
     throw new Error(`Unknown investor preset: ${presetId}`);
   }
@@ -479,7 +530,7 @@ function slugify(value: string) {
 function sceneTitleFromId(sceneId: string) {
   return sceneId
     .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
 
@@ -497,13 +548,11 @@ function buildFallbackNarrative(
   context: ClaudeContextPayload,
   preset: AnimationStudioInvestorPreset | null
 ): GeneratedNarrative {
-  const presetPillars =
-    preset?.narrativePillars ??
-    [
-      "Relationship Custody becomes a reusable trust layer.",
-      "Blind Matching turns Intent overlap into qualified deal momentum.",
-      "Deal Room and Attribution keep execution and economics transparent.",
-    ];
+  const presetPillars = preset?.narrativePillars ?? [
+    "Relationship Custody becomes a reusable trust layer.",
+    "Blind Matching turns Intent overlap into qualified deal momentum.",
+    "Deal Room and Attribution keep execution and economics transparent.",
+  ];
 
   const headline = preset
     ? `${preset.name}: ANAVI ${context.settings.intentTag}`
@@ -569,10 +618,13 @@ function buildFallbackNarrative(
     headline,
     oneLiner,
     voiceoverScript,
-    storyboard: storyboard.length > 0 ? storyboard : presetPillars.map((pillar, index) => ({
-      title: `Beat ${index + 1}`,
-      beat: pillar,
-    })),
+    storyboard:
+      storyboard.length > 0
+        ? storyboard
+        : presetPillars.map((pillar, index) => ({
+            title: `Beat ${index + 1}`,
+            beat: pillar,
+          })),
     callToAction,
     social: {
       xThread,
@@ -628,7 +680,7 @@ async function generateNarrative(
       ],
     });
 
-    const textBlock = response.content.find((block) => block.type === "text");
+    const textBlock = response.content.find(block => block.type === "text");
     const parsed = textBlock ? extractJsonObject(textBlock.text) : null;
 
     if (
@@ -655,7 +707,8 @@ async function generateNarrative(
         xThread: parsed.social.xThread ?? fallback.social.xThread,
         linkedIn: parsed.social.linkedIn ?? fallback.social.linkedIn,
         youtubeDescription:
-          parsed.social.youtubeDescription ?? fallback.social.youtubeDescription,
+          parsed.social.youtubeDescription ??
+          fallback.social.youtubeDescription,
       },
     };
   } catch {
@@ -663,10 +716,13 @@ async function generateNarrative(
   }
 }
 
-function buildCaptionsSrt(narrative: GeneratedNarrative, durationSeconds: number) {
+function buildCaptionsSrt(
+  narrative: GeneratedNarrative,
+  durationSeconds: number
+) {
   const captionLines = narrative.voiceoverScript
     .split(/[.!?]\s+/)
-    .map((line) => line.trim())
+    .map(line => line.trim())
     .filter(Boolean)
     .slice(0, 8);
 
@@ -674,7 +730,10 @@ function buildCaptionsSrt(narrative: GeneratedNarrative, durationSeconds: number
     return "1\n00:00:00,000 --> 00:00:05,000\nANAVI Investor Narrative\n";
   }
 
-  const segment = Math.max(1, Math.floor(durationSeconds / captionLines.length));
+  const segment = Math.max(
+    1,
+    Math.floor(durationSeconds / captionLines.length)
+  );
 
   return captionLines
     .map((line, index) => {
@@ -732,6 +791,401 @@ function buildStoryboardMarkdown(plan: ScenePlan) {
   ].join("\n");
 }
 
+function buildRemotionPromptContext(): Pick<
+  ClaudeContextPayload,
+  | "designLanguage"
+  | "landingPageSections"
+  | "demoFlow"
+  | "availableRemotionScenes"
+  | "copyConstants"
+> {
+  return {
+    designLanguage: {
+      colors: {
+        bg: "#060A12",
+        navy: "#071227",
+        deep: "#0A1628",
+        electric: "#0EA5E9",
+        electricDim: "#0369A1",
+        electricLight: "#7DD3FC",
+        gold: "#C4972A",
+        goldLight: "#E5C15E",
+        emerald: "#10B981",
+        green: "#00FF41",
+        greenDim: "#00AA22",
+        purple: "#7C3AED",
+        purpleLight: "#C4B5FD",
+        white: "#FFFFFF",
+      },
+      typography: {
+        heading: "Inter, SF Pro Display, system-ui, sans-serif",
+        body: "Inter, SF Pro Display, system-ui, sans-serif",
+        mono: "JetBrains Mono, IBM Plex Mono, Courier New, monospace",
+      },
+      animationPatterns: [
+        "spring-based entrances (damping 14-16, stiffness 80-100)",
+        "parallax float (sin/cos oscillation, 5-6px amplitude)",
+        "cipher/matrix rain overlays on dark backgrounds",
+        "corner bracket HUD framing with breathing opacity",
+        "vertical scanner line sweep (4.8s period)",
+        "rotating tech rings at varying radii and speeds",
+        "floating geometric particles (triangles + hexagons)",
+        "periodic glitch effect (skew + hue shift, every ~5.8s)",
+        "gradient mesh backgrounds with noise texture",
+        "scroll-driven reveal with stagger delays",
+      ],
+      backgroundLayers: [
+        "linear-gradient(160deg, #060A12, #071227 50%, #0C1830)",
+        "MatrixRain — falling green monospace characters",
+        "RotatingTechRings — concentric dashed circles at varying speeds",
+        "FloatingParticles — drifting triangles and hexagons",
+        "VerticalScannerLine — green gradient sweep left-to-right",
+        "CornerBrackets — animated HUD-style corner framing",
+        "GlitchWrapper — periodic skew + hue-rotate + scan lines",
+      ],
+    },
+    landingPageSections: [
+      {
+        order: 1,
+        id: "hero",
+        name: "HeroSection",
+        visual:
+          "Full-viewport gradient mesh with noise overlay. HUD status panel (top-right) shows Trust Score, verification status, and ANAVI branding. Animated headline 'Custody Your Relationships' with typewriter rotating subtext. Two CTA buttons. Desktop: interactive 3D globe with connection arcs. Mobile: 2x2 stats grid. Scroll indicator at bottom.",
+        keyElements: [
+          "gradient mesh background",
+          "interactive globe with city markers and arcs",
+          "typewriter text rotation",
+          "HUD status panel",
+          "floating stat counters",
+        ],
+      },
+      {
+        order: 2,
+        id: "marquee",
+        name: "MarqueeSection",
+        visual:
+          "Horizontal scrolling marquee of market segment labels: Family Offices, Venture Capital, Private Equity, Real Estate, Commodities, Infrastructure, etc.",
+        keyElements: ["continuous horizontal scroll", "market segment labels"],
+      },
+      {
+        order: 3,
+        id: "problem",
+        name: "ProblemSection",
+        visual:
+          "'Private Markets Are Broken' headline. Three problem cards: 5-15 intermediaries per deal, $40B annual fraud, $500K duplicated due diligence. Each card has a large stat, headline, and explanatory body text.",
+        keyElements: [
+          "3 stat cards with red/warning accents",
+          "large numerical stats",
+          "problem-solution framing",
+        ],
+      },
+      {
+        order: 4,
+        id: "three-roles",
+        name: "ThreeRolesSection",
+        visual:
+          "'Three Roles. One Operating System.' Three persona cards: Originator (relationship holder), Investor (capital deployer), Principal (supply side). Each shows role label, problem statement, and ANAVI's answer. Mock UI previews embedded.",
+        keyElements: [
+          "3 persona cards",
+          "role-specific problem/answer pairs",
+          "mock UI previews",
+        ],
+      },
+      {
+        order: 5,
+        id: "stats-social",
+        name: "StatsSocialSection",
+        visual:
+          "Four platform stats (2,100+ GP-LP relationships, $2.1B deal flow, 94% match accuracy, 340 Deal Rooms). Fund Intelligence section. Compliance market card ($34B). Social proof badges.",
+        keyElements: [
+          "animated counter stats",
+          "fund intelligence widget",
+          "compliance market data",
+          "social proof badges",
+        ],
+      },
+      {
+        order: 6,
+        id: "features",
+        name: "FeaturesSection",
+        visual:
+          "Six feature cards: AI Deal Intelligence, Relationship Custody, Blind Matching, Secure Deal Rooms, Lifetime Attribution, Compliance Passport. Each card has icon, title, description. Image carousel showing feature screenshots.",
+        keyElements: [
+          "6 feature cards with icons",
+          "image carousel",
+          "feature descriptions",
+        ],
+      },
+      {
+        order: 7,
+        id: "how-it-works",
+        name: "HowItWorksSection",
+        visual:
+          "Four sequential steps: Connect (custody relationships), Analyze (Trust Score + verification), Match (blind matching engine), Close (Deal Room + attribution). Numbered steps with connecting flow.",
+        keyElements: [
+          "4-step numbered flow",
+          "step descriptions",
+          "connecting visual",
+        ],
+      },
+      {
+        order: 8,
+        id: "platform-preview",
+        name: "PlatformPreviewSection",
+        visual:
+          "Scroll-driven container animation revealing a dashboard mock. Shows sidebar navigation, Trust Score gauge, key stats, Deal Flow chart, and Activity feed. Dark UI with electric blue and gold accents.",
+        keyElements: [
+          "scroll-driven reveal animation",
+          "dashboard mock with sidebar",
+          "Trust Score gauge",
+          "Deal Flow chart",
+          "activity feed",
+        ],
+      },
+      {
+        order: 9,
+        id: "trust",
+        name: "TrustSection",
+        visual:
+          "Trust & Security section. Four security bullets: anonymous matching, end-to-end encryption, SOC 2 compliance, immutable audit logs. EvervaultCard component showing encrypted/blind card visual.",
+        keyElements: [
+          "security bullet points",
+          "EvervaultCard encrypted visual",
+          "trust messaging",
+        ],
+      },
+      {
+        order: 10,
+        id: "testimonials",
+        name: "TestimonialCarouselSection",
+        visual:
+          "Featured pull quote with large quotation marks. Three testimonial cards from: David Rothschild (family office), Katherine Wei (venture capital), Marcus Okonkwo (originator). Each has photo, name, role, and quote.",
+        keyElements: [
+          "featured quote",
+          "3 testimonial cards",
+          "names and roles",
+        ],
+      },
+      {
+        order: 11,
+        id: "pricing",
+        name: "EnterprisePricingSection",
+        visual:
+          "Five product modules: Onboard, Decide, Lifecycle, Economics, Deal Rooms. Each module card shows features and capabilities. Enterprise plan card with pricing CTA.",
+        keyElements: ["5 module cards", "enterprise plan card", "pricing CTA"],
+      },
+      {
+        order: 12,
+        id: "cta-footer",
+        name: "CTAFooterSection",
+        visual:
+          "'Next Up' navigation links. Main CTA button for demo/access. Footer with Product, Platform, Company, Resources columns. ANAVI branding and copyright.",
+        keyElements: [
+          "main CTA button",
+          "footer navigation columns",
+          "branding",
+        ],
+      },
+    ],
+    demoFlow: {
+      entry:
+        "PersonaPicker overlay (from landing 'Enter Demo' button) or /demo route with PersonaSelector",
+      personas: {
+        originator: {
+          screens: [
+            "Dashboard (OriginatorDashboard)",
+            "Custody Register",
+            "Attribution Ledger",
+            "Introduction Pipeline",
+            "Relationships",
+            "Deal Matching",
+            "Payouts",
+          ],
+          routes: [
+            "/dashboard",
+            "/custody",
+            "/attribution",
+            "/pipeline",
+            "/relationships",
+            "/matching",
+            "/payouts",
+          ],
+        },
+        investor: {
+          screens: [
+            "Dashboard (InvestorDashboard)",
+            "Deal Flow",
+            "Portfolio",
+            "Counterparty Intelligence",
+            "Relationships",
+            "Deal Matching",
+            "Payouts",
+          ],
+          routes: [
+            "/dashboard",
+            "/deal-flow",
+            "/portfolio",
+            "/counterparty-intelligence",
+            "/relationships",
+            "/matching",
+            "/payouts",
+          ],
+        },
+        principal: {
+          screens: [
+            "Dashboard (PrincipalDashboard)",
+            "Asset Register",
+            "Demand Room",
+            "Close Tracker",
+            "Relationships",
+            "Deal Matching",
+            "Payouts",
+          ],
+          routes: [
+            "/dashboard",
+            "/assets",
+            "/demand",
+            "/close",
+            "/relationships",
+            "/matching",
+            "/payouts",
+          ],
+        },
+      },
+      fixtures:
+        "Demo uses demoFixtures.ts with scenario variants: baseline, momentum, closing. Each persona gets fixture data for relationships, matches, deals, and payouts without tRPC calls.",
+    },
+    availableRemotionScenes: [
+      {
+        id: "problem-statement",
+        label: "Market Problem",
+        accentColor: "#EF4444",
+        visual:
+          "Animated broker chain (Originator → 4 intermediaries → Principal) with cascading fee deductions. Stats grid: $40B+ fraud, 5-15 intermediaries, $500K due diligence, 0% originator protection.",
+      },
+      {
+        id: "relationship-custody",
+        label: "Relationship Custody",
+        accentColor: "#0EA5E9",
+        visual:
+          "3D globe with city markers and flowing arc connections. Counter animates to 4,200 verified relationships. Radial gradient background.",
+      },
+      {
+        id: "trust-score",
+        label: "Trust Score",
+        accentColor: "#10B981",
+        visual:
+          "Circular gauge animating to 94. Three tier badges: BASIC, ENHANCED, INSTITUTIONAL. Verification checklist: KYB, OFAC, Accreditation, Peer Reviews, Transaction History.",
+      },
+      {
+        id: "blind-matching",
+        label: "Blind Matching",
+        accentColor: "#7C3AED",
+        visual:
+          "Two anonymous circles (INVESTOR + OPPORTUNITY) converging. Cipher text overlay scrolling behind. 'MATCH FOUND' reveal with gold glow. Counter: 143 active blind matches.",
+      },
+      {
+        id: "deal-room",
+        label: "Deal Room",
+        accentColor: "#0EA5E9",
+        visual:
+          "Compliance checklist (AML/KYC, Sanctions, NDA, Diligence, Escrow) with animated checks. 3D-perspective deal card: $12.5M Series B, progress bar to 82%. Counter: 47 active deal rooms.",
+      },
+      {
+        id: "attribution",
+        label: "Lifetime Attribution",
+        accentColor: "#C4972A",
+        visual:
+          "Four-node chain: Originator → Introduction → Deal Closed → Attribution. Large 60% originator share counter. $47,200 earnings counter. Footer: 'Lifetime · Compounding · Circumvention-Detected · Automated'.",
+      },
+      {
+        id: "market-opportunity",
+        label: "Market Opportunity",
+        accentColor: "#C4972A",
+        visual:
+          "Horizontal bar chart: Private Markets $13T→$25T, Family Office $3.1T→$5.4T, Commodities $142T→$163T, Oil & Gas $7.4T→$10.4T. 2024 vs 2030 projections. Bloomberg tagline.",
+      },
+    ],
+    copyConstants: {
+      platform: {
+        tagline: "The Private Market Operating System",
+        thesis:
+          "If Bloomberg runs public markets, ANAVI will run private ones.",
+        market: "$13 trillion private market",
+      },
+      problems: {
+        brokerChain: {
+          stat: "5–15",
+          headline: "Intermediaries Per Deal",
+          body: "5 to 15 intermediaries per deal. Each extracting 1–5%. The originator receives no attribution, no compounding value, and no protection if they're cut out.",
+        },
+        fraud: {
+          stat: "$40B",
+          headline: "Annual Fraud Losses",
+          body: "$10 to $40 billion in annual US investment fraud losses. Identity verification across private markets is fragmented, unshared, and trivially forged.",
+        },
+        dueDiligence: {
+          stat: "$500K",
+          headline: "Duplicated Per Deal",
+          body: "$50,000 to $500,000 per deal in duplicated compliance costs. Every investor runs the same KYC, OFAC, accreditation checks independently.",
+        },
+      },
+      personas: {
+        originator: {
+          label: "Deal Originator / Broker",
+          role: "Relationship Holder",
+          problem: "My introductions close deals I never get credit for.",
+          answer:
+            "Custody your relationships. Timestamp your introductions. Collect your attribution.",
+          tourPitch:
+            "You made 847 introductions last year. ANAVI would have attributed every one.",
+        },
+        investor: {
+          label: "Investor / Family Office",
+          role: "Capital Deployer",
+          problem:
+            "I can't tell which deals are real or who's already seen them.",
+          answer:
+            "Verified counterparties. Blind matching. Mutual consent before any disclosure.",
+          tourPitch:
+            "You reviewed 40 deals. ANAVI would have verified every counterparty before you saw the first deck.",
+        },
+        principal: {
+          label: "Principal / Asset Owner",
+          role: "Supply Side",
+          problem:
+            "Raising capital means exposing my thesis before anyone commits.",
+          answer:
+            "Seal your asset. Match anonymously. Disclose only on consent.",
+          tourPitch:
+            "You raised $30M. ANAVI protected your thesis until the moment you chose to disclose it.",
+        },
+      },
+      heroTypewriter: [
+        "Prove deal flow quality. Match GPs to LPs with 94% accuracy.",
+        "Cut $34B in KYC/KYB friction. 10x faster onboarding.",
+        "Verified counterparties before you see the first deck.",
+        "Your introductions. Your attribution. Your economics.",
+        "847 intros last year — ANAVI would have attributed every one.",
+        "Custody your relationships. Timestamp. Collect.",
+        "Relationship Custody for the $13T private market.",
+        "Blind Matching: intent-based, anonymized until consent.",
+        "Trust Score-gated infrastructure from NDA to close.",
+      ],
+      dashboardWidgets: [
+        "Trust Score (gauge + breakdown CTA)",
+        "Market Depth (buyers/sellers)",
+        "Blind Matches (sealed status)",
+        "Deal Rooms (documents, audit events, escrow)",
+        "Compliance Status (KYB, OFAC, AML passport)",
+        "Economics Engine (next payout, lifetime attribution, originator share)",
+        "Active Intents",
+        "Relationship Custody (custody age, attribution cue)",
+      ],
+    },
+  };
+}
+
 function buildClaudeContextPayload(input: {
   settings: AnimationStudioSettings;
   preset: AnimationStudioInvestorPreset | null;
@@ -744,7 +1198,9 @@ function buildClaudeContextPayload(input: {
   };
   geminiAsset: NanoBananaAsset;
 }): ClaudeContextPayload {
-  const presetId: ClaudeContextPayload["presetId"] = input.preset?.id ?? "custom";
+  const presetId: ClaudeContextPayload["presetId"] =
+    input.preset?.id ?? "custom";
+  const promptContext = buildRemotionPromptContext();
 
   return {
     platform: "ANAVI" as const,
@@ -767,6 +1223,7 @@ function buildClaudeContextPayload(input: {
       attribution: input.geminiAsset.attribution,
     },
     plan: input.plan,
+    ...promptContext,
   };
 }
 
@@ -800,13 +1257,16 @@ export function getAnimationStudioInvestorPresets() {
   return INVESTOR_PRESETS;
 }
 
-export function applyAnimationStudioInvestorPreset(input: {
+export async function applyAnimationStudioInvestorPreset(input: {
   presetId: AnimationStudioInvestorPresetId;
-}): ApplyInvestorPresetResult {
+}): Promise<ApplyInvestorPresetResult> {
   const preset = getPresetOrThrow(input.presetId);
   const settings = resolveSettings(preset.recommendedSettings);
   const validation = validateAnimationStudioPlan(settings);
-  const renderResult = runAnimationStudioRender({ ...settings, previewMode: true });
+  const renderResult = await runAnimationStudioRender({
+    ...settings,
+    previewMode: true,
+  });
   const plan = buildScenePlan(settings);
 
   const geminiAsset = requestAnimationStudioGeminiAsset({
@@ -830,12 +1290,16 @@ export function applyAnimationStudioInvestorPreset(input: {
   return { preset, settings, claudeContext };
 }
 
-export function validateAnimationStudioPlan(settingsInput: AnimationStudioSettings) {
+export function validateAnimationStudioPlan(
+  settingsInput: AnimationStudioSettings
+) {
   const settings = resolveSettings(settingsInput);
   return evaluatePlan(settings).validation;
 }
 
-export function runAnimationStudioRender(settingsInput: AnimationStudioSettings) {
+export async function runAnimationStudioRender(
+  settingsInput: AnimationStudioSettings
+) {
   const settings = resolveSettings(settingsInput);
   const evaluation = evaluatePlan(settings);
 
@@ -848,7 +1312,7 @@ export function runAnimationStudioRender(settingsInput: AnimationStudioSettings)
     };
   }
 
-  const renderResult = renderPlanHub({
+  const renderResult = await renderPlanHub({
     plan: evaluation.plan,
     previewMode: settings.previewMode,
     threshold: evaluation.validation.threshold,
@@ -858,7 +1322,7 @@ export function runAnimationStudioRender(settingsInput: AnimationStudioSettings)
   const reasonParts = new Set(
     renderResult.reason
       .split(",")
-      .map((part) => part.trim())
+      .map(part => part.trim())
       .filter(Boolean)
   );
 
@@ -899,7 +1363,7 @@ export function queueAnimationStudioRenderJob(input: {
   return job;
 }
 
-export function startAnimationStudioRenderJob(jobId: string) {
+export async function startAnimationStudioRenderJob(jobId: string) {
   const ledger = loadRenderJobs();
   const job = ledger[jobId];
   if (!job) {
@@ -919,7 +1383,7 @@ export function startAnimationStudioRenderJob(jobId: string) {
       throw new Error("Simulated render failure for test");
     }
 
-    const result = runAnimationStudioRender(job.settings);
+    const result = await runAnimationStudioRender(job.settings);
     job.state = "succeeded";
     job.updatedAt = new Date().toISOString();
     job.reason = result.reason;
@@ -932,7 +1396,10 @@ export function startAnimationStudioRenderJob(jobId: string) {
     job.state = "failed";
     job.updatedAt = new Date().toISOString();
     job.retryCount += 1;
-    job.error = { message: String(error?.message ?? error), stack: String(error?.stack ?? "") };
+    job.error = {
+      message: String(error?.message ?? error),
+      stack: String(error?.stack ?? ""),
+    };
     writeRenderJobs(ledger);
     return job;
   }
@@ -980,7 +1447,8 @@ export function getAnimationStudioSummary(): AnimationStudioSummary {
 
   const settings: AnimationStudioSettings = {
     ...DEFAULT_SETTINGS,
-    intentTag: latestPlanSnapshot?.metadata.intent ?? DEFAULT_SETTINGS.intentTag,
+    intentTag:
+      latestPlanSnapshot?.metadata.intent ?? DEFAULT_SETTINGS.intentTag,
     trustScoreFloor: latestPlanSnapshot
       ? sanitizePercent(clamp01(latestPlanSnapshot.metadata.trustScore) * 100)
       : DEFAULT_SETTINGS.trustScoreFloor,
@@ -1014,18 +1482,18 @@ export function getAnimationStudioSummary(): AnimationStudioSummary {
 }
 
 function buildTerminologyCheck(narrative: GeneratedNarrative) {
-  const haystack = (
-    [
-      narrative.headline,
-      narrative.oneLiner,
-      narrative.voiceoverScript,
-      narrative.storyboard.map((s) => `${s.title} ${s.beat}`).join(" "),
-      narrative.callToAction,
-      narrative.social.xThread,
-      narrative.social.linkedIn,
-      narrative.social.youtubeDescription,
-    ].join(" \n ")
-  ).toLowerCase();
+  const haystack = [
+    narrative.headline,
+    narrative.oneLiner,
+    narrative.voiceoverScript,
+    narrative.storyboard.map(s => `${s.title} ${s.beat}`).join(" "),
+    narrative.callToAction,
+    narrative.social.xThread,
+    narrative.social.linkedIn,
+    narrative.social.youtubeDescription,
+  ]
+    .join(" \n ")
+    .toLowerCase();
 
   const missing: string[] = [];
   const present: string[] = [];
@@ -1033,7 +1501,12 @@ function buildTerminologyCheck(narrative: GeneratedNarrative) {
     if (haystack.includes(term.toLowerCase())) present.push(term);
     else missing.push(term);
   }
-  return { required: REQUIRED_TERMINOLOGY, present, missing, passed: missing.length === 0 };
+  return {
+    required: REQUIRED_TERMINOLOGY,
+    present,
+    missing,
+    passed: missing.length === 0,
+  };
 }
 
 export async function exportAnimationStudioAssetPack(
@@ -1046,7 +1519,7 @@ export async function exportAnimationStudioAssetPack(
   const useClaude = input.useClaude ?? true;
 
   const validation = validateAnimationStudioPlan(settings);
-  const renderResult = runAnimationStudioRender({
+  const renderResult = await runAnimationStudioRender({
     ...settings,
     previewMode: false,
   });
@@ -1110,10 +1583,16 @@ export async function exportAnimationStudioAssetPack(
         : 30
     : 90;
 
-  const captionsPath = writePackText("captions.srt", buildCaptionsSrt(narrative, durationSeconds));
+  const captionsPath = writePackText(
+    "captions.srt",
+    buildCaptionsSrt(narrative, durationSeconds)
+  );
   writePackText("social/x-thread.txt", narrative.social.xThread);
   writePackText("social/linkedin.txt", narrative.social.linkedIn);
-  writePackText("social/youtube-description.txt", narrative.social.youtubeDescription);
+  writePackText(
+    "social/youtube-description.txt",
+    narrative.social.youtubeDescription
+  );
 
   let copiedRenderPath = "";
   if (renderResult.renderPath && fs.existsSync(renderResult.renderPath)) {
@@ -1137,24 +1616,36 @@ export async function exportAnimationStudioAssetPack(
     fs.copyFileSync(sidecarPath, sidecarTarget);
     files.push(normalizeRelativePath(sidecarTarget, packDirectory));
     try {
-      sidecarTech = JSON.parse(fs.readFileSync(sidecarTarget, "utf8")).technical ?? null;
+      sidecarTech =
+        JSON.parse(fs.readFileSync(sidecarTarget, "utf8")).technical ?? null;
     } catch {}
   }
 
   // Quality gates and readiness
   const terminology = buildTerminologyCheck(narrative);
   const ctaOk = (narrative.callToAction || "").trim().length > 8;
-  const captionsOk = fs.existsSync(captionsPath) && fs.readFileSync(captionsPath, "utf8").trim().length > 0;
-  const renderOk = copiedRenderPath ? fs.statSync(copiedRenderPath).size > 0 : false;
-  const trustPolicyOk = geminiAsset.trustScore >= clamp01(settings.trustScoreFloor / 100);
-  const gateOverrideUsed = /override-enabled|preview-bypass/.test(renderResult.reason);
+  const captionsOk =
+    fs.existsSync(captionsPath) &&
+    fs.readFileSync(captionsPath, "utf8").trim().length > 0;
+  const renderOk = copiedRenderPath
+    ? fs.statSync(copiedRenderPath).size > 0
+    : false;
+  const trustPolicyOk =
+    geminiAsset.trustScore >= clamp01(settings.trustScoreFloor / 100);
+  const gateOverrideUsed = /override-enabled|preview-bypass/.test(
+    renderResult.reason
+  );
 
   const qualityGates = {
     terminology,
     callToAction: { passed: ctaOk },
     captions: { passed: captionsOk },
     renderArtifact: { passed: renderOk, technical: sidecarTech },
-    trustPolicy: { passed: trustPolicyOk, floor: settings.trustScoreFloor, actual: Math.round(geminiAsset.trustScore * 100) },
+    trustPolicy: {
+      passed: trustPolicyOk,
+      floor: settings.trustScoreFloor,
+      actual: Math.round(geminiAsset.trustScore * 100),
+    },
     policy: { gateOverrideUsed },
   } as const;
 
@@ -1195,7 +1686,10 @@ export async function exportAnimationStudioAssetPack(
       lineage: {
         planHash: (renderResult as any).metadata?.planHash ?? null,
         geminiAssetId: geminiAsset.assetId,
-        claudeContextPath: normalizeRelativePath(claudeContextPath, packDirectory),
+        claudeContextPath: normalizeRelativePath(
+          claudeContextPath,
+          packDirectory
+        ),
       },
     },
     files,
@@ -1231,7 +1725,9 @@ export function getAnimationStudioPackHistory(limit = 5): PackHistoryEntry[] {
           packId: m.packId ?? name,
           generatedAt: m.generatedAt ?? new Date(0).toISOString(),
           presetId: m.presetId ?? "custom",
-          narrativeProvider: (m.narrativeProvider === "claude" ? "claude" : "fallback") as "claude"|"fallback",
+          narrativeProvider: (m.narrativeProvider === "claude"
+            ? "claude"
+            : "fallback") as "claude" | "fallback",
           readyToPublish: !!m.readiness?.readyToPublish,
           packDirectory: packDir,
           files: Array.isArray(m.files) ? m.files.length : 0,
@@ -1239,5 +1735,7 @@ export function getAnimationStudioPackHistory(limit = 5): PackHistoryEntry[] {
       } catch {}
     }
   }
-  return entries.sort((a,b)=> Date.parse(b.generatedAt) - Date.parse(a.generatedAt)).slice(0, Math.max(0, limit));
+  return entries
+    .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))
+    .slice(0, Math.max(0, limit));
 }
