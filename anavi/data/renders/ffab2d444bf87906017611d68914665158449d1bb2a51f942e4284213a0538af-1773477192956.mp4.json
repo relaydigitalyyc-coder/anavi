@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-03-14T08:33:12.960Z",
+  "renderer": "copy",
+  "compositionId": "anavi-default-60s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 60,
+    "sizeBytes": 3541981
+  },
+  "trustScore": 0.5,
+  "plan": {
+    "scenes": [
+      {
+        "id": "1",
+        "description": "intro"
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.5,
+      "intent": "launch"
+    }
+  }
+}

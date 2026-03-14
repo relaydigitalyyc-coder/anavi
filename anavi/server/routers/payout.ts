@@ -9,6 +9,18 @@ import {
   type FollowOnAttribution,
 } from "../_core/payoutCalc";
 
+const toNumber = (value: unknown) => {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getIdempotencyMeta = (
+  row: Awaited<ReturnType<typeof db.getAuditLog>>[number],
+) => (row.metadata ?? {}) as Record<string, unknown>;
+
+const buildArtifactId = () =>
+  Number(`${Date.now()}`.slice(-9)) + Math.floor(Math.random() * 1000);
+
 export const payoutRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     return db.getPayoutsByUser(ctx.user.id);
@@ -42,6 +54,168 @@ export const payoutRouter = router({
     .input(z.object({ dealId: z.number() }))
     .query(async ({ input }) => {
       return db.getPayoutsByDeal(input.dealId);
+    }),
+
+  publishSnapshot: protectedProcedure
+    .input(
+      z.object({
+        idempotencyKey: z.string().min(8).max(128).optional(),
+        periodStart: z.string().datetime(),
+        periodEnd: z.string().datetime(),
+        filters: z.record(z.string(), z.string()).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existingRows = await db.getAuditLog(
+        "portfolio_snapshot",
+        ctx.user.id,
+        200
+      );
+      if (input.idempotencyKey) {
+        const existing = existingRows.find((row) => {
+          const meta = getIdempotencyMeta(row);
+          return (
+            row.action === "portfolio_snapshot_published" &&
+            meta.idempotencyKey === input.idempotencyKey
+          );
+        });
+        if (existing) {
+          const meta = getIdempotencyMeta(existing);
+          return {
+            snapshotId: Number(meta.snapshotId ?? 0),
+            publishedAt:
+              typeof meta.publishedAt === "string"
+                ? meta.publishedAt
+                : existing.createdAt.toISOString(),
+            url:
+              typeof meta.url === "string"
+                ? meta.url
+                : `/portfolio/snapshots/${meta.snapshotId ?? existing.id}`,
+            idempotent: true,
+          };
+        }
+      }
+
+      const payouts = await db.getPayoutsByUser(ctx.user.id);
+      const periodStart = new Date(input.periodStart);
+      const periodEnd = new Date(input.periodEnd);
+      const items = payouts.filter((payout) => {
+        const ts = payout.createdAt.getTime();
+        return ts >= periodStart.getTime() && ts <= periodEnd.getTime();
+      });
+      const total = items.reduce((sum, payout) => sum + toNumber(payout.amount), 0);
+      const snapshotId = buildArtifactId();
+      const publishedAt = new Date().toISOString();
+      const url = `/portfolio/snapshots/${snapshotId}`;
+
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: "portfolio_snapshot_published",
+        entityType: "portfolio_snapshot",
+        entityId: ctx.user.id,
+        metadata: {
+          idempotencyKey: input.idempotencyKey ?? null,
+          snapshotId,
+          periodStart: input.periodStart,
+          periodEnd: input.periodEnd,
+          itemCount: items.length,
+          total,
+          filters: input.filters ?? null,
+          publishedAt,
+          url,
+        },
+      });
+
+      return {
+        snapshotId,
+        publishedAt,
+        url,
+        itemCount: items.length,
+        total,
+        idempotent: false,
+      };
+    }),
+
+  exportStatement: protectedProcedure
+    .input(
+      z.object({
+        idempotencyKey: z.string().min(8).max(128).optional(),
+        periodStart: z.string().datetime(),
+        periodEnd: z.string().datetime(),
+        filters: z.record(z.string(), z.string()).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existingRows = await db.getAuditLog(
+        "portfolio_statement_export",
+        ctx.user.id,
+        200
+      );
+      if (input.idempotencyKey) {
+        const existing = existingRows.find((row) => {
+          const meta = getIdempotencyMeta(row);
+          return (
+            row.action === "portfolio_statement_exported" &&
+            meta.idempotencyKey === input.idempotencyKey
+          );
+        });
+        if (existing) {
+          const meta = getIdempotencyMeta(existing);
+          return {
+            statementId: Number(meta.statementId ?? 0),
+            exportedAt:
+              typeof meta.exportedAt === "string"
+                ? meta.exportedAt
+                : existing.createdAt.toISOString(),
+            url:
+              typeof meta.url === "string"
+                ? meta.url
+                : `/portfolio/statements/${meta.statementId ?? existing.id}.json`,
+            total: toNumber(meta.total),
+            itemCount: Number(meta.itemCount ?? 0),
+            idempotent: true,
+          };
+        }
+      }
+
+      const payouts = await db.getPayoutsByUser(ctx.user.id);
+      const periodStart = new Date(input.periodStart);
+      const periodEnd = new Date(input.periodEnd);
+      const items = payouts.filter((payout) => {
+        const ts = payout.createdAt.getTime();
+        return ts >= periodStart.getTime() && ts <= periodEnd.getTime();
+      });
+      const total = items.reduce((sum, payout) => sum + toNumber(payout.amount), 0);
+      const statementId = buildArtifactId();
+      const exportedAt = new Date().toISOString();
+      const url = `/portfolio/statements/${statementId}.json`;
+
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: "portfolio_statement_exported",
+        entityType: "portfolio_statement_export",
+        entityId: ctx.user.id,
+        metadata: {
+          idempotencyKey: input.idempotencyKey ?? null,
+          statementId,
+          periodStart: input.periodStart,
+          periodEnd: input.periodEnd,
+          itemCount: items.length,
+          total,
+          filters: input.filters ?? null,
+          exportedAt,
+          url,
+        },
+      });
+
+      return {
+        statementId,
+        exportedAt,
+        url,
+        total,
+        itemCount: items.length,
+        idempotent: false,
+      };
     }),
 
   /** Preview payout splits for a deal without writing to DB. */

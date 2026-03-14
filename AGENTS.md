@@ -93,3 +93,19 @@ After each substantive implementation batch:
 - Avoid destructive git commands.
 - Preserve unrelated working tree edits.
 - Prefer additive organization (indexes, docs, ops boards) over moving large file trees unless asked.
+
+## gstack Rules
+
+- Use the `gstack` `/browse` skill for all browser-driven web checks.
+- Do not use `mcp__claude-in-chrome__*` tools for browsing flows.
+- Available `gstack` skills:
+  - `/plan-ceo-review`
+  - `/plan-eng-review`
+  - `/review`
+  - `/ship`
+  - `/browse`
+  - `/qa`
+  - `/setup-browser-cookies`
+- `/retro`
+- If skills are unavailable, run:
+  - `cd .claude/skills/gstack && ./setup`

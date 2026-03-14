@@ -262,12 +262,16 @@ app.get(
 // Render artifact download — streams MP4 to client
 app.get("/api/renders/:jobId/download", async (req: Request, res: Response) => {
   try {
+    const ctx = await createContext({ req, res, info: {} as any });
+    if (!ctx.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const { getAnimationStudioRenderJob } = await import(
       "../server/db/animationStudio"
     );
     const fs = await import("node:fs");
     const path = await import("node:path");
-    const job = await getAnimationStudioRenderJob(req.params.jobId);
+    const job = await getAnimationStudioRenderJob(req.params.jobId, ctx.user.id);
     if (!job) {
       return res.status(404).json({ error: "Render job not found" });
     }

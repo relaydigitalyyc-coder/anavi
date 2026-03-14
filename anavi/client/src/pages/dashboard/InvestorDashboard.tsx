@@ -71,6 +71,9 @@ export function InvestorDashboardContent() {
   const { data: liveDealRooms } = trpc.dealRoom.list.useQuery(undefined, {
     enabled: !demo,
   });
+  const { data: liveMatchStats } = trpc.match.liveStats.useQuery(undefined, {
+    enabled: !demo,
+  });
 
   const relationships = demo?.relationships ?? liveRelationships ?? [];
   const portfolioPositions = demo?.payouts ?? livePayouts ?? [];
@@ -88,6 +91,14 @@ export function InvestorDashboardContent() {
     })
   );
 
+  const formatUsdCompact = (amount: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(amount);
+
   const deploymentCapacity = demo
     ? {
         available: 196000000,
@@ -95,7 +106,119 @@ export function InvestorDashboardContent() {
         deployed: 141150000,
         total: 340000000,
       }
-    : null;
+    : liveMatchStats?.capital ?? null;
+
+  const pipelineSegments = demo
+    ? [
+        { label: "Sourcing", count: 12, color: "#2563EB" },
+        { label: "Due Diligence", count: 8, color: "#C4972A" },
+        { label: "Term Sheet", count: 4, color: "#059669" },
+        { label: "Closing", count: 2, color: "#9B7CF8" },
+      ]
+    : [
+        {
+          label: "Sourcing",
+          count: liveMatchStats?.pipeline.sourcing ?? 0,
+          color: "#2563EB",
+        },
+        {
+          label: "Due Diligence",
+          count: liveMatchStats?.pipeline.dueDiligence ?? 0,
+          color: "#C4972A",
+        },
+        {
+          label: "Term Sheet",
+          count: liveMatchStats?.pipeline.termSheet ?? 0,
+          color: "#059669",
+        },
+        {
+          label: "Closing",
+          count: liveMatchStats?.pipeline.closing ?? 0,
+          color: "#9B7CF8",
+        },
+      ];
+  const pipelineTotal = Math.max(
+    1,
+    pipelineSegments.reduce((sum, segment) => sum + segment.count, 0)
+  );
+
+  const summaryMetrics = demo
+    ? [
+        { label: "Active Pipeline", value: "26", href: "/pipeline?status=active" },
+        { label: "Committed Capital", value: "$340M", href: "/portfolio?view=capital" },
+        { label: "Weighted Trust Score", value: "87", href: "/counterparty-intelligence?sort=trust" },
+        { label: "Avg Time-to-Close", value: "18d", href: "/deal-flow?metric=ttc" },
+      ]
+    : [
+        {
+          label: "Active Pipeline",
+          value: String(liveMatchStats?.summary.activePipeline ?? 0),
+          href: "/pipeline?status=active",
+        },
+        {
+          label: "Committed Capital",
+          value: formatUsdCompact(liveMatchStats?.summary.committedCapital ?? 0),
+          href: "/portfolio?view=capital",
+        },
+        {
+          label: "Weighted Trust Score",
+          value: String(liveMatchStats?.summary.weightedTrustScore ?? 0),
+          href: "/counterparty-intelligence?sort=trust",
+        },
+        {
+          label: "Avg Time-to-Close",
+          value:
+            liveMatchStats?.summary.avgTimeToCloseDays != null
+              ? `${liveMatchStats.summary.avgTimeToCloseDays}d`
+              : "n/a",
+          href: "/deal-flow?metric=ttc",
+        },
+      ];
+
+  const liveProofItems = demo
+    ? [
+        {
+          label: "New Verified Matches",
+          value: `${Math.min(4, demo?.matches.length ?? 0)} in 24h`,
+          delta: "+31%",
+          href: "/deal-flow?filter=new_verified",
+        },
+        {
+          label: "Diligence Compression",
+          value: "2.4d median",
+          delta: "-0.8d",
+          href: "/pipeline?metric=diligence",
+        },
+        {
+          label: "Capital Allocation Ready",
+          value: "$196M available",
+          delta: "Realtime",
+          href: "/portfolio?view=capital",
+        },
+      ]
+    : [
+        {
+          label: "New Verified Matches",
+          value: `${liveMatchStats?.liveProof.newVerifiedMatches24h ?? 0} in 24h`,
+          delta: "Live",
+          href: "/deal-flow?filter=new_verified",
+        },
+        {
+          label: "Diligence Compression",
+          value:
+            liveMatchStats?.liveProof.diligenceMedianDays != null
+              ? `${liveMatchStats.liveProof.diligenceMedianDays}d median`
+              : "No diligence sample",
+          delta: "Live",
+          href: "/pipeline?metric=diligence",
+        },
+        {
+          label: "Capital Allocation Ready",
+          value: `${formatUsdCompact(liveMatchStats?.liveProof.capitalAllocationReady ?? 0)} available`,
+          delta: "Live",
+          href: "/portfolio?view=capital",
+        },
+      ];
 
   return (
     <FadeInView>
@@ -105,12 +228,14 @@ export function InvestorDashboardContent() {
           <p className="mt-1 text-sm text-[#1E3A5F]/60">
             {demo
               ? `${demo.matches.length} blind matches active · ${demo.dealRooms.length} deal room requires action`
-              : "Loading deal flow..."}
+              : `${liveMatchStats?.pipeline.total ?? 0} pipeline opportunities · ${(liveDealRooms ?? []).length} active deal rooms`}
           </p>
           <p className="mt-1 text-[10px] uppercase tracking-widest text-[#1E3A5F]/45">
             {telemetry?.updatedAt
               ? `Last updated ${formatDistanceToNow(new Date(telemetry.updatedAt), { addSuffix: true })} · ${reportPeriod}`
-              : `Last updated now · ${reportPeriod}`}
+              : liveMatchStats?.lastUpdatedAt
+                ? `Last updated ${formatDistanceToNow(new Date(liveMatchStats.lastUpdatedAt), { addSuffix: true })} · ${reportPeriod}`
+                : `Last updated now · ${reportPeriod}`}
           </p>
         </div>
         <div className="hidden lg:block shrink-0 -mt-4 -mr-2">
@@ -128,34 +253,20 @@ export function InvestorDashboardContent() {
           Live Proof
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            {
-              label: "New Verified Matches",
-              value: `${Math.min(4, demo?.matches.length ?? 0)} in 24h`,
-              delta: "+31%",
-            },
-            {
-              label: "Diligence Compression",
-              value: "2.4d median",
-              delta: "-0.8d",
-            },
-            {
-              label: "Capital Allocation Ready",
-              value: "$196M available",
-              delta: "Realtime",
-            },
-          ].map(item => (
-            <div key={item.label} className="rounded-lg bg-white/5 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-widest text-white/45">
-                {item.label}
-              </p>
-              <p className="text-sm font-semibold text-white mt-1">
-                {item.value}
-              </p>
-              <p className="text-[10px] uppercase tracking-wider text-[#22D4F5] mt-1">
-                {item.delta}
-              </p>
-            </div>
+          {liveProofItems.map(item => (
+            <MaybeLink key={item.label} href={item.href} demo={!!demo}>
+              <div className="rounded-lg bg-white/5 px-3 py-2 hover:bg-white/10 cursor-pointer transition-colors h-full">
+                <p className="text-[10px] uppercase tracking-widest text-white/45">
+                  {item.label}
+                </p>
+                <p className="text-sm font-semibold text-white mt-1">
+                  {item.value}
+                </p>
+                <p className="text-[10px] uppercase tracking-wider text-[#22D4F5] mt-1">
+                  {item.delta}
+                </p>
+              </div>
+            </MaybeLink>
           ))}
         </div>
       </div>
@@ -166,13 +277,8 @@ export function InvestorDashboardContent() {
             Pipeline Visualization
           </p>
           <div className="h-8 flex rounded-full overflow-hidden bg-[#1E3A5F]/10">
-            {[
-              { label: "Sourcing", count: 12, color: "#2563EB" },
-              { label: "Due Diligence", count: 8, color: "#C4972A" },
-              { label: "Term Sheet", count: 4, color: "#059669" },
-              { label: "Closing", count: 2, color: "#9B7CF8" },
-            ].map(({ label, count, color }, idx) => {
-              const pct = (count / 26) * 100;
+            {pipelineSegments.map(({ label, count, color }, idx) => {
+              const pct = (count / pipelineTotal) * 100;
               return (
                 <motion.div
                   key={label}
@@ -203,12 +309,7 @@ export function InvestorDashboardContent() {
             })}
           </div>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-            {[
-              { label: "Sourcing", count: 12, color: "#2563EB" },
-              { label: "Due Diligence", count: 8, color: "#C4972A" },
-              { label: "Term Sheet", count: 4, color: "#059669" },
-              { label: "Closing", count: 2, color: "#9B7CF8" },
-            ].map(({ label, count, color }) => (
+            {pipelineSegments.map(({ label, count, color }) => (
               <span key={label} className="text-[10px] text-[#1E3A5F]/70">
                 <span
                   className="inline-block w-2 h-2 rounded-full mr-1 align-middle"
@@ -220,23 +321,19 @@ export function InvestorDashboardContent() {
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: "Active Pipeline", value: "26" },
-            { label: "Committed Capital", value: "$340M" },
-            { label: "Weighted Trust Score", value: "87" },
-            { label: "Avg Time-to-Close", value: "18d" },
-          ].map(metric => (
-            <div
-              key={metric.label}
-              className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2"
-            >
-              <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">
-                {metric.label}
-              </p>
-              <p className="text-sm font-bold text-[#0A1628] mt-1">
-                {metric.value}
-              </p>
-            </div>
+          {summaryMetrics.map(metric => (
+            <MaybeLink key={metric.label} href={metric.href} demo={!!demo}>
+              <div
+                className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2 hover:bg-[#1E3A5F]/10 cursor-pointer transition-colors"
+              >
+                <p className="text-[9px] uppercase tracking-widest text-[#1E3A5F]/50">
+                  {metric.label}
+                </p>
+                <p className="text-sm font-bold text-[#0A1628] mt-1">
+                  {metric.value}
+                </p>
+              </div>
+            </MaybeLink>
           ))}
         </div>
       </DashCard>
@@ -475,7 +572,7 @@ export function InvestorDashboardContent() {
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
               <MaybeLink
-                href="/deal-flow?minScore=90&status=pending_consent"
+                href="/deal-flow?minScore=90&status=pending"
                 demo={!!demo}
               >
                 <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#1E3A5F]/70 hover:bg-[#1E3A5F]/15">

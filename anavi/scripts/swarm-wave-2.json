@@ -1,0 +1,42 @@
+[
+  {
+    "name": "agent-2.1",
+    "task": "Design n8n memory schema for conversation context. Define the database tables in schema.ts (e.g., ai_memories, memory_links) to store long-term context, timestamps, and entity associations."
+  },
+  {
+    "name": "agent-2.2",
+    "task": "Create n8n workflow for storing AI interactions. Write the webhook endpoint or n8n node configuration JSON that receives chat logs and inserts them into the ai_memories schema."
+  },
+  {
+    "name": "agent-2.3",
+    "task": "Build retrieval system for historical context. Implement an endpoint that fetches relevant past memories for a user based on semantic search or timeline to inject into the Claude API prompt."
+  },
+  {
+    "name": "agent-2.4",
+    "task": "Implement deal history memory for AI continuity. Ensure that every state change in a deal (e.g., status update, document upload) triggers a memory consolidation event so the AI is always aware of the deal's current state."
+  },
+  {
+    "name": "agent-2.5",
+    "task": "Add relationship memory for network intelligence. Create an automated job or hook that records when two users interact or coinvest, updating a graph relationship memory for the AI to reference."
+  },
+  {
+    "name": "agent-2.6",
+    "task": "Create scheduled memory consolidation workflow. Write a cron job or n8n workflow that periodically summarizes raw conversation logs into concise, dense memory blocks to save token space in future AI prompts."
+  },
+  {
+    "name": "agent-2.7",
+    "task": "Build Webhook notifications infrastructure. Create a robust webhook dispatch system in the server that can send HTTP POST requests to registered external URLs upon key events (deal closed, KYC approved)."
+  },
+  {
+    "name": "agent-2.8",
+    "task": "Add real e-signature integration placeholder/logic. Implement the service layer (e.g., services/docusign.ts) with stubbed out API calls for generating envelopes and receiving signed callbacks."
+  },
+  {
+    "name": "agent-2.9",
+    "task": "Build external API integration framework for sanctions databases. Create a service module that takes a user's name/details and queries a simulated or actual sanctions API, flagging the user if a match occurs."
+  },
+  {
+    "name": "agent-2.10",
+    "task": "Scaffold white-label customization framework. Add support for custom branding (colors, logos) per tenant/SPV by loading CSS variables dynamically from the database."
+  }
+]

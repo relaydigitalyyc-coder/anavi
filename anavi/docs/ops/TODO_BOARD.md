@@ -1,6 +1,6 @@
 # TODO Board
 
-Last updated: 2026-03-07
+Last updated: 2026-03-14
 
 ## Next Up
 
@@ -13,7 +13,7 @@ Last updated: 2026-03-07
 - Execute exhaustive `AF-*` advanced-flow catalog and keep unresolved critical items as closeout blockers (`anavi/docs/plans/2026-03-04-prd-r7-advanced-flow-catalog.md`).
   - Initial AF pass complete for match lifecycle idempotency/conflicts (interest/deal-room/NDA/escalate) with tests.
 - Add principal `what changed in 24h` events from real activity/audit APIs.
-- Add investor export/publish actions to real endpoints.
+- Harden `match.createDealRoom` with transaction/compensation safety to prevent partial write drift on mid-sequence failures.
 - Add DocuSign UI actions in Deal Room pages to call new endpoints (`createNdaEnvelope`, `sendNdaEnvelope`, `getNdaSignUrl`).
 - Add migration generation/apply for new DocuSign schema tables.
 - Set remaining DocuSign env vars (`DOCUSIGN_IMPERSONATED_USER_ID`, `DOCUSIGN_RSA_PRIVATE_KEY`, `DOCUSIGN_CONNECT_HMAC_SECRET`) and run live envelope test.
@@ -26,6 +26,10 @@ Last updated: 2026-03-07
 
 ## Done
 
+- 2026-03-14 — R8 wave delivery: live dashboard data integrity wiring and action execution complete.
+  - Added real endpoint integrations for `match.marketDepth`, `notification.pendingActions`, and `analytics.liveProof`.
+  - Wired investor publish/export actions to `payout.publishSnapshot` and `payout.exportStatement` with idempotent audit-backed server behavior.
+  - Added targeted tests for `match.liveStats` + Deal Flow status filter helper; verification gates green (`pnpm check`, targeted `pnpm test`, `pnpm build`) with command evidence logged in `docs/ops/ENGINEERING_MEMORY.md` (2026-03-14 entry).
 - Visual intensity second pass for VC ad pack — COMPLETE: integrated landing motif animations (globe arcs, encrypted matrix, perspective card motion) and rerendered 30s/60s/90s outputs.
 - VC prompt-pack rerender pass — COMPLETE: cleared `anavi/data/renders`, applied prompt-driven VC narrative structure, and regenerated 30s/60s/90s Remotion outputs.
 - VC Remotion ad cuts for ANAVI private markets messaging — COMPLETE: delivered 30s punch, 60s narrative, and 90s mini IC tracks with Trust Score, Blind Matching, Deal Room, Attribution, and Intent framing.
@@ -52,7 +56,7 @@ Last updated: 2026-03-07
 - Project-wide runtime mode contract (`demo` / `hybrid` / `live`) wired across backend context/auth and frontend routing/demo surfaces.
 - Demo system canon selected; adapter implemented; pages updated; checks/build green.
 - R7 Demo unification (duplicate DemoContext removed; demo route updated); checks/tests/build pass.
- - Persona taxonomy coherence: removed `developer` alias in active flows, unified on `principal`; updated nav/workflow maps and demo path; spec 002 FR-2 acceptance satisfied.
+- Persona taxonomy coherence: removed `developer` alias in active flows, unified on `principal`; updated nav/workflow maps and demo path; spec 002 FR-2 acceptance satisfied.
 
 ## Backlog
 
@@ -66,3 +70,10 @@ Last updated: 2026-03-07
 - Historical checklist retained at `../todo_legacy_2026-02-15.md`.
 - Deal Flow action outcomes now backed by persisted mutations (Spec 001): NDA queue, escalation, and open room flows wired end-to-end with tests.
 - Massive consistency execution queue tracked in `anavi/docs/plans/2026-03-04-prd-r7-platform-logic-consistency-and-flow-sync.md`.
+
+<!-- continuous-learning-v2:start -->
+### Continuous Learning v2 Backlink Actions (2026-03-11T16:22:36Z)
+
+- No queued actions.
+
+<!-- continuous-learning-v2:end -->

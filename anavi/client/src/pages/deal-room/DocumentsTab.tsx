@@ -19,6 +19,17 @@ interface DocumentsTabProps {
   onNdaSigned?: () => void;
 }
 
+type EnvelopeActionState =
+  | {
+      envelopeId: number;
+      type: "send" | "open";
+    }
+  | null;
+
+const SENDABLE_ENVELOPE_STATUSES = new Set(["draft", "created"]);
+const OPENABLE_ENVELOPE_STATUSES = new Set(["sent", "delivered"]);
+const TERMINAL_ENVELOPE_STATUSES = new Set(["completed", "declined", "voided", "expired", "error"]);
+
 export function DocumentsTab({
   documents,
   dealRoomId,
@@ -46,6 +57,7 @@ export function DocumentsTab({
   const createNdaEnvelope = trpc.dealRoom.createNdaEnvelope.useMutation();
   const sendNdaEnvelope = trpc.dealRoom.sendNdaEnvelope.useMutation();
   const [ndaModalOpen, setNdaModalOpen] = useState(false);
+  const [activeEnvelopeAction, setActiveEnvelopeAction] = useState<EnvelopeActionState>(null);
   const [uploads, setUploads] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,38 +105,101 @@ export function DocumentsTab({
     return FileText;
   };
 
+  const refreshDealRoomNdaState = async () => {
+    const tasks: Promise<unknown>[] = [refetchNdaEnvelopes()];
+    if (onNdaSigned) {
+      tasks.push(Promise.resolve(onNdaSigned()));
+    } else if (dealRoomId) {
+      tasks.push(utils.dealRoom.getDocuments.invalidate({ dealRoomId }));
+      tasks.push(utils.dealRoom.getMyAccess.invalidate({ dealRoomId }));
+    }
+    await Promise.all(tasks);
+  };
+
+  const sendEnvelopeAction = async (envelopeId: number) => {
+    setActiveEnvelopeAction({ envelopeId, type: "send" });
+    try {
+      const sent = await sendNdaEnvelope.mutateAsync({ envelopeId });
+      await refreshDealRoomNdaState();
+      return sent;
+    } finally {
+      setActiveEnvelopeAction((current) =>
+        current?.envelopeId === envelopeId && current.type === "send" ? null : current
+      );
+    }
+  };
+
+  const openSigningAction = async (envelopeId: number, provider: "docusign" | "mock") => {
+    setActiveEnvelopeAction({ envelopeId, type: "open" });
+    try {
+      if (provider === "mock") {
+        if (!dealRoomId) {
+          throw new Error("Deal room is required to complete NDA signing");
+        }
+        await signNda.mutateAsync({ dealRoomId });
+        await refreshDealRoomNdaState();
+        return { provider };
+      }
+
+      const returnUrl = window.location.href;
+      const signView = await utils.dealRoom.getNdaSignUrl.fetch({
+        envelopeId,
+        returnUrl,
+      });
+      if (!signView?.signingUrl) {
+        throw new Error("Unable to open DocuSign signing session");
+      }
+      window.open(signView.signingUrl, "_blank", "noopener,noreferrer");
+      await refreshDealRoomNdaState();
+      return { provider };
+    } finally {
+      setActiveEnvelopeAction((current) =>
+        current?.envelopeId === envelopeId && current.type === "open" ? null : current
+      );
+    }
+  };
+
+  const handleSendEnvelope = async (envelopeId: number) => {
+    try {
+      const sent = await sendEnvelopeAction(envelopeId);
+      toast.success(sent.alreadySent ? "Envelope already sent" : "Envelope sent for signature");
+    } catch (error: any) {
+      toast.error(error?.message ?? "Unable to send NDA envelope");
+    }
+  };
+
+  const handleOpenSigning = async (envelopeId: number, provider: "docusign" | "mock") => {
+    try {
+      const opened = await openSigningAction(envelopeId, provider);
+      if (opened.provider === "docusign") {
+        toast.success("DocuSign session opened. Complete signature to unlock documents.");
+      }
+    } catch (error: any) {
+      toast.error(error?.message ?? "Unable to open NDA signing session");
+    }
+  };
+
   const isNdaSigningBusy =
     signNda.isPending ||
     createNdaEnvelope.isPending ||
-    sendNdaEnvelope.isPending;
+    sendNdaEnvelope.isPending ||
+    !!activeEnvelopeAction;
 
   const handleNdaSign = async () => {
     if (!dealRoomId) return;
     try {
       const created = await createNdaEnvelope.mutateAsync({ dealRoomId });
       if (created.provider === "mock") {
-        await signNda.mutateAsync({ dealRoomId });
+        await openSigningAction(created.envelopeId, "mock");
         setNdaModalOpen(false);
-        await refetchNdaEnvelopes();
         return;
       }
-      if (created.status !== "sent") {
-        await sendNdaEnvelope.mutateAsync({ envelopeId: created.envelopeId });
+      if (SENDABLE_ENVELOPE_STATUSES.has(String(created.status).toLowerCase())) {
+        await sendEnvelopeAction(created.envelopeId);
       }
-      const returnUrl = window.location.href;
-      const signView = await utils.dealRoom.getNdaSignUrl.fetch({
-        envelopeId: created.envelopeId,
-        returnUrl,
-      });
-      if (signView?.signingUrl) {
-        window.open(signView.signingUrl, "_blank", "noopener,noreferrer");
-        toast.success("DocuSign session opened. Complete signature to unlock documents.");
-      } else {
-        toast.error("Unable to open DocuSign signing session");
-      }
+      await openSigningAction(created.envelopeId, "docusign");
+      toast.success("DocuSign session opened. Complete signature to unlock documents.");
       setNdaModalOpen(false);
-      onNdaSigned?.();
-      await refetchNdaEnvelopes();
     } catch (error: any) {
       toast.error(error?.message ?? "Unable to start DocuSign NDA flow");
     }
@@ -163,9 +238,9 @@ export function DocumentsTab({
               onClick={() => setNdaModalOpen(true)}
               className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90"
               style={{ backgroundColor: "#2563EB" }}
-              disabled={signNda.isPending}
+              disabled={isNdaSigningBusy}
             >
-              {signNda.isPending ? "Signing…" : "Sign NDA"}
+              {isNdaSigningBusy ? "Signing…" : "Sign NDA"}
             </button>
           )}
         </div>
@@ -190,28 +265,92 @@ export function DocumentsTab({
             <div className="space-y-2">
               {ndaEnvelopes.envelopes.map((envelope) => (
                 <div key={envelope.id} className="rounded border p-3" style={{ borderColor: "#D1DCF0", background: "#F9FBFF" }}>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold" style={{ color: "#0A1628" }}>
-                      {envelope.subject}
-                    </p>
-                    <span className="status-pill status-nda-pending text-[10px]">
-                      {envelope.status}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    Envelope #{envelope.id} · Provider ID {envelope.providerEnvelopeId}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {envelope.recipients.map((recipient) => (
-                      <span
-                        key={recipient.id}
-                        className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
-                        style={{ background: "#2563EB12", color: "#2563EB" }}
-                      >
-                        {recipient.name} · {recipient.status}
-                      </span>
-                    ))}
-                  </div>
+                  {(() => {
+                    const envelopeStatus = String(envelope.status ?? "").toLowerCase();
+                    const provider: "docusign" | "mock" =
+                      ndaEnvelopes.provider === "mock" ? "mock" : "docusign";
+                    const isSendable = SENDABLE_ENVELOPE_STATUSES.has(envelopeStatus);
+                    const isOpenable = OPENABLE_ENVELOPE_STATUSES.has(envelopeStatus);
+                    const signerComplete = ndaSigned;
+                    const canOpenSigning = isOpenable && !signerComplete;
+                    const sendingThisEnvelope =
+                      activeEnvelopeAction?.envelopeId === envelope.id &&
+                      activeEnvelopeAction.type === "send";
+                    const openingThisEnvelope =
+                      activeEnvelopeAction?.envelopeId === envelope.id &&
+                      activeEnvelopeAction.type === "open";
+                    const disableActions = isNdaSigningBusy;
+
+                    let blockedMessage: string | null = null;
+                    if (isOpenable && signerComplete) {
+                      blockedMessage = "Your signature is complete for this envelope.";
+                    } else if (TERMINAL_ENVELOPE_STATUSES.has(envelopeStatus)) {
+                      blockedMessage =
+                        envelopeStatus === "completed"
+                          ? "Envelope complete. No further action required."
+                          : `Envelope ${envelope.status}. No further action available.`;
+                    }
+
+                    return (
+                      <>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-semibold" style={{ color: "#0A1628" }}>
+                            {envelope.subject}
+                          </p>
+                          <span className="status-pill status-nda-pending text-[10px]">
+                            {envelope.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                          Envelope #{envelope.id} · Provider ID {envelope.providerEnvelopeId}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {envelope.recipients.map((recipient) => (
+                            <span
+                              key={recipient.id}
+                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
+                              style={{ background: "#2563EB12", color: "#2563EB" }}
+                            >
+                              {recipient.name} · {recipient.status}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="mt-3 flex items-center gap-2 flex-wrap">
+                          {isSendable && (
+                            <button
+                              onClick={() => handleSendEnvelope(envelope.id)}
+                              className="text-xs font-medium px-2 py-1 rounded hover:bg-blue-50 disabled:opacity-60"
+                              style={{ color: "#2563EB" }}
+                              disabled={disableActions}
+                            >
+                              {sendingThisEnvelope ? "Sending…" : "Send envelope"}
+                            </button>
+                          )}
+                          {canOpenSigning && (
+                            <button
+                              onClick={() =>
+                                handleOpenSigning(envelope.id, provider)
+                              }
+                              className="text-xs font-medium px-2 py-1 rounded hover:bg-blue-50 disabled:opacity-60"
+                              style={{ color: "#2563EB" }}
+                              disabled={disableActions}
+                            >
+                              {openingThisEnvelope
+                                ? provider === "mock"
+                                  ? "Signing…"
+                                  : "Opening…"
+                                : provider === "mock"
+                                  ? "Complete signature"
+                                  : "Open signing"}
+                            </button>
+                          )}
+                          {blockedMessage && (
+                            <p className="text-[11px] text-muted-foreground">{blockedMessage}</p>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               ))}
             </div>

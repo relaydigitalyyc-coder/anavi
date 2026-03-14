@@ -1,5 +1,44 @@
 # Engineering Memory
 
+## 2026-03-14 — R8 Wave: Runtime Integrity Wiring + Verification
+
+### Scope
+- Wired originator dashboard integrity surfaces to runtime endpoints instead of static-only local logic:
+  - `match.marketDepth`
+  - `notification.pendingActions`
+- Wired portfolio/investor action execution to real payout endpoints:
+  - `payout.publishSnapshot`
+  - `payout.exportStatement`
+- Added runtime live-proof ingestion on portfolio via `analytics.liveProof`.
+- Added focused backend/frontend quality fixes after parallel-agent audit:
+  - Expanded `match.liveStats` tests to assert `liveProof.capitalAllocationReady`.
+  - Removed pending-action duplicate key risk in originator dashboard by keying on stable IDs.
+  - Extended originator dashboard loading gate to include all critical runtime queries (`payout.list`, `match.list`, `match.marketDepth`, `notification.pendingActions`) to avoid transient false-empty states.
+
+### Files Touched
+- `anavi/server/routers/match.ts`
+- `anavi/server/routers/notification.ts`
+- `anavi/server/routers/analytics.ts`
+- `anavi/server/routers/payout.ts`
+- `anavi/server/routers/match.liveStats.test.ts`
+- `anavi/tests/deal-flow-filter.test.ts`
+- `anavi/client/src/components/PersonaSurface.tsx`
+- `anavi/client/src/pages/dashboard/OriginatorDashboard.tsx`
+- `anavi/client/src/pages/Portfolio.tsx`
+- `anavi/client/src/pages/DealFlow.tsx`
+
+### Verification Evidence
+- `pnpm check` (2026-03-14) ✅
+- `pnpm test -- server/routers/match.liveStats.test.ts tests/deal-flow-filter.test.ts` (2026-03-14) ✅
+  - Vitest result: `16` files / `137` tests passing.
+  - Known non-blocking stderr lines from `server/claude.test.ts` are present in this suite and remained unchanged.
+- `pnpm build` (2026-03-14) ✅
+  - Frontend + SSR + server bundle completed successfully.
+  - Existing chunk-size warnings remain informational only.
+
+### Follow-up Risk (Open)
+- `match.createDealRoom` currently performs a multi-step write sequence without a single DB transaction boundary, so partial-failure drift is still possible under mid-sequence exceptions (`anavi/server/routers/match.ts`). This remains a hardening candidate for the next R8/R7 pass.
+
 ## 2026-03-07 — Visual Intensity Pass (Landing Motif Animation)
 
 ### Scope

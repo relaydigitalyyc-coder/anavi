@@ -84,15 +84,38 @@ export function OriginatorDashboardContent() {
   );
   const { data: notificationsData, isLoading: notificationsLoading } =
     trpc.notification.list.useQuery({ limit: 10 }, { enabled: !demo });
-  const { data: payouts } = trpc.payout.list.useQuery(undefined, {
-    enabled: !demo,
-  });
+  const { data: payouts, isLoading: payoutsLoading } = trpc.payout.list.useQuery(
+    undefined,
+    {
+      enabled: !demo,
+    }
+  );
+  const { data: liveMatches, isLoading: matchesLoading } =
+    trpc.match.list.useQuery(undefined, {
+      enabled: !demo,
+    });
+  const { data: liveMarketDepth, isLoading: marketDepthLoading } =
+    trpc.match.marketDepth.useQuery(undefined, {
+      enabled: !demo,
+    });
+  const { data: livePendingActions, isLoading: pendingActionsLoading } =
+    trpc.notification.pendingActions.useQuery(
+      { limit: 3 },
+      { enabled: !demo }
+    );
 
   useEffect(() => {
     document.title = "Dashboard | ANAVI";
   }, []);
 
-  const loading = demo ? false : statsLoading || notificationsLoading;
+  const loading = demo
+    ? false
+    : statsLoading ||
+      notificationsLoading ||
+      payoutsLoading ||
+      matchesLoading ||
+      marketDepthLoading ||
+      pendingActionsLoading;
 
   // Demo notifications have a slightly different shape — normalize here.
   // Map fixture time strings to approximate Date offsets so relative timestamps are accurate.
@@ -116,11 +139,21 @@ export function OriginatorDashboardContent() {
   }));
   const notifications = demoNotifications ?? notificationsData ?? [];
 
+  const normalizedLiveMatches = ((liveMatches as any[]) ?? []).map((match) => ({
+    id: Number(match.id),
+    tag: String(
+      match.tag ??
+        (match.counterpartyCompany
+          ? `Counterparty - ${match.counterpartyCompany}`
+          : `Match #${match.id}`)
+    ),
+    status: String(match.status ?? "pending"),
+    compatibilityScore: Number(match.compatibilityScore ?? 0),
+    assetClass: String(match.assetClass ?? "Private Markets"),
+  }));
+  const dashboardMatches = demo?.matches ?? normalizedLiveMatches;
   const trustScore = Number(demo?.user.trustScore ?? stats?.trustScore ?? 0);
   const scoreColor = getScoreColor(trustScore);
-  const maxDepth = Math.max(
-    ...MARKET_DEPTH.map(m => Math.max(m.buyers, m.sellers))
-  );
 
   const trustScoreDelta = demo ? 3 : (stats?.trustScoreDelta ?? 0);
   const nextPayoutAmount = demo
@@ -147,13 +180,11 @@ export function OriginatorDashboardContent() {
     { id: 2, type: "sell", assetClass: "Real Estate", size: "$5M - $20M" },
   ];
   const matchBands = {
-    top: (demo?.matches ?? []).filter(match => match.compatibilityScore >= 90)
-      .length,
-    mid: (demo?.matches ?? []).filter(
+    top: dashboardMatches.filter(match => match.compatibilityScore >= 90).length,
+    mid: dashboardMatches.filter(
       match => match.compatibilityScore >= 80 && match.compatibilityScore < 90
     ).length,
-    low: (demo?.matches ?? []).filter(match => match.compatibilityScore < 80)
-      .length,
+    low: dashboardMatches.filter(match => match.compatibilityScore < 80).length,
   };
   const relationshipPaths = (demo?.relationships ?? [])
     .slice(0, 3)
@@ -166,7 +197,7 @@ export function OriginatorDashboardContent() {
       ),
       status: relationship.attributionStatus,
     }));
-  const stalledPipeline = (demo?.matches ?? [])
+  const stalledPipeline = dashboardMatches
     .map(match => ({
       id: match.id,
       label: match.tag,
@@ -175,6 +206,36 @@ export function OriginatorDashboardContent() {
     }))
     .sort((a, b) => b.hours - a.hours)
     .slice(0, 3);
+  const marketDepth = demo
+    ? MARKET_DEPTH
+    : (liveMarketDepth ?? []).length > 0
+      ? (liveMarketDepth ?? []).map((row) => ({
+          sector: row.sector,
+          buyers: Number(row.buyers ?? 0),
+          sellers: Number(row.sellers ?? 0),
+        }))
+      : [{ sector: "Private Markets", buyers: 0, sellers: 0 }];
+  const maxDepth = Math.max(
+    1,
+    ...marketDepth.map(m => Math.max(m.buyers, m.sellers))
+  );
+  const pendingActionIconBySource: Record<string, typeof FileText> = {
+    verification: Shield,
+    match: Target,
+    notification: FileText,
+    intent: TrendingUp,
+  };
+  const pendingActions = demo
+    ? PENDING_ACTIONS.map((action, index) => ({
+        key: `demo-${action.type}-${index}`,
+        text: action.text,
+        Icon: action.Icon,
+      }))
+    : (livePendingActions ?? []).map((action) => ({
+        key: action.id,
+        text: action.text,
+        Icon: pendingActionIconBySource[action.source] ?? FileText,
+      }));
   const telemetry = (
     demo as unknown as {
       opsTelemetry?: { activity24h?: number; activity7d?: number };
@@ -579,7 +640,7 @@ export function OriginatorDashboardContent() {
             )}
             <div className="mt-2 flex flex-wrap gap-2">
               <MaybeLink
-                href="/pipeline?minScore=85&status=pending_consent"
+                href="/pipeline?minScore=85&status=pending"
                 demo={!!demo}
               >
                 <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#1E3A5F]/70 hover:bg-[#1E3A5F]/15">
@@ -664,7 +725,7 @@ export function OriginatorDashboardContent() {
               </div>
             )}
             <div className="mt-2 flex flex-wrap gap-2">
-              <MaybeLink href="/pipeline?status=pending_consent" demo={!!demo}>
+              <MaybeLink href="/pipeline?status=nda_pending" demo={!!demo}>
                 <button className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#1E3A5F]/70 hover:bg-[#1E3A5F]/15">
                   Resolve Room Blockers
                 </button>
@@ -733,13 +794,15 @@ export function OriginatorDashboardContent() {
                     label: "90-100",
                     value: matchBands.top,
                     tone: "bg-[#059669]",
+                    href: "/pipeline?minScore=90"
                   },
                   {
                     label: "80-89",
                     value: matchBands.mid,
                     tone: "bg-[#2563EB]",
+                    href: "/pipeline?minScore=80&maxScore=89"
                   },
-                  { label: "<80", value: matchBands.low, tone: "bg-[#F59E0B]" },
+                  { label: "<80", value: matchBands.low, tone: "bg-[#F59E0B]", href: "/pipeline?maxScore=79" },
                 ].map(band => {
                   const total = Math.max(
                     1,
@@ -750,20 +813,22 @@ export function OriginatorDashboardContent() {
                     Math.round((band.value / total) * 100)
                   );
                   return (
-                    <div key={band.label}>
-                      <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-[#1E3A5F]/60">
-                        <span>{band.label}</span>
-                        <span className="font-bold text-[#0A1628]">
-                          {band.value}
-                        </span>
+                    <MaybeLink key={band.label} href={band.href} demo={!!demo}>
+                      <div className="group cursor-pointer rounded p-1 hover:bg-[#1E3A5F]/5 transition-colors mb-2">
+                        <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-[#1E3A5F]/60">
+                          <span>{band.label}</span>
+                          <span className="font-bold text-[#0A1628]">
+                            {band.value}
+                          </span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-[#1E3A5F]/10">
+                          <div
+                            className={`h-full rounded-full ${band.tone}`}
+                            style={{ width: `${width}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-[#1E3A5F]/10">
-                        <div
-                          className={`h-full rounded-full ${band.tone}`}
-                          style={{ width: `${width}%` }}
-                        />
-                      </div>
-                    </div>
+                    </MaybeLink>
                   );
                 })}
               </div>
@@ -784,23 +849,22 @@ export function OriginatorDashboardContent() {
             <DashCard title="Relationship Path Confidence">
               <div className="space-y-2">
                 {relationshipPaths.map(path => (
-                  <div
-                    key={path.id}
-                    className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-[#0A1628]">
-                        {path.label}
+                  <MaybeLink key={path.id} href={`/custody?id=${path.id}`} demo={!!demo}>
+                    <div className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2 cursor-pointer hover:bg-[#1E3A5F]/10 transition-colors">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-[#0A1628]">
+                          {path.label}
+                        </p>
+                        <span className="text-xs font-bold text-[#059669]">
+                          {path.confidence}%
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-[#1E3A5F]/55">
+                        Risk: {path.confidence >= 88 ? "Low" : "Moderate"} ·{" "}
+                        {String(path.status).replace(/_/g, " ")}
                       </p>
-                      <span className="text-xs font-bold text-[#059669]">
-                        {path.confidence}%
-                      </span>
                     </div>
-                    <p className="mt-1 text-[10px] uppercase tracking-wider text-[#1E3A5F]/55">
-                      Risk: {path.confidence >= 88 ? "Low" : "Moderate"} ·{" "}
-                      {String(path.status).replace(/_/g, " ")}
-                    </p>
-                  </div>
+                  </MaybeLink>
                 ))}
               </div>
               <div className="mt-3 flex items-center justify-between">
@@ -820,22 +884,21 @@ export function OriginatorDashboardContent() {
             <DashCard title="Pipeline Stall Alerts">
               <div className="space-y-2">
                 {stalledPipeline.map(stall => (
-                  <div
-                    key={stall.id}
-                    className="rounded-lg border border-[#F59E0B]/20 bg-[#F59E0B]/8 px-3 py-2"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-[#0A1628]">
-                        {stall.label}
+                  <MaybeLink key={stall.id} href={`/pipeline?status=nda_pending&id=${stall.id}`} demo={!!demo}>
+                    <div className="rounded-lg border border-[#F59E0B]/20 bg-[#F59E0B]/8 px-3 py-2 cursor-pointer hover:bg-[#F59E0B]/15 transition-colors">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-[#0A1628]">
+                          {stall.label}
+                        </p>
+                        <span className="rounded-full bg-[#F59E0B]/20 px-2 py-0.5 text-[10px] font-bold uppercase text-[#F59E0B]">
+                          {stall.hours.toFixed(0)}h stalled
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-[#1E3A5F]/55">
+                        Risk: {stall.risk}
                       </p>
-                      <span className="rounded-full bg-[#F59E0B]/20 px-2 py-0.5 text-[10px] font-bold uppercase text-[#F59E0B]">
-                        {stall.hours.toFixed(0)}h stalled
-                      </span>
                     </div>
-                    <p className="mt-1 text-[10px] uppercase tracking-wider text-[#1E3A5F]/55">
-                      Risk: {stall.risk}
-                    </p>
-                  </div>
+                  </MaybeLink>
                 ))}
               </div>
               <div className="mt-3 flex items-center justify-between">
@@ -843,7 +906,7 @@ export function OriginatorDashboardContent() {
                   State: escalation needed on delayed deals.
                 </p>
                 <MaybeLink
-                  href="/pipeline?status=pending_consent"
+                  href="/pipeline?status=nda_pending"
                   demo={!!demo}
                 >
                   <button className="rounded bg-[#F59E0B]/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#F59E0B]">
@@ -897,7 +960,7 @@ export function OriginatorDashboardContent() {
           <StaggerItem>
             <DashCard title={DASHBOARD.marketDepth.title}>
               <div className="space-y-4">
-                {MARKET_DEPTH.map((m, i) => (
+                {marketDepth.map((m, i) => (
                   <div key={m.sector}>
                     <p className="mb-1.5 text-xs font-semibold text-[#0A1628]">
                       {m.sector}
@@ -969,11 +1032,11 @@ export function OriginatorDashboardContent() {
                 <p className="text-xs font-semibold text-[#0A1628] mb-2">
                   Pending Actions:
                 </p>
-                {PENDING_ACTIONS.length > 0 ? (
+                {pendingActions.length > 0 ? (
                   <div className="space-y-3">
-                    {PENDING_ACTIONS.map(a => (
+                    {pendingActions.map(a => (
                       <div
-                        key={a.text}
+                        key={a.key}
                         className="flex items-center gap-3 text-sm"
                       >
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/5">

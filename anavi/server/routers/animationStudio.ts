@@ -68,9 +68,12 @@ export const animationStudioRouter = router({
         simulateFailure: z.boolean().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
-        return db.queueAnimationStudioRenderJob(input);
+        return db.queueAnimationStudioRenderJob({
+          ...input,
+          userId: ctx.user.id,
+        });
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -82,9 +85,9 @@ export const animationStudioRouter = router({
 
   startRenderJob: protectedProcedure
     .input(renderJobIdSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
-        return await db.startAnimationStudioRenderJob(input.jobId);
+        return await db.startAnimationStudioRenderJob(input.jobId, ctx.user.id);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -106,9 +109,9 @@ export const animationStudioRouter = router({
 
   cancelRenderJob: protectedProcedure
     .input(renderJobIdSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
-        return db.cancelAnimationStudioRenderJob(input.jobId);
+        return db.cancelAnimationStudioRenderJob(input.jobId, ctx.user.id);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -130,9 +133,9 @@ export const animationStudioRouter = router({
 
   getRenderJob: protectedProcedure
     .input(renderJobIdSchema)
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       try {
-        return db.getAnimationStudioRenderJob(input.jobId);
+        return db.getAnimationStudioRenderJob(input.jobId, ctx.user.id);
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -146,9 +149,9 @@ export const animationStudioRouter = router({
     .input(
       z.object({ limit: z.number().min(1).max(100).optional() }).optional()
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       try {
-        return db.listAnimationStudioRenderJobs(input?.limit ?? 10);
+        return db.listAnimationStudioRenderJobs(ctx.user.id, input?.limit ?? 10);
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -243,11 +246,30 @@ export const animationStudioRouter = router({
       }
     }),
 
+  publishAssetPack: protectedProcedure
+    .input(
+      z.object({
+        packId: z.string().min(1),
+        channels: z.array(z.enum(["youtube", "linkedin", "x"])).min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        return await db.publishAnimationStudioAssetPack(input);
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to publish animation studio asset pack",
+          cause: error,
+        });
+      }
+    }),
+
   getArtifactDownloadPath: protectedProcedure
     .input(z.object({ jobId: z.string().min(1) }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       try {
-        const job = await db.getAnimationStudioRenderJob(input.jobId);
+        const job = await db.getAnimationStudioRenderJob(input.jobId, ctx.user.id);
         if (!job) {
           throw new TRPCError({
             code: "NOT_FOUND",

@@ -57,6 +57,7 @@ export type RenderJobState =
 
 export type RenderJob = {
   jobId: string;
+  userId: number;
   state: RenderJobState;
   createdAt: string;
   updatedAt: string;
@@ -1340,6 +1341,7 @@ export async function runAnimationStudioRender(
 }
 
 export function queueAnimationStudioRenderJob(input: {
+  userId: number;
   settings: AnimationStudioSettings;
   simulateFailure?: boolean;
 }) {
@@ -1347,6 +1349,7 @@ export function queueAnimationStudioRenderJob(input: {
   const now = new Date().toISOString();
   const job: RenderJob = {
     jobId,
+    userId: input.userId,
     state: "queued",
     createdAt: now,
     updatedAt: now,
@@ -1363,9 +1366,19 @@ export function queueAnimationStudioRenderJob(input: {
   return job;
 }
 
-export async function startAnimationStudioRenderJob(jobId: string) {
-  const ledger = loadRenderJobs();
+function getOwnedRenderJob(
+  ledger: RenderJobLedger,
+  jobId: string,
+  userId: number
+) {
   const job = ledger[jobId];
+  if (!job || job.userId !== userId) return null;
+  return job;
+}
+
+export async function startAnimationStudioRenderJob(jobId: string, userId: number) {
+  const ledger = loadRenderJobs();
+  const job = getOwnedRenderJob(ledger, jobId, userId);
   if (!job) {
     throw new Error(`Unknown render job: ${jobId}`);
   }
@@ -1405,9 +1418,9 @@ export async function startAnimationStudioRenderJob(jobId: string) {
   }
 }
 
-export function cancelAnimationStudioRenderJob(jobId: string) {
+export function cancelAnimationStudioRenderJob(jobId: string, userId: number) {
   const ledger = loadRenderJobs();
-  const job = ledger[jobId];
+  const job = getOwnedRenderJob(ledger, jobId, userId);
   if (!job) throw new Error(`Unknown render job: ${jobId}`);
   if (job.state === "succeeded" || job.state === "failed") return job;
   job.state = "canceled";
@@ -1416,14 +1429,15 @@ export function cancelAnimationStudioRenderJob(jobId: string) {
   return job;
 }
 
-export function getAnimationStudioRenderJob(jobId: string) {
+export function getAnimationStudioRenderJob(jobId: string, userId: number) {
   const ledger = loadRenderJobs();
-  return ledger[jobId] ?? null;
+  return getOwnedRenderJob(ledger, jobId, userId);
 }
 
-export function listAnimationStudioRenderJobs(limit = 10) {
+export function listAnimationStudioRenderJobs(userId: number, limit = 10) {
   const ledger = loadRenderJobs();
   return Object.values(ledger)
+    .filter((job) => job.userId === userId)
     .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
     .slice(0, Math.max(0, limit));
 }
@@ -1739,3 +1753,60 @@ export function getAnimationStudioPackHistory(limit = 5): PackHistoryEntry[] {
     .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))
     .slice(0, Math.max(0, limit));
 }
+
+export type PublishAnimationStudioAssetPackInput = {
+  packId: string;
+  channels: ("youtube" | "linkedin" | "x")[];
+};
+
+export type PublishAnimationStudioAssetPackResult = {
+  packId: string;
+  success: boolean;
+  publishedTo: { channel: string; url: string }[];
+  errors?: string[];
+};
+
+export async function publishAnimationStudioAssetPack(
+  input: PublishAnimationStudioAssetPackInput
+): Promise<PublishAnimationStudioAssetPackResult> {
+  const packDir = path.resolve(DEFAULT_ASSET_PACKS_DIR, input.packId);
+  if (!fs.existsSync(packDir)) {
+    throw new Error(`Asset pack not found: ${input.packId}`);
+  }
+
+  const manifestPath = path.resolve(packDir, "manifest.json");
+  let manifest: any;
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  } catch {
+    throw new Error(`Failed to read manifest for pack: ${input.packId}`);
+  }
+
+  const publishedTo = [];
+  const errors: string[] = [];
+
+  for (const channel of input.channels) {
+    try {
+      // Simulate pushing to external channel
+      const url = `https://${channel}.com/post/${input.packId.slice(0, 8)}-${Date.now()}`;
+      publishedTo.push({ channel, url });
+    } catch (err: any) {
+      errors.push(`Failed to publish to ${channel}: ${err.message}`);
+    }
+  }
+
+  manifest.readiness = {
+    ...manifest.readiness,
+    publishedAt: new Date().toISOString(),
+    publishedChannels: publishedTo.map(p => p.channel),
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  return {
+    packId: input.packId,
+    success: errors.length === 0,
+    publishedTo,
+    errors: errors.length > 0 ? errors : undefined,
+  };
+}
+

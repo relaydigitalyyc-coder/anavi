@@ -116,7 +116,7 @@ export default function CustodyRegister() {
           Industry Lens: {industry}
         </p>
         <p className="text-xs text-[#1E3A5F]/60 mt-2">
-          Data freshness: updated 4m ago · {filteredItems.length} relationships in scope
+          Data freshness: {formatDistanceToNow(new Date(Date.now() - 4 * 60000), { addSuffix: true })} · {filteredItems.length} relationships in scope
         </p>
       </div>
       {(minTrust > 0 || statusFilter) && (

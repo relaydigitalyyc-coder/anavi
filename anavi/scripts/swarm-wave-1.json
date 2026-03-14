@@ -1,0 +1,42 @@
+[
+  {
+    "name": "agent-1.1",
+    "task": "Create Claude API integration service on server. Build a robust Claude API service architecture and routing in server/routes/claude.ts and server/services/claude.ts. Ensure secure API key handling, rate limiting, and standard response formats. Update server/index.ts to mount the route."
+  },
+  {
+    "name": "agent-1.2",
+    "task": "Build AI analysis endpoint for deal evaluation. Create an endpoint in server/routes/claude.ts that accepts deal parameters, sends a tailored prompt to the Claude service, and returns structured evaluation metrics (risk, upside, timeline)."
+  },
+  {
+    "name": "agent-1.3",
+    "task": "Add real-time market sentiment analysis logic. Extend the Claude service to fetch or accept recent market data news and use Claude to synthesize a sentiment score (bullish/bearish/neutral) with reasoning."
+  },
+  {
+    "name": "agent-1.4",
+    "task": "Implement AI-powered risk assessment engine. Create a utility that evaluates a user's or deal's risk profile based on historical data points and KYC levels, leveraging the Claude API for complex edge-case evaluations."
+  },
+  {
+    "name": "agent-1.5",
+    "task": "Create intelligent deal recommendations. Build an endpoint that matches users to available deals by comparing user intent/accreditation with deal requirements using embeddings or Claude-assisted logic."
+  },
+  {
+    "name": "agent-1.6",
+    "task": "Add natural language query interface for platform data. Create a system where users can type a question like 'Show me all active deals in real estate' and Claude translates this into SQL or filtering parameters to return structured data."
+  },
+  {
+    "name": "agent-1.7",
+    "task": "Develop Deal Flow Partner AI persona logic. Craft specialized system prompts and persona constraints for the Claude integration to make it behave as a high-end Wall Street deal flow partner with appropriate tone and vocabulary."
+  },
+  {
+    "name": "agent-1.8",
+    "task": "Wire up AI Brain chat interface to use Claude with streaming. Build or update the frontend React component (e.g., AIBrain.tsx) to connect to the Claude endpoints using Server-Sent Events (SSE) or a streaming library for real-time text generation."
+  },
+  {
+    "name": "agent-1.9",
+    "task": "Add conversation history and context management. Implement a frontend context provider or Zustand store to hold the AI chat history, ensuring the context window is maintained across the user session."
+  },
+  {
+    "name": "agent-1.10",
+    "task": "Polish AI Brain page to luxury level. Update the UI/UX of the AI Brain chat interface with premium typography, subtle dark/gold accents, custom scrollbars, and smooth entrance animations fitting the @navi brand."
+  }
+]

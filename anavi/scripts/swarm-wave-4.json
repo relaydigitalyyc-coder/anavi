@@ -1,0 +1,42 @@
+[
+  {
+    "name": "agent-4.1",
+    "task": "Add liquid/fluid morphing background effects. Create a reusable React component using Three.js or WebGL shaders for a premium, slow-moving liquid background on auth and landing pages."
+  },
+  {
+    "name": "agent-4.2",
+    "task": "Create advanced text scramble animations and 3D perspective card hover effects. Enhance the PremiumAnimations.tsx library with text decoding effects and Framer Motion 3D tilt interactions."
+  },
+  {
+    "name": "agent-4.3",
+    "task": "Implement smooth elastic spring animations and particle trail cursor effects. Add global cursor tracking for a subtle luxury particle trail, and update modal/dialog entrances to use spring physics."
+  },
+  {
+    "name": "agent-4.4",
+    "task": "Create aurora/gradient wave backgrounds and parallax scrolling depth layers. Enhance the landing page sections with scroll-linked parallax elements."
+  },
+  {
+    "name": "agent-4.5",
+    "task": "Add floating geometric shapes with physics and dramatic reveal animations on scroll. Use IntersectionObserver and Framer Motion to animate shapes into view as the user scrolls down."
+  },
+  {
+    "name": "agent-4.6",
+    "task": "Implement staggered card entrance animations and smooth chart/graph animations. Update the Dashboard and Deal tables to stagger list items smoothly on load."
+  },
+  {
+    "name": "agent-4.7",
+    "task": "Integrate SVG @navi logo and create dark/light variants. Replace all static PNG logos with crisp SVG components, ensuring they adapt correctly to theme changes."
+  },
+  {
+    "name": "agent-4.8",
+    "task": "Update sub-brand variations (@navi Core, @apital Capital, Nexus) and site favicon. Implement a consistent branding strategy across different modules and generate the necessary favicon assets."
+  },
+  {
+    "name": "agent-4.9",
+    "task": "Update global CSS with @navi brand colors. Ensure the dark slate (#2D3748) and cream (#F7F5F0) palette is strictly enforced across Tailwind config and global stylesheets."
+  },
+  {
+    "name": "agent-4.10",
+    "task": "Execute comprehensive mobile responsiveness audit and fix. Ensure the sidebar collapses properly, tables are scrollable on touch devices, and touch targets are adequately sized for luxury mobile use."
+  }
+]

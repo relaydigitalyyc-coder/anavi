@@ -37,6 +37,11 @@ Global standards:
 - `2026-03-07-vc-remotion-ad-cuts-implementation-batch` — Delivered three VC Remotion ad cuts (30s punch, 60s narrative, 90s mini IC) for ANAVI private markets messaging.
 - `2026-03-07-vc-prompt-pack-refresh` — Prompt-driven rerender pass after clearing stale outputs; regenerated 30s/60s/90s VC cuts.
 - `2026-03-07-vc-visual-intensity-pass` — Landing-motif animation pass (InteractiveGlobe + Evervault + ContainerScroll language) with rerendered VC cuts.
+- `2026-03-14-frontend-flow-wiring-squad.md` — Product-informed parallel engineer plan for principal activity feed, DocuSign deal-room actions, and deal-flow signal/action wiring.
+
+### Autonomous Development System
+- `2026-03-13-autonomous-dev-system-design.md` — Architecture design for synthesizing Ralph spec system, DeepSeek swarm, AgenticSeek research, and ANAVI validation rules.
+- `2026-03-13-autonomous-dev-system-implementation.md` — Complete 11-task implementation plan for layered orchestrator with wave patterns, agent dispatcher, PRD generator, and CLI.
 
 ## Superseded or Historical
 

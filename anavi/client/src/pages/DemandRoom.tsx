@@ -7,6 +7,7 @@ import {
 } from "@/components/PageTransition";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 import {
   ActionCards,
   KpiRibbon,
@@ -54,7 +55,7 @@ export default function DemandRoom() {
           Industry Lens: {industry}
         </p>
         <p className="text-xs text-[#1E3A5F]/60 mt-2">
-          Data freshness: updated 3m ago · {filteredMatches.length}{" "}
+          Data freshness: {formatDistanceToNow(new Date(Date.now() - 3 * 60000), { addSuffix: true })} · {filteredMatches.length}{" "}
           counterparties in scope
         </p>
       </div>

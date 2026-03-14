@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { useDemoFixtures, useActiveIndustry } from "@/contexts/DemoContext";
@@ -13,8 +13,48 @@ import { Link } from "wouter";
 import { DashCard, TrustRing, MaybeLink, getScoreColor } from "./atoms";
 import { InteractiveGlobe } from "@/components/ui/interactive-globe";
 
+type LiveChangeEvent = {
+  id: string;
+  message: string;
+  detail: string;
+  createdAt: Date;
+};
+
+function inferContractDomain(action: string, entityType?: string | null): string {
+  const source = `${action} ${entityType ?? ""}`.toLowerCase();
+  if (source.includes("relationship")) return "Relationship Custody";
+  if (source.includes("trust")) return "Trust Score";
+  if (source.includes("match")) return "Blind Matching";
+  if (
+    source.includes("deal_room") ||
+    source.includes("deal room") ||
+    source.includes("nda") ||
+    source.includes("docusign")
+  ) {
+    return "Deal Room";
+  }
+  if (source.includes("payout") || source.includes("attribution")) {
+    return "Attribution";
+  }
+  if (source.includes("intent")) return "Intent";
+  return "Platform";
+}
+
+function humanizeAuditAction(action: string): string {
+  return action
+    .replace(/^docusign_/, "")
+    .replace(/_/g, " ")
+    .trim()
+    .replace(/\b\w/g, ch => ch.toUpperCase())
+    .replace(/\bNda\b/g, "NDA")
+    .replace(/\bKyb\b/g, "KYB")
+    .replace(/\bAml\b/g, "AML")
+    .replace(/\bOfac\b/g, "OFAC");
+}
+
 export function PrincipalDashboardContent() {
   const demo = useDemoFixtures();
+  const isDemo = !!demo;
   const industry = useActiveIndustry() ?? "Infrastructure";
   const { data: stats } = trpc.user.getStats.useQuery(undefined, {
     enabled: !demo,
@@ -25,11 +65,14 @@ export function PrincipalDashboardContent() {
     undefined,
     { enabled: !demo }
   );
-  const isDemo = !!demo;
   const relationships = demo?.relationships ?? liveRelationships ?? [];
   const { data: liveDealRooms } = trpc.dealRoom.list.useQuery(undefined, {
     enabled: !demo,
   });
+  const { data: liveAuditEntries } = trpc.audit.list.useQuery(
+    { limit: 120 },
+    { enabled: !isDemo }
+  );
   const dr = (demo?.dealRooms ?? liveDealRooms ?? [])[0] as any;
   const [showChanges, setShowChanges] = useState(false);
   const opsEvents =
@@ -52,6 +95,67 @@ export function PrincipalDashboardContent() {
   const freshness = (
     demo as unknown as { opsTelemetry?: { updatedAt?: string } } | null
   )?.opsTelemetry?.updatedAt;
+  const liveChangeEvents = useMemo<LiveChangeEvent[]>(() => {
+    if (isDemo) return [];
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const liveRooms = liveDealRooms ?? [];
+    return (liveAuditEntries ?? [])
+      .map(entry => {
+        const createdAt = new Date(entry.createdAt);
+        if (
+          Number.isNaN(createdAt.getTime()) ||
+          createdAt.getTime() < cutoff
+        ) {
+          return null;
+        }
+
+        const action = String(entry.action ?? "update");
+        const domain = inferContractDomain(action, entry.entityType);
+        const normalizedEntityType = String(entry.entityType ?? "")
+          .replace(/_/g, " ")
+          .trim();
+        const entityId = Number(entry.entityId ?? 0);
+        let entityLabel = normalizedEntityType || "platform";
+        if (entityId > 0 && entry.entityType === "relationship") {
+          const rel = relationships.find(
+            item => Number((item as { id?: number }).id ?? 0) === entityId
+          ) as { name?: string; company?: string } | undefined;
+          entityLabel = rel?.name ?? rel?.company ?? `Relationship #${entityId}`;
+        } else if (entityId > 0 && entry.entityType === "deal_room") {
+          const room = liveRooms.find(
+            item => Number((item as { id?: number }).id ?? 0) === entityId
+          ) as { name?: string } | undefined;
+          entityLabel = room?.name ?? `Deal Room #${entityId}`;
+        } else if (entityId > 0 && normalizedEntityType) {
+          entityLabel = `${normalizedEntityType} #${entityId}`;
+        }
+
+        const actor = entry.userId ? `User #${entry.userId}` : "System";
+        return {
+          id: String(entry.id),
+          message: `${domain}: ${humanizeAuditAction(action)}`,
+          detail: `${entityLabel} · ${actor} · ${createdAt.toLocaleString()}`,
+          createdAt,
+        };
+      })
+      .filter((event): event is LiveChangeEvent => !!event)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, 6);
+  }, [isDemo, liveAuditEntries, liveDealRooms, relationships]);
+  const liveFreshness = useMemo(() => {
+    if (isDemo) return null;
+    const timestamp = liveAuditEntries?.[0]?.createdAt;
+    if (!timestamp) return null;
+    const asDate = new Date(timestamp);
+    return Number.isNaN(asDate.getTime()) ? null : asDate;
+  }, [isDemo, liveAuditEntries]);
+  const changesUpdatedLabel = isDemo
+    ? freshness
+      ? `Updated ${formatDistanceToNow(new Date(freshness), { addSuffix: true })}`
+      : "Updated now"
+    : liveFreshness
+      ? `Updated ${formatDistanceToNow(liveFreshness, { addSuffix: true })}`
+      : "No audit updates yet";
   const certaintyHistory = [42, 46, 51, 58, 62, 68, 73];
 
   return (
@@ -85,29 +189,34 @@ export function PrincipalDashboardContent() {
               label: "Qualified Demand 24h",
               value: `${Math.min(3, demo?.matches.length ?? 0)}`,
               delta: "+19%",
+              href: "/deal-flow?filter=demand",
             },
             {
               label: "Escrow Momentum",
               value: dr ? `${dr.escrowProgress ?? 0}%` : "0%",
               delta: "+4%",
+              href: "/deal-rooms",
             },
             {
               label: "Disclosure Safety",
               value: "0 leaks",
               delta: "Sealed defaults",
+              href: "/compliance",
             },
           ].map(item => (
-            <div key={item.label} className="rounded-lg bg-white/5 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-widest text-white/45">
-                {item.label}
-              </p>
-              <p className="text-sm font-semibold text-white mt-1">
-                {item.value}
-              </p>
-              <p className="text-[10px] uppercase tracking-wider text-[#22D4F5] mt-1">
-                {item.delta}
-              </p>
-            </div>
+            <MaybeLink key={item.label} href={item.href} demo={!!demo}>
+              <div className="rounded-lg bg-white/5 px-3 py-2 cursor-pointer hover:bg-white/10 transition-colors h-full">
+                <p className="text-[10px] uppercase tracking-widest text-white/45">
+                  {item.label}
+                </p>
+                <p className="text-sm font-semibold text-white mt-1">
+                  {item.value}
+                </p>
+                <p className="text-[10px] uppercase tracking-wider text-[#22D4F5] mt-1">
+                  {item.delta}
+                </p>
+              </div>
+            </MaybeLink>
           ))}
         </div>
       </div>
@@ -130,36 +239,38 @@ export function PrincipalDashboardContent() {
               value: "1 open",
               risk: "High",
               tone: "text-[#DC2626]",
+              href: "/compliance?status=blocked",
             },
             {
               label: "Document Readiness",
               value: "84% complete",
               risk: "Moderate",
               tone: "text-[#F59E0B]",
+              href: "/deal-rooms?tab=documents",
             },
             {
               label: "Counterparty SLA",
               value: "<6h median",
               risk: "Low",
               tone: "text-[#059669]",
+              href: "/counterparty-intelligence",
             },
           ].map(metric => (
-            <div
-              key={metric.label}
-              className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2"
-            >
-              <p className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/55">
-                {metric.label}
-              </p>
-              <p className="mt-1 text-sm font-semibold text-[#0A1628]">
-                {metric.value}
-              </p>
-              <p
-                className={`mt-1 text-[10px] font-bold uppercase tracking-wider ${metric.tone}`}
-              >
-                Risk: {metric.risk}
-              </p>
-            </div>
+            <MaybeLink key={metric.label} href={metric.href} demo={!!demo}>
+              <div className="rounded-lg border border-[#1E3A5F]/15 bg-[#1E3A5F]/5 px-3 py-2 cursor-pointer hover:bg-[#1E3A5F]/10 transition-colors h-full">
+                <p className="text-[10px] uppercase tracking-wider text-[#1E3A5F]/55">
+                  {metric.label}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-[#0A1628]">
+                  {metric.value}
+                </p>
+                <p
+                  className={`mt-1 text-[10px] font-bold uppercase tracking-wider ${metric.tone}`}
+                >
+                  Risk: {metric.risk}
+                </p>
+              </div>
+            </MaybeLink>
           ))}
         </div>
         {showChanges && (
@@ -169,20 +280,39 @@ export function PrincipalDashboardContent() {
                 Last 24h
               </p>
               <p className="text-[10px] text-white/45">
-                {freshness
-                  ? `Updated ${formatDistanceToNow(new Date(freshness), { addSuffix: true })}`
-                  : "Updated now"}
+                {changesUpdatedLabel}
               </p>
             </div>
             <div className="space-y-2">
-              {opsEvents.map(event => (
-                <div key={event.id} className="rounded bg-white/5 px-2 py-1.5">
-                  <p className="text-xs font-semibold">{event.message}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-white/50">
-                    {event.kind} · {event.level} · {event.minutesAgo}m ago
+              {isDemo ? (
+                opsEvents.map(event => (
+                  <div key={event.id} className="rounded bg-white/5 px-2 py-1.5">
+                    <p className="text-xs font-semibold">{event.message}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-white/50">
+                      {event.kind} · {event.level} · {event.minutesAgo}m ago
+                    </p>
+                  </div>
+                ))
+              ) : liveChangeEvents.length > 0 ? (
+                liveChangeEvents.map(event => (
+                  <div key={event.id} className="rounded bg-white/5 px-2 py-1.5">
+                    <p className="text-xs font-semibold">{event.message}</p>
+                    <p className="text-[10px] tracking-wider text-white/50">
+                      {event.detail}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded bg-white/5 px-2 py-2">
+                  <p className="text-xs font-semibold">
+                    No audited changes were recorded in the last 24h.
+                  </p>
+                  <p className="text-[10px] tracking-wider text-white/50">
+                    Relationship Custody: {relationships.length} · Deal Room:{" "}
+                    {(liveDealRooms ?? []).length} · Trust Score: {trustScore}
                   </p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}

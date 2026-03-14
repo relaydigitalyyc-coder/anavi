@@ -4,6 +4,45 @@ import { TRPCError } from "@trpc/server";
 import * as db from "../db";
 import { generateNdaPdf } from "../_core/ndaPdf";
 import { storagePut } from "../storage";
+import { intents } from "../../drizzle/schema";
+import { inArray } from "drizzle-orm";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const ACTIVE_DEAL_STAGES = new Set([
+  "lead",
+  "qualification",
+  "due_diligence",
+  "negotiation",
+  "documentation",
+  "closing",
+]);
+
+const toNumber = (value: unknown) => {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const average = (values: number[]) =>
+  values.length > 0
+    ? values.reduce((sum, value) => sum + value, 0) / values.length
+    : 0;
+
+const median = (values: number[]) => {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return sorted[mid];
+};
+
+const MARKET_DEPTH_BUYER_STATUSES = new Set([
+  "mutual_interest",
+  "nda_pending",
+  "deal_room_created",
+]);
 
 export const matchRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -45,6 +84,245 @@ export const matchRouter = router({
       };
     });
   }),
+
+  liveStats: protectedProcedure.query(async ({ ctx }) => {
+    const [rows, deals, payouts] = await Promise.all([
+      db.getMatchesWithCounterpartyByUser(ctx.user.id),
+      db.getDealsByUser(ctx.user.id),
+      db.getPayoutsByUser(ctx.user.id),
+    ]);
+
+    const now = Date.now();
+    const activeMatches = rows.filter(
+      (row) => row.status !== "declined" && row.status !== "expired"
+    );
+
+    const pipeline = activeMatches.reduce(
+      (acc, row) => {
+        switch (row.status) {
+          case "pending":
+            acc.sourcing += 1;
+            break;
+          case "user1_interested":
+          case "user2_interested":
+          case "nda_pending":
+            acc.dueDiligence += 1;
+            break;
+          case "mutual_interest":
+            acc.termSheet += 1;
+            break;
+          case "deal_room_created":
+            acc.closing += 1;
+            break;
+          default:
+            break;
+        }
+        return acc;
+      },
+      { sourcing: 0, dueDiligence: 0, termSheet: 0, closing: 0 }
+    );
+
+    const totalPipeline =
+      pipeline.sourcing +
+      pipeline.dueDiligence +
+      pipeline.termSheet +
+      pipeline.closing;
+
+    const newVerifiedMatches24h = activeMatches.filter((row) => {
+      const createdAt = row.createdAt ? new Date(row.createdAt).getTime() : 0;
+      const isRecent = createdAt > 0 && now - createdAt <= DAY_MS;
+      const isVerifiedCounterparty =
+        row.counterpartyVerificationTier &&
+        row.counterpartyVerificationTier !== "none";
+      return isRecent && isVerifiedCounterparty;
+    }).length;
+
+    const diligenceAges = deals
+      .filter((deal) => deal.stage === "due_diligence" && deal.createdAt)
+      .map((deal) => (now - new Date(deal.createdAt as Date).getTime()) / DAY_MS)
+      .filter((value) => Number.isFinite(value) && value >= 0);
+
+    const avgCloseDurations = deals
+      .filter((deal) => deal.stage === "completed")
+      .map((deal) => {
+        const start = deal.createdAt ? new Date(deal.createdAt as Date).getTime() : NaN;
+        const endCandidate = deal.actualCloseDate ?? deal.updatedAt;
+        const end = endCandidate ? new Date(endCandidate as Date).getTime() : NaN;
+        if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+          return null;
+        }
+        return (end - start) / DAY_MS;
+      })
+      .filter((value): value is number => value !== null);
+
+    const activeDeals = deals.filter(
+      (deal) => deal.stage && ACTIVE_DEAL_STAGES.has(deal.stage)
+    );
+    const committedCapital = activeDeals.reduce(
+      (sum, deal) => sum + toNumber(deal.dealValue),
+      0
+    );
+    const deployedCapital = payouts
+      .filter((payout) =>
+        payout.status === "processing" || payout.status === "completed"
+      )
+      .reduce((sum, payout) => sum + toNumber(payout.amount), 0);
+    const pendingPayouts = payouts
+      .filter((payout) => payout.status === "pending")
+      .reduce((sum, payout) => sum + toNumber(payout.amount), 0);
+    const availableCapital = Math.max(0, committedCapital - deployedCapital);
+    const totalCapital = Math.max(committedCapital, availableCapital + deployedCapital);
+
+    const weightedTrustScore = Math.round(
+      average(activeMatches.map((row) => toNumber(row.compatibilityScore)))
+    );
+    const avgTimeToCloseDays =
+      avgCloseDurations.length > 0
+        ? Math.round(average(avgCloseDurations))
+        : null;
+    const diligenceMedianDays =
+      diligenceAges.length > 0
+        ? Number((median(diligenceAges) ?? 0).toFixed(1))
+        : null;
+
+    const freshnessCandidates = [
+      ...rows.map((row) => (row.updatedAt ? new Date(row.updatedAt).getTime() : 0)),
+      ...deals.map((deal) => (deal.updatedAt ? new Date(deal.updatedAt as Date).getTime() : 0)),
+    ];
+    const newestTs = Math.max(0, ...freshnessCandidates);
+
+    return {
+      generatedAt: new Date().toISOString(),
+      lastUpdatedAt: newestTs > 0 ? new Date(newestTs).toISOString() : null,
+      liveProof: {
+        newVerifiedMatches24h,
+        diligenceMedianDays,
+        capitalAllocationReady: availableCapital,
+      },
+      pipeline: {
+        ...pipeline,
+        total: totalPipeline,
+      },
+      summary: {
+        activePipeline: totalPipeline,
+        committedCapital,
+        weightedTrustScore,
+        avgTimeToCloseDays,
+      },
+      capital: {
+        available: availableCapital,
+        committed: committedCapital,
+        deployed: deployedCapital,
+        pendingPayouts,
+        total: totalCapital,
+      },
+    };
+  }),
+
+  marketDepth: protectedProcedure
+    .input(
+      z
+        .object({
+          periodStart: z.string().datetime().optional(),
+          periodEnd: z.string().datetime().optional(),
+          sector: z.string().optional(),
+          includeStatuses: z.array(z.string()).optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const rows = await db.getMatchesWithCounterpartyByUser(ctx.user.id);
+      const conn = await db.getDb();
+      const intentIds = Array.from(
+        new Set(
+          rows.flatMap((row) => [row.intent1Id, row.intent2Id]).filter(Boolean)
+        )
+      );
+      const intentRows =
+        conn && intentIds.length > 0
+          ? await conn
+              .select({
+                id: intents.id,
+                assetType: intents.assetType,
+                title: intents.title,
+              })
+              .from(intents)
+              .where(inArray(intents.id, intentIds))
+          : [];
+      const intentMap = new Map(intentRows.map((row) => [row.id, row]));
+
+      const fromTs = input?.periodStart
+        ? new Date(input.periodStart).getTime()
+        : null;
+      const toTs = input?.periodEnd ? new Date(input.periodEnd).getTime() : null;
+      const includeStatuses = input?.includeStatuses
+        ? new Set(input.includeStatuses)
+        : null;
+
+      const resolveSector = (row: (typeof rows)[number]) => {
+        const intentA = intentMap.get(row.intent1Id);
+        const intentB = intentMap.get(row.intent2Id);
+        const raw =
+          intentA?.assetType ??
+          intentB?.assetType ??
+          (intentA?.title ? intentA.title.split(" ").slice(0, 2).join(" ") : null) ??
+          (intentB?.title ? intentB.title.split(" ").slice(0, 2).join(" ") : null);
+        if (!raw) return "Private Markets";
+        const cleaned = String(raw).replace(/_/g, " ").trim();
+        return cleaned.length > 0
+          ? cleaned
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+          : "Private Markets";
+      };
+
+      const filteredRows = rows.filter((row) => {
+        const updatedTs = row.updatedAt ? new Date(row.updatedAt).getTime() : 0;
+        if (fromTs != null && updatedTs > 0 && updatedTs < fromTs) return false;
+        if (toTs != null && updatedTs > 0 && updatedTs > toTs) return false;
+        if (includeStatuses && !includeStatuses.has(String(row.status))) return false;
+        return true;
+      });
+
+      const buckets = new Map<
+        string,
+        { buyers: number; sellers: number; total: number; lastUpdatedAt: number }
+      >();
+
+      for (const row of filteredRows) {
+        const sector = resolveSector(row);
+        if (input?.sector && sector.toLowerCase() !== input.sector.toLowerCase()) {
+          continue;
+        }
+        const current = buckets.get(sector) ?? {
+          buyers: 0,
+          sellers: 0,
+          total: 0,
+          lastUpdatedAt: 0,
+        };
+        const status = String(row.status ?? "pending");
+        if (MARKET_DEPTH_BUYER_STATUSES.has(status)) current.buyers += 1;
+        else current.sellers += 1;
+        current.total += 1;
+        const updatedTs = row.updatedAt ? new Date(row.updatedAt).getTime() : 0;
+        if (updatedTs > current.lastUpdatedAt) current.lastUpdatedAt = updatedTs;
+        buckets.set(sector, current);
+      }
+
+      return Array.from(buckets.entries())
+        .map(([sector, value]) => ({
+          sector,
+          buyers: value.buyers,
+          sellers: value.sellers,
+          total: value.total,
+          lastUpdatedAt:
+            value.lastUpdatedAt > 0
+              ? new Date(value.lastUpdatedAt).toISOString()
+              : null,
+        }))
+        .sort((a, b) => b.total - a.total);
+    }),
 
   expressInterest: protectedProcedure
     .input(z.object({ matchId: z.number() }))

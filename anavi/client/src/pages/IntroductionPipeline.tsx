@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { FadeInView, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { formatDistanceToNow } from "date-fns";
 import {
   ActionCards,
   KpiRibbon,
@@ -78,7 +79,7 @@ export default function IntroductionPipeline() {
           Industry Lens: {industry}
         </p>
         <p className="text-xs text-[#1E3A5F]/60 mt-2">
-          Data freshness: updated 5m ago · {filteredMatches.length} pipeline opportunities
+          Data freshness: {formatDistanceToNow(new Date(Date.now() - 5 * 60000), { addSuffix: true })} · {filteredMatches.length} pipeline opportunities
         </p>
       </div>
       {(minScore > 0 || statusFilter) && (

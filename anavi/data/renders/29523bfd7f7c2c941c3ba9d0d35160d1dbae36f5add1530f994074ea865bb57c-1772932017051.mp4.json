@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-03-08T01:06:57.052Z",
+  "renderer": "copy",
+  "compositionId": "anavi-walkthrough-90s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 90,
+    "sizeBytes": 3541981
+  },
+  "trustScore": 0.8,
+  "plan": {
+    "scenes": [
+      {
+        "id": "scene-1",
+        "description": "custody"
+      },
+      {
+        "id": "scene-2",
+        "description": "blind matching"
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.8,
+      "intent": "walkthrough-demo"
+    }
+  }
+}

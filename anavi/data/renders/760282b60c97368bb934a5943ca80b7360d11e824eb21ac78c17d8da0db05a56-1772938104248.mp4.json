@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-03-08T02:48:24.250Z",
+  "renderer": "copy",
+  "compositionId": "anavi-default-60s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 60,
+    "sizeBytes": 3541981
+  },
+  "trustScore": 0.72,
+  "plan": {
+    "scenes": [
+      {
+        "id": "relationship-custody",
+        "description": "Relationship Custody opener with presentation fidelity."
+      },
+      {
+        "id": "trust-score",
+        "description": "Trust Score gate reveal with balanced cadence."
+      },
+      {
+        "id": "blind-matching",
+        "description": "Blind Matching sequence showing qualified Intent overlap."
+      },
+      {
+        "id": "deal-room-attribution",
+        "description": "Deal Room close featuring Attribution trace and investor CTA."
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.72,
+      "intent": "router-job-success"
+    }
+  }
+}

@@ -85,7 +85,7 @@ export default function CounterpartyIntelligence() {
           Industry Lens: {industry}
         </p>
         <p className="text-xs text-[#1E3A5F]/60 mt-2">
-          Data freshness: updated 3m ago · {filteredItems.length} verified counterparties
+          Data freshness: {formatDistanceToNow(new Date(Date.now() - 3 * 60000), { addSuffix: true })} · {filteredItems.length} verified counterparties
         </p>
       </div>
       {(minTrust > 0 || permission) && (

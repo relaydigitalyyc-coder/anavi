@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-03-07T21:53:22.554Z",
+  "renderer": "remotion",
+  "compositionId": "anavi-teaser-30s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 30,
+    "sizeBytes": 8603535
+  },
+  "trustScore": 0.89,
+  "plan": {
+    "scenes": [
+      {
+        "id": "relationship-custody",
+        "description": "Attention: $13T private markets still run on fragmented trust and cold intros"
+      },
+      {
+        "id": "blind-matching",
+        "description": "Branding + Connection: ANAVI Blind Matching activates only on verified Intent overlap"
+      },
+      {
+        "id": "deal-room",
+        "description": "Direction: launch Deal Room execution with Trust Score controls and faster closes"
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.89,
+      "intent": "vc-punch-30s"
+    }
+  }
+}

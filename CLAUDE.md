@@ -146,3 +146,19 @@ DOCUSIGN_ACCOUNT_ID
 ## Deployment
 
 Configured for Vercel: config at `anavi/vercel.json`, output dir `dist/public`.
+
+## gstack
+
+- Use the `gstack` `/browse` skill for all web browsing and UI flow checks.
+- Do not use `mcp__claude-in-chrome__*` tools for browsing tasks.
+- Available `gstack` skills:
+  - `/plan-ceo-review`
+  - `/plan-eng-review`
+  - `/review`
+  - `/ship`
+  - `/browse`
+  - `/qa`
+  - `/setup-browser-cookies`
+  - `/retro`
+- If `gstack` skills stop working, run:
+  - `cd .claude/skills/gstack && ./setup`

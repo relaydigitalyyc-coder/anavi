@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-03-08T03:13:18.376Z",
+  "renderer": "copy",
+  "compositionId": "anavi-teaser-30s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 30,
+    "sizeBytes": 3541981
+  },
+  "trustScore": 0.72,
+  "plan": {
+    "scenes": [
+      {
+        "id": "scene-1",
+        "description": "trust intro"
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.72,
+      "intent": "teaser-vc-outreach"
+    }
+  }
+}

@@ -210,6 +210,19 @@ export const dealRoomRouter = router({
       const envelope = await db.getDocusignEnvelopeById(input.envelopeId);
       if (!envelope) throw new TRPCError({ code: "NOT_FOUND", message: "Envelope not found" });
 
+      const alreadySentStatuses = new Set(["sent", "delivered", "completed"]);
+      if (alreadySentStatuses.has(envelope.status)) {
+        return { envelopeId: envelope.id, status: envelope.status, alreadySent: true };
+      }
+
+      const terminalBlockedStatuses = new Set(["voided", "declined", "expired", "error"]);
+      if (terminalBlockedStatuses.has(envelope.status)) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Envelope cannot be sent from status '${envelope.status}'`,
+        });
+      }
+
       const provider = await sendProviderEnvelope(envelope.providerEnvelopeId, ctx.user.id);
       await db.updateDocusignEnvelopeStatusMonotonic({
         envelopeId: envelope.id,
@@ -231,7 +244,7 @@ export const dealRoomRouter = router({
         entityId: envelope.dealRoomId,
         newState: { envelopeId: envelope.id, status: provider.status },
       });
-      return { envelopeId: envelope.id, status: provider.status };
+      return { envelopeId: envelope.id, status: provider.status, alreadySent: false };
     }),
 
   getNdaSignUrl: protectedProcedure

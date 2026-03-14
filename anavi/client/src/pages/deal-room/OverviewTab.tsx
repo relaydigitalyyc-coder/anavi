@@ -151,8 +151,67 @@ function FindSimilarDealsSection() {
 }
 
 export function OverviewTab({ room, payouts, auditEntries }: { room: any; payouts: any[]; auditEntries: any[] }) {
+  const { data: myAccess, refetch: refetchMyAccess } = trpc.dealRoom.getMyAccess.useQuery(
+    { dealRoomId: room?.id },
+    { enabled: !!room?.id }
+  );
+  
+  const utils = trpc.useUtils();
+  const createNdaEnvelope = trpc.dealRoom.createNdaEnvelope.useMutation();
+  const sendNdaEnvelope = trpc.dealRoom.sendNdaEnvelope.useMutation();
+  const [isSigning, setIsSigning] = useState(false);
+
+  const handleSignNda = async () => {
+    if (!room?.id) return;
+    setIsSigning(true);
+    try {
+      const created = await createNdaEnvelope.mutateAsync({ dealRoomId: room.id });
+      
+      if (created.provider !== "mock") {
+        if (["draft", "created"].includes(String(created.status).toLowerCase())) {
+          await sendNdaEnvelope.mutateAsync({ envelopeId: created.envelopeId });
+        }
+      }
+
+      const returnUrl = window.location.href;
+      const signView = await utils.dealRoom.getNdaSignUrl.fetch({
+        envelopeId: created.envelopeId,
+        returnUrl,
+      });
+      
+      if (signView?.signingUrl) {
+        window.open(signView.signingUrl, "_blank", "noopener,noreferrer");
+      }
+      refetchMyAccess();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSigning(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {room?.ndaRequired && !myAccess?.access?.ndaSigned && (
+        <section className="bg-[#F3F7FC] rounded-lg border p-4 flex items-center justify-between" style={{ borderColor: "#D1DCF0" }}>
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5" style={{ color: "#C4972A" }} />
+            <div>
+              <h3 className="text-sm font-semibold" style={{ color: "#0A1628" }}>NDA Signature Required</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Please sign the Non-Disclosure Agreement to access the full Deal Room.</p>
+            </div>
+          </div>
+          <button
+            onClick={handleSignNda}
+            disabled={isSigning || createNdaEnvelope.isPending || sendNdaEnvelope.isPending}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-50"
+            style={{ backgroundColor: "#2563EB" }}
+          >
+            {(isSigning || createNdaEnvelope.isPending || sendNdaEnvelope.isPending) ? "Signing..." : "Sign NDA"}
+          </button>
+        </section>
+      )}
+
       {/* Deal Summary */}
       <section className="bg-white rounded-lg border p-6" style={{ borderColor: "#D1DCF0" }}>
         <h3 className="text-subheading mb-4" style={{ color: "#0A1628" }}>Deal Summary</h3>

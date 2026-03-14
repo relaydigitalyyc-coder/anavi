@@ -57,6 +57,13 @@
       "when": 1768628421298,
       "tag": "0007_past_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1773485920171,
+      "tag": "0008_spicy_king_cobra",
+      "breakpoints": true
     }
   ]
 }

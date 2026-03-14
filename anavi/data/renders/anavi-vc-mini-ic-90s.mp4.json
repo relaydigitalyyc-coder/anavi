@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-03-07T22:03:14.035Z",
+  "renderer": "remotion",
+  "compositionId": "anavi-walkthrough-90s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 90,
+    "sizeBytes": 22740937
+  },
+  "trustScore": 0.9,
+  "plan": {
+    "scenes": [
+      {
+        "id": "relationship-custody",
+        "description": "IC Hook: fragmented relationship data blocks repeatable performance"
+      },
+      {
+        "id": "relationship-custody",
+        "description": "Platform Moat: Relationship Custody creates auditable provenance across the $13T market"
+      },
+      {
+        "id": "blind-matching",
+        "description": "Execution Edge: Blind Matching reveals only verified Intent overlap and filters noise"
+      },
+      {
+        "id": "deal-room",
+        "description": "Governance: Deal Room enforces KYB, accreditation, NDA, and lifecycle policy"
+      },
+      {
+        "id": "attribution",
+        "description": "Outcome: Attribution + Trust Score quantify compounding platform leverage"
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.9,
+      "intent": "mini-ic-90s"
+    }
+  }
+}

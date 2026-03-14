@@ -181,9 +181,11 @@ export function StatusPulse({
 export function ActionCards({
   items,
   primaryIndex = 0,
+  onAction,
 }: {
   items: Array<{ title: string; body: string; cta: string }>;
   primaryIndex?: number;
+  onAction?: (item: { title: string; body: string; cta: string }, index: number) => void;
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 mb-4">
@@ -202,6 +204,7 @@ export function ActionCards({
                 ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
                 : "bg-[#1E3A5F]/8 text-[#1E3A5F] hover:bg-[#1E3A5F]/15"
             }`}
+            onClick={() => onAction?.(item, index)}
           >
             {item.cta}
           </button>

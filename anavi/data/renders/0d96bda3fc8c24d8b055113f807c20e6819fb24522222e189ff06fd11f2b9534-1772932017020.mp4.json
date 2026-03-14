@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-03-08T01:06:57.022Z",
+  "renderer": "copy",
+  "compositionId": "anavi-default-60s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 60,
+    "sizeBytes": 3541981
+  },
+  "trustScore": 0.5,
+  "plan": {
+    "scenes": [
+      {
+        "id": "1",
+        "description": "intro"
+      },
+      {
+        "id": "2",
+        "description": "matching"
+      },
+      {
+        "id": "3",
+        "description": "deal-room"
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.5,
+      "intent": "ic-narrative"
+    }
+  }
+}

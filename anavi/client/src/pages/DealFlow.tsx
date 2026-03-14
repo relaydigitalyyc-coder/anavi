@@ -1,5 +1,6 @@
 import { useActiveIndustry, useDemoFixtures } from "@/contexts/DemoContext";
 import { trpc } from "@/lib/trpc";
+import { formatDistanceToNow } from "date-fns";
 import { Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -18,11 +19,35 @@ import {
   StoryBeats,
 } from "@/components/PersonaSurface";
 
+const formatUsdCompact = (amount: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(amount);
+
+export function buildStatusFilterSet(statusFilter: string | null) {
+  if (!statusFilter) return null;
+  if (statusFilter === "pending_consent") {
+    return new Set([
+      "pending",
+      "user1_interested",
+      "user2_interested",
+      "nda_pending",
+    ]);
+  }
+  return new Set([statusFilter]);
+}
+
 export default function DealFlow() {
   const demo = useDemoFixtures();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const industry = useActiveIndustry() ?? "Infrastructure";
   const { data: liveMatches } = trpc.match.list.useQuery(undefined, {
+    enabled: !demo,
+  });
+  const { data: liveStats } = trpc.match.liveStats.useQuery(undefined, {
     enabled: !demo,
   });
   const utils = trpc.useUtils();
@@ -68,9 +93,10 @@ export default function DealFlow() {
   const minScore = Number(params.get("minScore") ?? 0);
   const statusFilter = params.get("status");
   const assetFilter = params.get("assetClass");
+  const statusFilterSet = buildStatusFilterSet(statusFilter);
   const filteredMatches = matches.filter(match => {
     const byScore = match.compatibilityScore >= minScore;
-    const byStatus = statusFilter ? match.status === statusFilter : true;
+    const byStatus = statusFilterSet ? statusFilterSet.has(match.status) : true;
     const byAsset = assetFilter
       ? match.assetClass.toLowerCase() === assetFilter.toLowerCase()
       : true;
@@ -80,22 +106,34 @@ export default function DealFlow() {
 
   const expressInterestMutation = trpc.match.expressInterest.useMutation({
     onSuccess: async () => {
-      await utils.match.list.invalidate();
+      await Promise.all([
+        utils.match.list.invalidate(),
+        utils.match.liveStats.invalidate(),
+      ]);
     },
   });
   const createDealRoomMutation = trpc.match.createDealRoom.useMutation({
     onSuccess: async () => {
-      await utils.match.list.invalidate();
+      await Promise.all([
+        utils.match.list.invalidate(),
+        utils.match.liveStats.invalidate(),
+      ]);
     },
   });
   const queueNdaMutation = trpc.match.queueNda.useMutation({
     onSuccess: async () => {
-      await utils.match.list.invalidate();
+      await Promise.all([
+        utils.match.list.invalidate(),
+        utils.match.liveStats.invalidate(),
+      ]);
     },
   });
   const escalateMutation = trpc.match.escalate.useMutation({
     onSuccess: async () => {
-      await utils.match.list.invalidate();
+      await Promise.all([
+        utils.match.list.invalidate(),
+        utils.match.liveStats.invalidate(),
+      ]);
     },
   });
 
@@ -104,6 +142,137 @@ export default function DealFlow() {
     createDealRoomMutation.isPending ||
     queueNdaMutation.isPending ||
     escalateMutation.isPending;
+  const freshnessText = demo
+    ? "updated moments ago"
+    : liveStats?.lastUpdatedAt
+      ? `updated ${formatDistanceToNow(new Date(liveStats.lastUpdatedAt), { addSuffix: true })}`
+      : "syncing";
+
+  const topDecileMinScore = useMemo(() => {
+    if (matches.length === 0) return 90;
+    const scores = matches
+      .map(match => match.compatibilityScore)
+      .sort((a, b) => a - b);
+    const index = Math.max(0, Math.ceil(scores.length * 0.9) - 1);
+    return Math.max(1, Math.round(scores[index] ?? 90));
+  }, [matches]);
+
+  const ndaCandidate = useMemo(() => {
+    return [...matches]
+      .filter(
+        match =>
+          match.status !== "declined" &&
+          match.status !== "expired" &&
+          match.status !== "deal_room_created"
+      )
+      .sort((a, b) => b.compatibilityScore - a.compatibilityScore)[0];
+  }, [matches]);
+
+  const liveProofItems = demo
+    ? [
+        {
+          label: "New Verified Matches",
+          value: `${Math.min(4, matches.length)} in 24h`,
+          delta: "+31%",
+        },
+        {
+          label: "Median Diligence Time",
+          value: "2.4 days",
+          delta: "-0.8d",
+        },
+        {
+          label: "Identity Exposure",
+          value: "0 unauthorized",
+          delta: "Sealed",
+        },
+      ]
+    : [
+        {
+          label: "New Verified Matches",
+          value: `${liveStats?.liveProof.newVerifiedMatches24h ?? 0} in 24h`,
+          delta: `${liveStats?.pipeline.total ?? 0} active pipeline`,
+        },
+        {
+          label: "Median Diligence Time",
+          value:
+            liveStats?.liveProof.diligenceMedianDays != null
+              ? `${liveStats.liveProof.diligenceMedianDays} days`
+              : "No diligence sample",
+          delta: `${liveStats?.pipeline.dueDiligence ?? 0} in diligence`,
+        },
+        {
+          label: "Capital Allocation Ready",
+          value: `${formatUsdCompact(liveStats?.liveProof.capitalAllocationReady ?? 0)} available`,
+          delta: `${formatUsdCompact(liveStats?.capital.committed ?? 0)} committed`,
+        },
+      ];
+
+  const setOutcome = (id: number, message: string) => {
+    setOutcomes(prev => ({ ...prev, [id]: message }));
+    window.setTimeout(() => {
+      setOutcomes(prev => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }, 2400);
+  };
+
+  function routeDealFlow(filters: {
+    minScore?: number | null;
+    status?: string | null;
+    assetClass?: string | null;
+  }) {
+    const next = new URLSearchParams();
+    if ((filters.minScore ?? 0) > 0) {
+      next.set("minScore", String(filters.minScore));
+    }
+    if (filters.status) {
+      next.set("status", filters.status);
+    }
+    if (filters.assetClass) {
+      next.set("assetClass", filters.assetClass);
+    }
+    const query = next.toString();
+    setLocation(query ? `/deal-flow?${query}` : "/deal-flow");
+  }
+
+  async function handleActionCard(index: number) {
+    if (anyPending) return;
+
+    if (index === 0) {
+      routeDealFlow({ minScore: topDecileMinScore, assetClass: assetFilter });
+      return;
+    }
+
+    if (index === 1) {
+      const consentFilters = { status: "pending_consent", assetClass: assetFilter };
+      if (demo) {
+        routeDealFlow(consentFilters);
+        toast("Showing consent pipeline");
+        return;
+      }
+      if (!ndaCandidate) {
+        routeDealFlow(consentFilters);
+        toast("No eligible matches available to queue NDA");
+        return;
+      }
+
+      try {
+        await queueNdaMutation.mutateAsync({ matchId: ndaCandidate.id });
+        setOutcome(ndaCandidate.id, "Queued NDA");
+        toast.success("Top eligible match queued for NDA");
+      } catch (e: any) {
+        toast.error(e?.message ?? "NDA queue failed");
+      }
+      routeDealFlow(consentFilters);
+      return;
+    }
+
+    if (index === 2) {
+      setLocation("/attribution");
+    }
+  }
 
   async function handlePrimary(
     matchId: number,
@@ -150,17 +319,6 @@ export default function DealFlow() {
     }
   }
 
-  const setOutcome = (id: number, message: string) => {
-    setOutcomes(prev => ({ ...prev, [id]: message }));
-    window.setTimeout(() => {
-      setOutcomes(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    }, 2400);
-  };
-
   return (
     <FadeInView>
       <div className="mb-6">
@@ -172,7 +330,7 @@ export default function DealFlow() {
           Industry Lens: {industry}
         </p>
         <p className="text-xs text-[#1E3A5F]/60 mt-2">
-          Data freshness: updated 2m ago · {filteredMatches.length} visible
+          Data freshness: {freshnessText} · {filteredMatches.length} visible
           opportunities
         </p>
       </div>
@@ -195,29 +353,6 @@ export default function DealFlow() {
           )}
         </div>
       )}
-      <div className="mb-3 flex flex-wrap gap-2">
-        <button
-          disabled
-          className="rounded bg-[#2563EB]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#2563EB] opacity-50 cursor-not-allowed"
-          title="Coming soon"
-        >
-          Request Docs
-        </button>
-        <button
-          disabled
-          className="rounded bg-[#1E3A5F]/8 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1E3A5F]/70 opacity-50 cursor-not-allowed"
-          title="Coming soon"
-        >
-          Update Intent
-        </button>
-        <button
-          disabled
-          className="rounded bg-[#059669]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#059669] opacity-50 cursor-not-allowed"
-          title="Coming soon"
-        >
-          Confirm Settlement
-        </button>
-      </div>
       <KpiRibbon
         items={[
           {
@@ -234,23 +369,14 @@ export default function DealFlow() {
         ]}
       />
       <LiveProofStrip
-        items={[
-          {
-            label: "New Verified Matches",
-            value: `${Math.min(4, matches.length)} in 24h`,
-            delta: "+31%",
-          },
-          { label: "Median Diligence Time", value: "2.4 days", delta: "-0.8d" },
-          {
-            label: "Identity Exposure",
-            value: "0 unauthorized",
-            delta: "Sealed",
-          },
-        ]}
+        items={liveProofItems}
       />
       <StoryBeats active="match" />
       <ActionCards
         primaryIndex={0}
+        onAction={(_, index) => {
+          void handleActionCard(index);
+        }}
         items={[
           {
             title: "Prioritize Top Decile Matches",
@@ -263,9 +389,9 @@ export default function DealFlow() {
             cta: "Open NDAs",
           },
           {
-            title: "Issue Allocation Holds",
-            body: "Reserve capacity while diligence completes.",
-            cta: "Reserve Capital",
+            title: "Route to Attribution",
+            body: "Review reserve decisions in the attribution ledger.",
+            cta: "Open Attribution",
           },
         ]}
       />

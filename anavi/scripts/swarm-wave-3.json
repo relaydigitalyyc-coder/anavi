@@ -1,0 +1,42 @@
+[
+  {
+    "name": "agent-3.1",
+    "task": "Create crypto treasury dashboard UI. Build a new React page (Treasury.tsx) that displays total crypto assets under management, current allocations, and historical performance using charts."
+  },
+  {
+    "name": "agent-3.2",
+    "task": "Add stablecoin backing visualization. Create UI components that show the exact fiat reserves, audit links, and 1:1 backing proof for USDC/USDT/DAI held by the platform."
+  },
+  {
+    "name": "agent-3.3",
+    "task": "Build tokenization interface for asset backing. Implement a form and display dashboard for converting real-world assets (Real Estate, Commodities) into fractionalized on-chain tokens."
+  },
+  {
+    "name": "agent-3.4",
+    "task": "Add crypto wallet integration display. Build a component that allows users to link their Web3 wallets (e.g., MetaMask, Phantom) and displays their balances securely."
+  },
+  {
+    "name": "agent-3.5",
+    "task": "Create yield farming/staking tracking. Build a module that tracks and projects the APY/ROI for funds deployed into DeFi staking contracts."
+  },
+  {
+    "name": "agent-3.6",
+    "task": "Build DeFi protocol integration panel. Create an interface to interact directly with protocols like Aave or Compound to supply/borrow assets from within the ANAVI dashboard."
+  },
+  {
+    "name": "agent-3.7",
+    "task": "Add real-time crypto price feeds. Integrate a websocket or polling service (e.g., CoinGecko API) to show live ticker prices for BTC, ETH, SOL, and platform tokens."
+  },
+  {
+    "name": "agent-3.8",
+    "task": "Build business credit application workflow for zero percent loans. Implement a multi-step form wizard for users to apply for credit lines against their existing investments or assets."
+  },
+  {
+    "name": "agent-3.9",
+    "task": "Create loan tracking and management UI. Build a dashboard section showing active loans, outstanding balances, upcoming payment dates, and interest accrued."
+  },
+  {
+    "name": "agent-3.10",
+    "task": "Build loan-to-investment conversion tracking. Implement logic and UI to allow users to take a loan and immediately reinvest it into a new platform deal, tracking the entire flow."
+  }
+]

@@ -129,7 +129,19 @@
       "Skill(ralph-wiggum:ralph-loop)",
       "Bash(cd /home/ariel/Documents/anavi-main/anavi && node_modules/.bin/tsc --noEmit 2>&1 | head -30)",
       "Bash(node_modules/.bin/vitest run 2>&1 | tail -10)",
-      "Bash(grep -rn \"TODO\\\\|FIXME\" /home/ariel/Documents/anavi-main/anavi/client/src/ /home/ariel/Documents/anavi-main/anavi/server/ --include=\"*.ts\" --include=\"*.tsx\" 2>/dev/null | grep -v \"node_modules\" | head -30)"
+      "Bash(grep -rn \"TODO\\\\|FIXME\" /home/ariel/Documents/anavi-main/anavi/client/src/ /home/ariel/Documents/anavi-main/anavi/server/ --include=\"*.ts\" --include=\"*.tsx\" 2>/dev/null | grep -v \"node_modules\" | head -30)",
+      "Bash(cd /home/ariel/Documents/anavi-main/anavi && pnpm test 2>&1 | tail -30)",
+      "mcp__plugin_context-mode_context-mode__execute_file",
+      "Bash(ls -lh /home/ariel/Documents/anavi-main/anavi/data/renders/*.mp4 2>/dev/null | tail -20)",
+      "Bash(ANAVI_REMOTION_BROWSER_PATH=/snap/bin/chromium npx tsx scripts/render-teaser.ts 2>&1 | tail -30)",
+      "Bash(ANAVI_REMOTION_BROWSER_PATH=/snap/bin/chromium npx tsx --tsconfig tsconfig.json -e \"\nimport { renderPlanHub } from './scripts/render-hub.ts';\nimport type { ScenePlan } from './scripts/scene-plan.ts';\n\nconst plan: ScenePlan = {\n  scenes: [\n    { id: 'relationship-custody', description: 'Verify every counterparty before first contact' },\n    { id: 'blind-matching', description: 'Match on intent — reveal only with mutual consent' },\n    { id: 'deal-room', description: 'Execute with embedded compliance and audit trail' },\n  ],\n  metadata: { trustScore: 0.88, intent: 'teaser' }\n};\n\nrenderPlanHub\\({ plan, previewMode: false }\\).then\\(r => {\n  console.log\\('RENDER DONE:', r.renderPath\\);\n  console.log\\('reason:', r.reason\\);\n}\\).catch\\(e => { console.error\\(e\\); process.exit\\(1\\); }\\);\n\" 2>&1 | tail -30)",
+      "Bash(ANAVI_REMOTION_BROWSER_PATH=/snap/bin/chromium npx tsx scripts/render-hub.ts 2>&1 | tail -20)",
+      "Bash(\\\\\n  cp data/plan-metadata.json data/plan-metadata.json.bak && \\\\\n  echo \"{}\" > data/plan-metadata.json && \\\\\n  ANAVI_REMOTION_BROWSER_PATH=/snap/bin/chromium ANAVI_RENDER_BACKEND=remotion npx tsx scripts/render-hub.ts 2>&1)",
+      "Bash(ANAVI_REMOTION_BROWSER_PATH=/snap/bin/chromium ANAVI_RENDER_BACKEND=remotion npx tsx scripts/render-hub.ts --plan teaser 2>&1 | grep -E \"RENDER|error|Error|shouldRender|renderPath|reason\" | head -20)",
+      "Bash(ANAVI_REMOTION_BROWSER_PATH=/snap/bin/chromium ANAVI_RENDER_BACKEND=remotion npx tsx scripts/render-hub.ts 2>&1 | tail -20)",
+      "Bash(echo '{}' > /home/ariel/Documents/anavi-main/anavi/data/plan-metadata.json && ANAVI_REMOTION_BROWSER_PATH=/snap/bin/chromium ANAVI_RENDER_BACKEND=remotion npx tsx scripts/render-hub.ts 2>&1)",
+      "Bash(pnpm check 2>&1 && pnpm test 2>&1 | tail -20)",
+      "Bash(find /home/ariel/Documents/anavi-main/anavi/docs -name \"*.md\" 2>/dev/null | head -20 && find /home/ariel/Documents/anavi-main/anavi -name \"white*\" -o -name \"*whitepaper*\" 2>/dev/null | head -10)"
     ]
   }
 }

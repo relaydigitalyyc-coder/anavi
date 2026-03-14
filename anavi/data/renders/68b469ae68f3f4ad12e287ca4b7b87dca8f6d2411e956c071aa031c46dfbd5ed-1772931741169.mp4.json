@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-03-08T01:06:34.487Z",
+  "renderer": "remotion",
+  "compositionId": "anavi-whitepaper-pitch-90s",
+  "technical": {
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "durationSeconds": 90,
+    "sizeBytes": 66055559
+  },
+  "trustScore": 0.92,
+  "plan": {
+    "scenes": [
+      {
+        "id": "problem-statement",
+        "description": "5—15 broker intermediaries drain value per deal; $10—40B annual fraud; zero originator protection across a $13T market"
+      },
+      {
+        "id": "relationship-custody",
+        "description": "RFC 3161-compliant timestamping establishes legally defensible cryptographic priority claims on every introduction"
+      },
+      {
+        "id": "trust-score",
+        "description": "Dynamic 0—100 Trust Score aggregates KYB depth, transaction history, dispute resolution, and peer reviews"
+      },
+      {
+        "id": "blind-matching",
+        "description": "AI intent matching on anonymized attributes — identity sealed until verified mutual consent triggers NDA-gated deal room"
+      },
+      {
+        "id": "deal-room",
+        "description": "AML/KYC automation, shared due diligence repository ($500K saved per deal), e-signature, escrow, and full audit trail"
+      },
+      {
+        "id": "attribution",
+        "description": "40—60% originator share on every transaction — lifetime attribution compounds automatically across follow-on deals"
+      },
+      {
+        "id": "market-opportunity",
+        "description": "$13T+ private markets AUM growing to $25T by 2030. If Bloomberg runs public markets, ANAVI runs private ones."
+      }
+    ],
+    "metadata": {
+      "trustScore": 0.92,
+      "intent": "whitepaper-pitch"
+    }
+  }
+}

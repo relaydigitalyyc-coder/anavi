@@ -132,6 +132,36 @@ export default function DealRoom() {
       { enabled: !isDemo && !!roomId && !isNaN(roomId) }
     );
 
+  const utils = trpc.useUtils();
+  const createNdaEnvelope = trpc.dealRoom.createNdaEnvelope.useMutation();
+  const sendNdaEnvelope = trpc.dealRoom.sendNdaEnvelope.useMutation();
+
+  const handleSignNda = async () => {
+    if (!roomId) return;
+    try {
+      const created = await createNdaEnvelope.mutateAsync({ dealRoomId: roomId });
+      
+      if (created.provider !== "mock") {
+        if (["draft", "created"].includes(String(created.status).toLowerCase())) {
+          await sendNdaEnvelope.mutateAsync({ envelopeId: created.envelopeId });
+        }
+      }
+
+      const returnUrl = window.location.href;
+      const signView = await utils.dealRoom.getNdaSignUrl.fetch({
+        envelopeId: created.envelopeId,
+        returnUrl,
+      });
+      
+      if (signView?.signingUrl) {
+        window.open(signView.signingUrl, "_blank", "noopener,noreferrer");
+      }
+      refetchMyAccess();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const { data: documents, refetch: refetchDocuments } =
     trpc.dealRoom.getDocuments.useQuery(
       { dealRoomId: roomId },
@@ -252,15 +282,25 @@ export default function DealRoom() {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                 Deal Value
               </div>
               <div
-                className="text-2xl font-bold number-display"
+                className="text-2xl font-bold number-display mb-3"
                 style={{ color: "#0A1628" }}
               >
                 {dealValue}
               </div>
+              {room.ndaRequired && !myAccess?.access?.ndaSigned && (
+                <button
+                  onClick={handleSignNda}
+                  disabled={createNdaEnvelope.isPending || sendNdaEnvelope.isPending}
+                  className="px-4 py-1.5 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-50"
+                  style={{ backgroundColor: "#2563EB" }}
+                >
+                  {(createNdaEnvelope.isPending || sendNdaEnvelope.isPending) ? "Signing..." : "Sign NDA"}
+                </button>
+              )}
             </div>
           </div>
 

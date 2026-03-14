@@ -120,6 +120,38 @@ export default function DealRooms() {
   const { data: liveDealRooms, isLoading: liveLoading } =
     trpc.dealRoom.list.useQuery(undefined, { enabled: !isDemo });
 
+  const utils = trpc.useUtils();
+  const createNdaEnvelope = trpc.dealRoom.createNdaEnvelope.useMutation();
+  const sendNdaEnvelope = trpc.dealRoom.sendNdaEnvelope.useMutation();
+  const [signingRoomId, setSigningRoomId] = useState<number | null>(null);
+
+  const handleSignNda = async (roomId: number) => {
+    setSigningRoomId(roomId);
+    try {
+      const created = await createNdaEnvelope.mutateAsync({ dealRoomId: roomId });
+      
+      if (created.provider !== "mock") {
+        if (["draft", "created"].includes(String(created.status).toLowerCase())) {
+          await sendNdaEnvelope.mutateAsync({ envelopeId: created.envelopeId });
+        }
+      }
+
+      const returnUrl = window.location.href;
+      const signView = await utils.dealRoom.getNdaSignUrl.fetch({
+        envelopeId: created.envelopeId,
+        returnUrl,
+      });
+      
+      if (signView?.signingUrl) {
+        window.open(signView.signingUrl, "_blank", "noopener,noreferrer");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSigningRoomId(null);
+    }
+  };
+
   const dealRooms: DealRoomRow[] = isDemo
     ? ((demo.dealRooms ?? []) as unknown as Record<string, unknown>[]).map(
         (r, i) => fixtureToDealRoomRow(r, i)
@@ -302,15 +334,26 @@ export default function DealRooms() {
                     </div>
 
                     {/* CTA */}
-                    <div className="px-5 pb-5 pt-2">
-                      <button
-                        onClick={() => setLocation(`/deal-rooms/${room.id}`)}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
-                        style={{ background: "#2563EB" }}
-                      >
-                        Enter Room
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
+                    <div className="px-5 pb-5 pt-2 flex gap-2">
+                      {room.status === null && room.ndaRequired ? (
+                        <button
+                          onClick={() => handleSignNda(room.id)}
+                          disabled={signingRoomId === room.id}
+                          className="flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors disabled:opacity-50"
+                          style={{ background: "#2563EB" }}
+                        >
+                          {signingRoomId === room.id ? "Signing..." : "Sign NDA"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setLocation(`/deal-rooms/${room.id}`)}
+                          className="flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
+                          style={{ background: "#2563EB" }}
+                        >
+                          Enter Room
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </ScaleHover>
