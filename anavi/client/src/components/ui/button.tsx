@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -16,9 +17,12 @@ const buttonVariants = cva(
           "border bg-transparent shadow-xs hover:bg-accent dark:bg-transparent dark:border-input dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost:
-          "hover:bg-accent dark:hover:bg-accent/50",
+        ghost: "hover:bg-accent dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        success: "bg-trust-green text-white hover:bg-trust-green/90",
+        warning: "bg-trust-gold text-white hover:bg-trust-gold/90",
+        info: "bg-accent text-white hover:bg-accent/90",
+        tertiary: "bg-muted text-muted-foreground hover:bg-muted/80",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -36,24 +40,83 @@ const buttonVariants = cva(
   }
 );
 
+interface ButtonProps
+  extends React.ComponentProps<"button">,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  loading?: boolean;
+  loadingText?: string;
+  /**
+   * For icon-only buttons: auto-generates aria-label if no children text provided
+   */
+  iconLabel?: string;
+}
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  loading = false,
+  loadingText,
+  iconLabel,
+  children,
+  disabled,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  }) {
+}: ButtonProps) {
   const Comp = asChild ? Slot : "button";
+  const isDisabled = disabled || loading;
+
+  // Spinner size mapping based on button size
+  const spinnerSizeClass = {
+    default: "size-4",
+    sm: "size-3",
+    lg: "size-5",
+    icon: "size-4",
+    "icon-sm": "size-3",
+    "icon-lg": "size-5",
+  }[size || "default"];
+
+  // Determine if this is an icon-only button
+  const isIconButton =
+    size === "icon" || size === "icon-sm" || size === "icon-lg";
+
+  // Auto-generate aria-label for icon buttons if no children text and iconLabel provided
+  const ariaProps: React.ComponentProps<"button"> = { ...props };
+  if (isIconButton && !props["aria-label"] && !props["aria-labelledby"]) {
+    // If iconLabel prop is provided, use it
+    if (iconLabel) {
+      ariaProps["aria-label"] = iconLabel;
+    }
+    // If children is a string (text), use it as aria-label
+    else if (typeof children === "string") {
+      ariaProps["aria-label"] = children;
+    }
+    // If children is a React element with string children, extract text
+    else if (
+      React.isValidElement(children) &&
+      typeof children.props?.children === "string"
+    ) {
+      ariaProps["aria-label"] = children.props.children;
+    }
+  }
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
+      disabled={isDisabled}
+      aria-busy={loading}
+      {...ariaProps}
+    >
+      {loading && (
+        <Loader2
+          className={cn("animate-spin", spinnerSizeClass)}
+          aria-hidden="true"
+        />
+      )}
+      {loading && loadingText ? loadingText : children}
+    </Comp>
   );
 }
 

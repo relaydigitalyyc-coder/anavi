@@ -7,7 +7,7 @@ import { SmoothCounter } from "@/components/PremiumAnimations";
 import FVMCelebration from "@/components/FVMCelebration";
 import { Plus } from "lucide-react";
 import { COLORS } from "./constants";
-import { IntentsTab } from "./IntentsTab";
+import { EnhancedIntentsTab } from "./EnhancedIntentsTab";
 import { IncomingTab } from "./IncomingTab";
 import { HistoryTab } from "./HistoryTab";
 import { CreateIntentModal } from "./CreateIntentModal";
@@ -215,7 +215,7 @@ export default function DealMatching() {
 
         {/* ── Tab Content ─────────────────────────── */}
         {activeTab === "intents" && (
-          <IntentsTab
+          <EnhancedIntentsTab
             intents={intents ?? []}
             loading={intentsLoading}
             onToggleStatus={(id: number, status: string) => {

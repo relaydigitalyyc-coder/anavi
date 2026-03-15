@@ -30,6 +30,13 @@
   --color-destructive: #DC2626;
   --color-destructive-foreground: #FFFFFF;
 
+  --color-success: #059669;
+  --color-success-foreground: #FFFFFF;
+  --color-warning: #C4972A;
+  --color-warning-foreground: #FFFFFF;
+  --color-info: #2563EB;
+  --color-info-foreground: #FFFFFF;
+
   --color-border: #D1DCF0;
   --color-input: #E8EDF4;
   --color-ring: #2563EB;

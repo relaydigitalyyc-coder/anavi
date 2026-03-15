@@ -1,0 +1,66 @@
+{
+  "platform": {
+    "tagline": "El Sistema Operativo del Mercado Privado",
+    "thesis": "Si Bloomberg ejecuta los mercados públicos, ANAVI ejecutará los privados.",
+    "market": "$13 billones de mercado privado"
+  },
+  "problems": {
+    "intermediaries": {
+      "stat": "5–15",
+      "headline": "Intermediarios Por Operación",
+      "body": "De 5 a 15 intermediarios por operación. Cada uno extrae del 1 al 5%. El originador — la persona cuya relación hizo posible la operación — no recibe atribución, ni valor compuesto, ni protección si es excluido."
+    },
+    "fraud": {
+      "stat": "$40B",
+      "headline": "Pérdidas Anuales por Fraude",
+      "body": "$10 a $40 mil millones en pérdidas anuales por fraude de inversión en EE. UU. Porque la verificación de identidad en los mercados privados está fragmentada, no se comparte y es trivialmente falsificable. Todos realizan sus propias verificaciones. Nadie comparte los resultados."
+    },
+    "compliance": {
+      "stat": "$500K",
+      "headline": "Costo de Cumplimiento por Operación",
+      "body": "$200,000 a $500,000 por operación gastados en cumplimiento KYC/KYB/AML. Duplicado en cada participante. Sin verificación compartida, sin confianza compartida."
+    }
+  },
+  "personas": {
+    "investor": "Inversor",
+    "originator": "Originador",
+    "principal": "Principal"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "dashboard": "Panel de Control",
+    "relationships": "Relaciones",
+    "intents": "Intenciones",
+    "matches": "Coincidencias",
+    "deals": "Operaciones"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "dashboard": "Panel de Control",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "profile": "Perfil",
+    "settings": "Configuración"
+  },
+  "buttons": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver"
+  }
+}

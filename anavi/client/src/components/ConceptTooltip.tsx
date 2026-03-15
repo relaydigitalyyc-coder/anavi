@@ -1,13 +1,19 @@
+import * as React from "react";
 import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal } from 'react-dom';
-import type { TooltipType } from '@/lib/tooltipContent';
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import {
+  BookOpen,
+  AlertCircle,
+  Info,
+  HelpCircle,
+  Lightbulb,
+} from "lucide-react";
+import type { TooltipType } from "@/lib/tooltipContent";
 
 interface ConceptTooltipProps {
   type: TooltipType;
@@ -15,7 +21,7 @@ interface ConceptTooltipProps {
   content: string;
   learnMoreUrl?: string;
   tooltipId?: string;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const SUPPRESSED_KEY = 'anavi_tooltip_suppressed';
@@ -45,49 +51,34 @@ function incrementSessionCount() {
   sessionStorage.setItem(SESSION_COUNT_KEY, String(getSessionCount() + 1));
 }
 
-type Position = { top: number; left: number; placement: 'top' | 'bottom' };
-
-function calcPosition(
-  triggerRect: DOMRect,
-  tipWidth: number,
-  tipHeight: number,
-): Position {
-  const scrollY = window.scrollY;
-  const scrollX = window.scrollX;
-  const gap = 12;
-
-  const centeredLeft =
-    scrollX + triggerRect.left + triggerRect.width / 2 - tipWidth / 2;
-  const clampedLeft = Math.max(
-    8,
-    Math.min(centeredLeft, window.innerWidth - tipWidth - 8 + scrollX),
-  );
-
-  const spaceAbove = triggerRect.top;
-  if (spaceAbove >= tipHeight + gap) {
-    return {
-      top: scrollY + triggerRect.top - tipHeight - gap,
-      left: clampedLeft,
-      placement: 'top',
-    };
-  }
-
-  return {
-    top: scrollY + triggerRect.bottom + gap,
-    left: clampedLeft,
-    placement: 'bottom',
-  };
-}
-
-const TYPE_ICONS: Record<TooltipType, string> = {
-  concept: '📖',
-  action: '⚡',
-  status: '📊',
-  data: '📈',
-  'empty-state': '💡',
+const TYPE_ICONS: Record<TooltipType, React.ReactNode> = {
+  concept: <BookOpen className="size-4" />,
+  action: <AlertCircle className="size-4" />,
+  status: <Info className="size-4" />,
+  data: <HelpCircle className="size-4" />,
+  'empty-state': <Lightbulb className="size-4" />,
 };
 
 const SHOW_HEADER_TYPES = new Set<TooltipType>(['concept', 'data']);
+
+// Hook for reduced motion preference
+function useReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  return prefersReducedMotion;
+}
 
 export default function ConceptTooltip({
   type,
@@ -97,75 +88,43 @@ export default function ConceptTooltip({
   tooltipId,
   children,
 }: ConceptTooltipProps) {
-  const fallbackId = useId();
+  const fallbackId = React.useId();
   const id = tooltipId ?? `tip_${fallbackId}`;
 
-  const [visible, setVisible] = useState(false);
-  const [forceMode, setForceMode] = useState(false);
-  const [pos, setPos] = useState<Position | null>(null);
+  const [suppressed, setSuppressed] = React.useState(() => loadSuppressedSet().has(id));
+  const [forceMode, setForceMode] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
-  const triggerRef = useRef<HTMLSpanElement>(null);
-  const tipRef = useRef<HTMLDivElement>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [suppressed, setSuppressed] = useState(loadSuppressedSet().has(id));
-
-  const reposition = useCallback(() => {
-    const trigger = triggerRef.current;
-    const tip = tipRef.current;
-    if (!trigger || !tip) return;
-    const rect = trigger.getBoundingClientRect();
-    setPos(calcPosition(rect, tip.offsetWidth, tip.offsetHeight));
-  }, []);
-
-  const canShowUnsolicited = useCallback(() => {
+  const canShowUnsolicited = React.useCallback(() => {
     if (suppressed) return false;
     return getSessionCount() < MAX_UNSOLICITED;
   }, [suppressed]);
 
-  const show = useCallback(
-    (force: boolean) => {
-      if (!force && !canShowUnsolicited()) return;
-      if (!force) incrementSessionCount();
-      setForceMode(force);
-      setVisible(true);
-    },
-    [canShowUnsolicited],
-  );
+  const show = React.useCallback((force: boolean) => {
+    if (!force && !canShowUnsolicited()) return;
+    if (!force) incrementSessionCount();
+    setForceMode(force);
+    setOpen(true);
+  }, [canShowUnsolicited]);
 
-  const hide = useCallback(() => {
-    setVisible(false);
-    setPos(null);
+  const hide = React.useCallback(() => {
+    setOpen(false);
   }, []);
 
-  useEffect(() => {
-    if (!visible) return;
-    reposition();
-    const onResize = () => reposition();
-    window.addEventListener('resize', onResize);
-    window.addEventListener('scroll', onResize, true);
-    return () => {
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('scroll', onResize, true);
-    };
-  }, [visible, reposition]);
-
-  useEffect(() => {
-    if (!visible) return;
-    requestAnimationFrame(reposition);
-  }, [visible, reposition]);
-
   const handleMouseEnter = () => {
-    hoverTimerRef.current = setTimeout(() => show(false), 300);
+    show(false);
   };
 
   const handleMouseLeave = () => {
-    clearTimeout(hoverTimerRef.current);
-    if (!forceMode) hide();
+    if (!forceMode) {
+      hide();
+    }
   };
 
   const handleHelpClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (visible) {
+    if (open) {
       hide();
     } else {
       show(true);
@@ -179,205 +138,91 @@ export default function ConceptTooltip({
   };
 
   const showHeader = SHOW_HEADER_TYPES.has(type);
-
-  const tooltipCard = visible
-    ? createPortal(
-        <div
-          ref={tipRef}
-          onMouseEnter={() => clearTimeout(hoverTimerRef.current)}
-          onMouseLeave={() => {
-            if (!forceMode) hide();
-          }}
-          style={{
-            position: 'absolute',
-            top: pos?.top ?? -9999,
-            left: pos?.left ?? -9999,
-            zIndex: 50000,
-            maxWidth: 320,
-            background: '#fff',
-            border: '1px solid #0A1628',
-            borderRadius: 8,
-            boxShadow: '0 4px 16px rgba(10,22,40,0.15)',
-            padding: '16px 20px',
-            opacity: pos ? 1 : 0,
-            transition: 'opacity 150ms ease',
-            pointerEvents: 'auto',
-          }}
-        >
-          {/* Triangle pointer */}
-          <span
-            style={{
-              position: 'absolute',
-              ...(pos?.placement === 'top'
-                ? {
-                    bottom: -9,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    borderLeft: '8px solid transparent',
-                    borderRight: '8px solid transparent',
-                    borderTop: '8px solid #0A1628',
-                  }
-                : {
-                    top: -9,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    borderLeft: '8px solid transparent',
-                    borderRight: '8px solid transparent',
-                    borderBottom: '8px solid #0A1628',
-                  }),
-              width: 0,
-              height: 0,
-            }}
-          />
-          {/* Inner white fill for the pointer */}
-          <span
-            style={{
-              position: 'absolute',
-              ...(pos?.placement === 'top'
-                ? {
-                    bottom: -7,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    borderLeft: '7px solid transparent',
-                    borderRight: '7px solid transparent',
-                    borderTop: '7px solid #fff',
-                  }
-                : {
-                    top: -7,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    borderLeft: '7px solid transparent',
-                    borderRight: '7px solid transparent',
-                    borderBottom: '7px solid #fff',
-                  }),
-              width: 0,
-              height: 0,
-            }}
-          />
-
-          {showHeader && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                marginBottom: 8,
-              }}
-            >
-              <span style={{ fontSize: 16, lineHeight: 1 }}>
-                {TYPE_ICONS[type]}
-              </span>
-              <span
-                style={{
-                  fontWeight: 700,
-                  fontSize: 13,
-                  color: '#0A1628',
-                }}
-              >
-                {title}
-              </span>
-            </div>
-          )}
-
-          <p
-            style={{
-              margin: 0,
-              fontSize: 14,
-              lineHeight: 1.5,
-              color: '#333',
-            }}
-          >
-            {content}
-          </p>
-
-          {(learnMoreUrl || !suppressed) && (
-            <>
-              <hr
-                style={{
-                  border: 'none',
-                  borderTop: '1px solid #D1DCF0',
-                  margin: '12px 0 8px',
-                }}
-              />
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                {learnMoreUrl ? (
-                  <a
-                    href={learnMoreUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      fontSize: 13,
-                      color: '#2563EB',
-                      textDecoration: 'none',
-                      fontWeight: 500,
-                    }}
-                  >
-                    Learn More →
-                  </a>
-                ) : (
-                  <span />
-                )}
-                {!suppressed && (
-                  <button
-                    onClick={handleDontShow}
-                    style={{
-                      fontSize: 12,
-                      color: '#888',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                    }}
-                  >
-                    Don't show again
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-        </div>,
-        document.body,
-      )
-    : null;
+  const icon = TYPE_ICONS[type];
 
   return (
-    <span
-      ref={triggerRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-    >
-      {children}
-      <button
-        onClick={handleHelpClick}
-        aria-label={`Info about ${title}`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 18,
-          height: 18,
-          borderRadius: '50%',
-          border: '1px solid #D1DCF0',
-          background: '#F3F7FC',
-          color: '#0A1628',
-          fontSize: 11,
-          fontWeight: 700,
-          cursor: 'pointer',
-          lineHeight: 1,
-          padding: 0,
-          flexShrink: 0,
-        }}
-      >
-        ?
-      </button>
-      {tooltipCard}
-    </span>
+    <TooltipProvider delayDuration={prefersReducedMotion ? 0 : 300}>
+      <Tooltip open={open} onOpenChange={setOpen}>
+        <TooltipTrigger asChild>
+          <span
+            className="inline-flex items-center gap-1.5"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {children}
+            <button
+              type="button"
+              aria-label={`Info about ${title}`}
+              className={cn(
+                "inline-flex items-center justify-center size-5 rounded-full",
+                "border border-border bg-muted text-foreground text-xs font-medium",
+                "hover:bg-accent hover:text-accent-foreground transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "active:scale-95"
+              )}
+              onClick={handleHelpClick}
+            >
+              ?
+            </button>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent
+          className="max-w-xs bg-background border-border shadow-lg"
+          sideOffset={8}
+          onMouseEnter={() => setForceMode(true)}
+          onMouseLeave={() => {
+            if (forceMode) {
+              // Keep open if force mode, but allow mouse leave to close if not force mode
+              // Actually keep it open since user is interacting
+            }
+          }}
+        >
+          <div className="space-y-2">
+            {showHeader && (
+              <div className="flex items-center gap-2">
+                <span className="text-primary">{icon}</span>
+                <span className="font-semibold text-sm text-foreground">
+                  {title}
+                </span>
+              </div>
+            )}
+
+            <p className="text-sm text-foreground">
+              {content}
+            </p>
+
+            {(learnMoreUrl || !suppressed) && (
+              <>
+                <div className="border-t border-border pt-2 mt-2" />
+                <div className="flex justify-between items-center">
+                  {learnMoreUrl ? (
+                    <a
+                      href={learnMoreUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-xs font-medium inline-flex items-center gap-1"
+                    >
+                      Learn more <span aria-hidden="true">→</span>
+                    </a>
+                  ) : (
+                    <span />
+                  )}
+
+                  {!suppressed && (
+                    <button
+                      type="button"
+                      onClick={handleDontShow}
+                      className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+                    >
+                      Don't show again
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

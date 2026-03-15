@@ -108,3 +108,6 @@ temp/
 .vercel
 testsprite_tests/tmp/
 fireflies_data.txt
+
+*storybook.log
+storybook-static

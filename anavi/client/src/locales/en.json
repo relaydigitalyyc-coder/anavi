@@ -1,0 +1,66 @@
+{
+  "platform": {
+    "tagline": "The Private Market Operating System",
+    "thesis": "If Bloomberg runs public markets, ANAVI will run private ones.",
+    "market": "$13 trillion private market"
+  },
+  "problems": {
+    "intermediaries": {
+      "stat": "5–15",
+      "headline": "Intermediaries Per Deal",
+      "body": "5 to 15 intermediaries per deal. Each extracting 1–5%. The originator — the person whose relationship made the deal possible — receives no attribution, no compounding value, and no protection if they're cut out."
+    },
+    "fraud": {
+      "stat": "$40B",
+      "headline": "Annual Fraud Losses",
+      "body": "$10 to $40 billion in annual US investment fraud losses. Because identity verification across private markets is fragmented, unshared, and trivially forged. Everyone runs their own checks. No one shares the results."
+    },
+    "compliance": {
+      "stat": "$500K",
+      "headline": "Per-Deal Compliance Cost",
+      "body": "$200,000 to $500,000 per deal spent on KYC/KYB/AML compliance. Duplicated across every participant. No shared verification, no shared trust."
+    }
+  },
+  "personas": {
+    "investor": "Investor",
+    "originator": "Originator",
+    "principal": "Principal"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "dashboard": "Dashboard",
+    "relationships": "Relationships",
+    "intents": "Intents",
+    "matches": "Matches",
+    "deals": "Deals"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View"
+  }
+}

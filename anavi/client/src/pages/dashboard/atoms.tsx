@@ -180,38 +180,64 @@ export function WelcomeBanner({
 
 export function DashboardSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-[280px_1fr_280px]">
-      <div className="space-y-6">
+    <div className="grid grid-cols-1 gap-6 py-2 lg:grid-cols-4">
+      {/* Header Zone */}
+      <div className="lg:col-span-4 dashboard-zone-header space-y-4">
+        <div className="h-10 w-48 animate-shimmer rounded-lg" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-32 animate-shimmer rounded-xl" />
+          ))}
+        </div>
+      </div>
+
+      {/* Metrics Zone */}
+      <div className="lg:col-span-4 dashboard-zone-metrics">
         <div className="card-elevated p-6">
-          <div className="h-4 w-24 animate-shimmer rounded mb-4" />
+          <div className="h-4 w-32 animate-shimmer rounded mb-4" />
           <div className="mx-auto h-[140px] w-[140px] animate-shimmer rounded-full" />
           <div className="mt-4 h-3 w-20 animate-shimmer rounded mx-auto" />
         </div>
-        <div className="space-y-2">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-12 animate-shimmer rounded-lg" />
-          ))}
-        </div>
       </div>
-      <div className="space-y-4">
-        <div className="h-6 w-24 animate-shimmer rounded" />
-        <div className="space-y-3">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-24 animate-shimmer rounded-lg" />
-          ))}
-        </div>
-      </div>
-      <div className="space-y-6">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="card-elevated p-6">
-            <div className="h-4 w-32 animate-shimmer rounded mb-4" />
-            <div className="space-y-2">
-              {[1, 2, 3].map(j => (
-                <div key={j} className="h-4 animate-shimmer rounded" />
-              ))}
-            </div>
+
+      {/* Primary Content Zone */}
+      <div className="lg:col-span-2 dashboard-zone-primary space-y-6">
+        <div className="card-elevated p-6">
+          <div className="h-4 w-48 animate-shimmer rounded mb-4" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-20 animate-shimmer rounded-lg" />
+            ))}
           </div>
-        ))}
+        </div>
+        <div className="card-elevated p-6">
+          <div className="h-4 w-32 animate-shimmer rounded mb-4" />
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-4 animate-shimmer rounded" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Content Zone */}
+      <div className="lg:col-span-2 dashboard-zone-secondary space-y-6">
+        <div className="card-elevated p-6">
+          <div className="h-4 w-40 animate-shimmer rounded mb-4" />
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="h-12 animate-shimmer rounded-lg" />
+            ))}
+          </div>
+        </div>
+        <div className="card-elevated p-6">
+          <div className="h-4 w-24 animate-shimmer rounded mb-4" />
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-4 animate-shimmer rounded" />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
