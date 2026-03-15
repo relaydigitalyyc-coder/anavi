@@ -34,6 +34,7 @@ vi.mock("../../db", () => ({
   getDb: vi.fn().mockResolvedValue(null),
   getUserFlags: vi.fn().mockResolvedValue([]),
   logAuditEvent: vi.fn().mockResolvedValue(undefined),
+  isUserComplianceBlocked: vi.fn().mockResolvedValue(false),
   createIntent: vi.fn().mockImplementation(async (data: { userId: number; intentType: string; title: string; description?: string; keywords?: string[]; embedding?: number[] | null }) => {
     const id = store.nextIntentId++;
     store.intents.push({
@@ -107,6 +108,7 @@ vi.mock("../../db", () => ({
   notifyNewMatch: vi.fn().mockResolvedValue(undefined),
   createPayout: vi.fn().mockResolvedValue(1),
   getPayoutById: vi.fn().mockResolvedValue(null),
+  isDealComplianceBlocked: vi.fn().mockResolvedValue(false),
   getEscrowAccountByDeal: vi.fn().mockResolvedValue(null),
   createEscrowAccount: vi.fn().mockResolvedValue(1),
   updateEscrowAccount: vi.fn().mockResolvedValue(undefined),

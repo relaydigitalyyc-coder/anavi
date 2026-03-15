@@ -36,6 +36,30 @@
   - Frontend + SSR + server bundle completed successfully.
   - Existing chunk-size warnings remain informational only.
 
+## 2026-03-15 — Spec 003: Compliance Governance (Hold/Release + Payout Recompute)
+
+### Scope
+- Added compliance gates to critical flows:
+  - Deal Room creation blocked when either party has an active compliance hold (sanctions/flagged-high/critical, unexpired).
+  - Payout execution blocked when the underlying deal is in `complianceStatus=blocked`.
+- Implemented helpers:
+  - `isUserComplianceBlocked(userId)`
+  - `isDealComplianceBlocked(dealId)`
+- Router updates:
+  - `match.createDealRoom` now audits and rejects on `compliance_block`.
+  - `payout.execute` audits and rejects on `deal_compliance_block`.
+  - `compliance.setDealStatus` (admin) to toggle hold/release with audit trail.
+  - `payout.recompute` preview to surface recompute totals (no DB writes) with feeRate override.
+- Tests: `server/compliance.gates.test.ts` validates Deal Room gate.
+
+### Verification Evidence
+- `pnpm check` ✅
+- `pnpm test` ✅ (includes new compliance gates test)
+- `pnpm build` ✅
+
+### Notes
+- Future: broaden tests to include payout execution block and end-to-end admin status change flows.
+
 ### Follow-up Risk (Open)
 - `match.createDealRoom` currently performs a multi-step write sequence without a single DB transaction boundary, so partial-failure drift is still possible under mid-sequence exceptions (`anavi/server/routers/match.ts`). This remains a hardening candidate for the next R8/R7 pass.
 

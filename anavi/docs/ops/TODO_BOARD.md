@@ -1,6 +1,6 @@
 # TODO Board
 
-Last updated: 2026-03-14
+Last updated: 2026-03-15
 
 ## Next Up
 
@@ -41,6 +41,7 @@ Last updated: 2026-03-14
 - Spec 001 (Deal Flow Action Mutations) — COMPLETE.
 - Spec 000 (Dashboard Logical Integrity) — COMPLETE.
 - Platform-wide logic consistency and flow synchronization hardening (R7) — lifecycle items COMPLETE; governance items deferred.
+ - 2026-03-15 — Spec 003 (Compliance/Payout Governance) — COMPLETE: compliance gates for Deal Room and Payout execution, admin setDealStatus, payout recompute preview, tests added.
 - Demo system unification — removed duplicate DemoContext; demo route uses canonical contexts/DemoContext + fixtures adapter. Persona canonicalization wired.
 - Ralph Wiggum autonomous loop setup completed (scripts, constitution, templates, Claude/Cursor command helpers).
 - R7 FR-1: Route/wrapper coherence verified; added runtime guard matrix (demo/hybrid/live) to R7 plan; Blind Matching naming aligned (page title + h1).

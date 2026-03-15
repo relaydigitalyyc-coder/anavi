@@ -1,0 +1,107 @@
+{
+  "$schema": "https://schema.tokens.studio/tokens",
+  "version": "1.0",
+  "tokenSet": {
+    "core": {
+      "color": {
+        "background": {
+          "value": "#F3F7FC",
+          "type": "color",
+          "description": "Primary background color"
+        },
+        "foreground": {
+          "value": "#0A1628",
+          "type": "color",
+          "description": "Primary text color"
+        },
+        "primary": {
+          "value": "#0A1628",
+          "type": "color",
+          "description": "Primary brand color (navy)"
+        },
+        "accent": {
+          "value": "#2563EB",
+          "type": "color",
+          "description": "Accent color (blue)"
+        },
+        "trust": {
+          "gold": {
+            "value": "#C4972A",
+            "type": "color",
+            "description": "Trust indicator gold"
+          },
+          "green": {
+            "value": "#059669",
+            "type": "color",
+            "description": "Trust indicator green"
+          }
+        },
+        "data": {
+          "steel": {
+            "value": "#1E3A5F",
+            "type": "color",
+            "description": "Data visualization steel"
+          }
+        },
+        "border": {
+          "blue": {
+            "value": "#D1DCF0",
+            "type": "color",
+            "description": "Border color"
+          }
+        },
+        "alert": {
+          "red": {
+            "value": "#DC2626",
+            "type": "color",
+            "description": "Alert/error color"
+          }
+        },
+        "sidebar": {
+          "background": {
+            "value": "#0A1628",
+            "type": "color"
+          },
+          "foreground": {
+            "value": "#E8EDF4",
+            "type": "color"
+          }
+        }
+      },
+      "font": {
+        "sans": {
+          "value": "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif",
+          "type": "fontFamily"
+        },
+        "serif": {
+          "value": "'Instrument Serif', Georgia, 'Times New Roman', serif",
+          "type": "fontFamily"
+        },
+        "mono": {
+          "value": "'JetBrains Mono', 'Courier New', ui-monospace, monospace",
+          "type": "fontFamily"
+        }
+      },
+      "radius": {
+        "default": {
+          "value": "0.5rem",
+          "type": "borderRadius"
+        },
+        "large": {
+          "value": "16px",
+          "type": "borderRadius"
+        },
+        "sharp": {
+          "value": "0px",
+          "type": "borderRadius"
+        }
+      },
+      "spacing": {
+        "unit": {
+          "value": "4px",
+          "type": "spacing"
+        }
+      }
+    }
+  }
+}

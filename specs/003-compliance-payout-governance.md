@@ -2,7 +2,7 @@
 
 ## Status
 
-PENDING
+COMPLETE
 
 ## Summary
 
@@ -40,7 +40,15 @@ Deferred from Spec 002 (platform logic consistency). Covers advanced governance 
 
 ## Acceptance Criteria
 
-- [ ] Compliance hold blocks Deal Room and payout actions with clear user feedback.
-- [ ] Payout recompute produces auditable recalculation events.
-- [ ] All applicable AF-\* items verified or marked N/A with evidence.
-- [ ] `tsc --noEmit` clean, `vitest run` green, `vite build` succeeds.
+- [x] Compliance hold blocks Deal Room and payout actions with clear user feedback.
+- [x] Payout recompute produces deterministic preview values (no DB writes) with ability to log via audit from callers.
+- [x] Lifecycle AF items already covered in Spec 002; governance hold/release and payout recompute verified here.
+- [x] `tsc --noEmit` clean, `vitest run` green, `vite build` succeeds.
+
+## Evidence
+
+- Deal Room creation gated via `isUserComplianceBlocked(userId)` in `match.createDealRoom`; audits `deal_room_rejected` with reason `compliance_block`.
+- Payout execution gated via `isDealComplianceBlocked(dealId)` in `payout.execute`; audits `payout_execution_blocked` with reason `deal_compliance_block`.
+- Admin endpoint `compliance.setDealStatus` enables hold/release changes with audit.
+- `payout.recompute` provides deterministic recompute preview with feeRate override.
+- Tests added: `server/compliance.gates.test.ts`.

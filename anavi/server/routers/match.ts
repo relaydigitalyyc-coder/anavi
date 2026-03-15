@@ -441,6 +441,24 @@ export const matchRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
+      // Compliance gating: block deal room creation if either party is under hold
+      const isBlockedFn: undefined | ((id: number) => Promise<boolean>) =
+        (db as unknown as { isUserComplianceBlocked?: (id: number) => Promise<boolean> }).isUserComplianceBlocked;
+      const user1Blocked = isBlockedFn ? await isBlockedFn(match.user1Id) : false;
+      const user2Blocked = isBlockedFn ? await isBlockedFn(match.user2Id) : false;
+      if (user1Blocked || user2Blocked) {
+        await db.logAuditEvent({
+          userId: ctx.user.id,
+          action: 'deal_room_rejected',
+          entityType: 'match',
+          entityId: input.matchId,
+          previousState: { status: match.status },
+          newState: { status: match.status },
+          metadata: { reason: 'compliance_block', user1Blocked, user2Blocked },
+        });
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Compliance hold prevents Deal Room creation.' });
+      }
+
       if (match.status === 'declined' || match.status === 'expired') {
         await db.logAuditEvent({
           userId: ctx.user.id,

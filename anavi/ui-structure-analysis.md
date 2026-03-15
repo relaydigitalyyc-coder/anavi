@@ -1,0 +1,115 @@
+# UI Structure Analysis - Anavi Project
+
+## Overview
+**Project**: Anavi (financial deal management platform)
+**UI Stack**: React + TypeScript + Vite + Tailwind CSS + shadcn/ui (Radix UI)
+**Design System**: Custom navy/gold private bank aesthetic defined via Tailwind CSS theme variables.
+
+## Directory Structure
+```
+anavi/client/src/
+├── components/
+│   ├── ui/ (58 shadcn components)
+│   ├── Feature components (AIChatBox, DashboardLayout, etc.)
+├── pages/ (30+ page components)
+├── contexts/ (ThemeContext, DemoContext, AppModeContext, TourContext)
+├── lib/ (utils, trpc, constants, etc.)
+├── _core/hooks/ (useAuth)
+└── index.css (design system theme)
+```
+
+## Design System Implementation
+- **shadcn/ui** configured via `components.json` (style: new-york, baseColor: neutral)
+- **Theme**: Custom CSS variables in `index.css` with navy/gold palette
+- **Tailwind CSS** v4 with inline `@theme` configuration
+- **CSS Variables**: `--color-primary`, `--color-accent`, etc.
+- **Dark mode**: Supported via `dark` variant
+
+## Component Library Analysis
+
+### Base UI Components (shadcn)
+- 58 components in `components/ui/` including Button, Card, Form, Table, etc.
+- Consistent use of `cn()` utility from `lib/utils` (clsx + tailwind-merge)
+- Variant props using `class-variance-authority` (CVA)
+- Radix UI primitives for accessibility
+
+### Feature Components
+- **DashboardLayout**: Complex layout with sidebar navigation, persona switching
+- **AIChatBox**, **AnimationStudioControls**: Domain-specific UI
+- **EmptyState**, **ErrorBoundary**: Reusable patterns
+- **FlowRibbon**, **AwwwardsAnimations**: Visual effects
+
+### Page Components
+- 30+ page components covering dashboard, relationships, intents, deals, compliance, etc.
+- Dashboard uses persona-based switching (Investor, Originator, Principal)
+- Routing via `wouter` (SSR-compatible)
+
+## Consistency & Reusability Assessment
+
+### Strengths
+1. **Consistent Design Tokens**: All colors defined as CSS variables
+2. **Base Component Library**: shadcn provides consistent primitives
+3. **Utility Pattern**: `cn()` used throughout for className composition
+4. **TypeScript**: Full type safety for props
+5. **Context Providers**: Theme, Demo, AppMode, Tour contexts for state management
+
+### Weaknesses
+1. **Feature Component Proliferation**: Many one-off components with unclear reuse
+2. **Mixed Abstraction Levels**: Some components combine layout, logic, and presentation
+3. **Design System Documentation**: No living style guide; `ComponentShowcase.tsx` exists but unused
+4. **Tailwind Config**: No separate `tailwind.config.ts` - theme defined inline in CSS
+5. **Component Organization**: No clear distinction between presentational vs container components
+
+## Systemization Level
+**Current State**: Medium systemization. Base UI components are well-systematized via shadcn, but feature components lack consistent patterns and documentation.
+
+**Gaps**:
+- No component documentation/storybook
+- No design token documentation
+- Inconsistent prop patterns across feature components
+- No clear component categorization (atoms, molecules, organisms)
+- Missing design system governance
+
+## Recommendations for UI Systemization
+
+### 1. Design System Enhancement
+- Extract Tailwind theme to `tailwind.config.ts` for maintainability
+- Create design token documentation (Figma variables sync?)
+- Establish component categorization (Atomic Design)
+- Implement Storybook for component documentation
+
+### 2. Component Library Improvements
+- Audit feature components for duplication
+- Extract reusable patterns (cards, lists, forms) into `components/patterns`
+- Create higher-order components for common layouts
+- Standardize prop interfaces (extend base HTML attributes)
+
+### 3. Development Workflow
+- Add `plop` templates for new components
+- Enforce component documentation via ESLint
+- Implement visual regression testing (Chromatic)
+- Create component usage guidelines
+
+### 4. Performance & Maintenance
+- Analyze bundle size impact of UI components
+- Implement lazy loading for heavy components
+- Tree-shake unused shadcn components
+- Regular dependency updates
+
+## Next Steps
+1. **Immediate**: Set up Storybook with existing components
+2. **Short-term**: Create component categorization and audit
+3. **Medium-term**: Implement design token governance
+4. **Long-term**: Establish UI contribution guidelines
+
+## Files Referenced
+- `/home/ariel/Documents/anavi-main/anavi/components.json`
+- `/home/ariel/Documents/anavi-main/anavi/client/src/index.css`
+- `/home/ariel/Documents/anavi-main/anavi/client/src/components/ui/`
+- `/home/ariel/Documents/anavi-main/anavi/client/src/pages/`
+- `/home/ariel/Documents/anavi-main/anavi/client/src/lib/utils.ts`
+- `/home/ariel/Documents/anavi-main/anavi/client/src/contexts/`
+- `/home/ariel/Documents/anavi-main/anavi/docs/plans/2026-03-03-prd-r1-dead-code-removal.md`
+
+---
+*Analysis generated by Hydra UI Agent on 2026-03-14*

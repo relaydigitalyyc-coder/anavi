@@ -5,6 +5,25 @@ import { loadSdnList, checkOfac } from "../_core/ofac";
 import { checkOpenCorporates } from "../_core/kyb";
 
 export const complianceRouter = router({
+  // Admin-only hold/release for deals
+  setDealStatus: protectedProcedure
+    .input(z.object({ dealId: z.number(), status: z.enum(["pending","cleared","flagged","blocked"]) }))
+    .mutation(async ({ ctx, input }) => {
+      // In a full system, restrict to admins or deal owners; minimal check here
+      const isAdmin = ctx.user?.role === 'admin';
+      if (!isAdmin) {
+        throw new Error('Forbidden');
+      }
+      await db.updateDeal(input.dealId, { complianceStatus: input.status } as any);
+      await db.logAuditEvent({
+        userId: ctx.user.id,
+        action: 'deal_compliance_status_changed',
+        entityType: 'deal',
+        entityId: input.dealId,
+        newState: { complianceStatus: input.status },
+      });
+      return { dealId: input.dealId, status: input.status };
+    }),
   getChecks: protectedProcedure
     .input(z.object({
       entityType: z.enum(["user", "deal", "relationship"]),

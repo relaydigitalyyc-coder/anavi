@@ -22,6 +22,70 @@ const buildArtifactId = () =>
   Number(`${Date.now()}`.slice(-9)) + Math.floor(Math.random() * 1000);
 
 export const payoutRouter = router({
+  /** Recompute payout previews after deal term changes (no DB writes). */
+  recompute: protectedProcedure
+    .input(z.object({ dealId: z.number(), feeRate: z.number().min(0).max(1).optional() }))
+    .query(async ({ input }) => {
+      const conn = await db.getDb();
+      if (!conn)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database not available",
+        });
+
+      const dealRows = await conn
+        .select()
+        .from(deals)
+        .where(eq(deals.id, input.dealId))
+        .limit(1);
+      if (dealRows.length === 0)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Deal not found" });
+
+      const d = dealRows[0];
+      const dealValue = Number(d.dealValue ?? 0);
+
+      const participants = await conn
+        .select()
+        .from(dealParticipants)
+        .where(eq(dealParticipants.dealId, input.dealId));
+
+      const followOns: FollowOnAttribution[] = [];
+      if (d.isFollowOn && d.originalDealId) {
+        const origParticipants = await conn
+          .select()
+          .from(dealParticipants)
+          .where(
+            and(
+              eq(dealParticipants.dealId, d.originalDealId),
+              eq(dealParticipants.role, "originator"),
+            ),
+          );
+        for (const op of origParticipants) {
+          if (op.relationshipId) {
+            followOns.push({
+              userId: op.userId,
+              relationshipId: op.relationshipId,
+              attributionPercentage: 10,
+            });
+          }
+        }
+      }
+
+      const feeRate = input.feeRate ?? 0.02;
+      const splits = calculatePayoutSplits(
+        dealValue,
+        feeRate,
+        participants,
+        followOns,
+      );
+
+      return {
+        dealId: input.dealId,
+        dealValue,
+        totalFees: dealValue * feeRate,
+        splits,
+      };
+    }),
   list: protectedProcedure.query(async ({ ctx }) => {
     return db.getPayoutsByUser(ctx.user.id);
   }),
@@ -303,7 +367,7 @@ export const payoutRouter = router({
       return { payoutId: input.payoutId, status: "approved" as const };
     }),
 
-  /** Admin: execute an approved payout. Attempts Stripe transfer; falls back to mock completion. */
+  /** Admin: execute an approved payout. Attempts Stripe transfer; blocks on compliance; falls back to mock completion. */
   execute: adminProcedure
     .input(z.object({ payoutId: z.number() }))
     .mutation(async ({ input }) => {
@@ -318,6 +382,23 @@ export const payoutRouter = router({
           code: "BAD_REQUEST",
           message: `Cannot execute payout in '${payout.status}' status`,
         });
+
+      // Compliance gate: if the underlying deal is blocked, do not execute payout
+      if (payout.dealId) {
+        const blocked = await db.isDealComplianceBlocked(payout.dealId);
+        if (blocked) {
+          await db.logAuditEvent({
+            userId: undefined,
+            action: 'payout_execution_blocked',
+            entityType: 'payout',
+            entityId: input.payoutId,
+            previousState: { status: payout.status },
+            newState: { status: payout.status },
+            metadata: { reason: 'deal_compliance_block', dealId: payout.dealId },
+          });
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Compliance block on deal prevents payout execution.' });
+        }
+      }
 
       // Stripe integration placeholder — in production this calls stripe.transfers.create
       const stripeEnabled = false;
